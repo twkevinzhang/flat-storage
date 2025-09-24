@@ -5,6 +5,8 @@
   "scripts": {},
   "private": true,
   "dependencies": {
+    "@google-cloud/storage": "^7.17.1",
+    "csv": "^6.4.1",
     "vue": "^3.5.13"
   },
   "devDependencies": {
@@ -21,6 +23,8 @@
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
     "@typescript-eslint/parser": "^7.16.0",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vitest/ui": "^3.0.0",
