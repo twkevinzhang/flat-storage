@@ -3,7 +3,6 @@
   "compilerOptions": {
     "outDir": "dist",
     "module": "nodenext",
-    "types": ["node"],
     "rootDir": "src",
     "moduleResolution": "nodenext",
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
