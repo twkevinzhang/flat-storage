@@ -19,7 +19,7 @@
     "customConditions": ["development"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["apps/api-server/src/*"]
+      "@api-server/*": ["apps/api-server/src/*"]
     }
   }
 }

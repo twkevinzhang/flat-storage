@@ -1,4 +1,4 @@
-import { Object } from '@/models';
+import { Object } from '@api-server/models';
 
 export interface Repository {
   listObjects(parent?: string): Promise<Object[]>;

@@ -1,7 +1,7 @@
-import { Repository } from '@/repositories/interface';
+import { Repository } from '@api-server/repositories/interface';
 import { UseCase } from './interface';
-import { Object } from '@/models';
-import { StorageService } from '@/services/interface';
+import { Object } from '@api-server/models';
+import { StorageService } from '@api-server/services/interface';
 
 export class UseCaseImpl implements UseCase {
   constructor(

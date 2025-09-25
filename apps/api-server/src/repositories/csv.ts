@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as csvlib from 'csv';
 import { randomUUID } from 'crypto';
 import { Repository } from './interface';
-import { Object } from '@/models';
-import { StorageService } from '@/services/interface';
+import { Object } from '@api-server/models';
+import { StorageService } from '@api-server/services/interface';
 
 export const RECORDS_PATH = 'records.csv';
 

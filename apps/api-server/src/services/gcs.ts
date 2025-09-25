@@ -1,6 +1,6 @@
 import { Storage } from '@google-cloud/storage';
 import { StorageService } from './interface';
-import { Object } from '@/models';
+import { Object } from '@api-server/models';
 
 export class GCSService implements StorageService {
   private storage: Storage;
