@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import csvlib from 'csv';
+import * as csvlib from 'csv';
 import { randomUUID } from 'crypto';
 import { Repository } from './interface';
 import { Object } from '@/models';
