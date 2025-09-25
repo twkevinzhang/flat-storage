@@ -13,7 +13,7 @@
         "defaultConfiguration": "production",
         "options": {
           "platform": "node",
-          "outputPath": "apps/api-server/dist",
+          "outputPath": "dist/apps/api-server",
           "format": [
             "cjs"
           ],
@@ -49,8 +49,8 @@
         "cache": true,
         "executor": "@nx/js:prune-lockfile",
         "outputs": [
-          "{workspaceRoot}/apps/api-server/dist/package.json",
-          "{workspaceRoot}/apps/api-server/dist/pnpm-lock.yaml"
+          "{workspaceRoot}/dist/apps/api-server/package.json",
+          "{workspaceRoot}/dist/apps/api-server/pnpm-lock.yaml"
         ],
         "options": {
           "buildTarget": "build"
@@ -62,7 +62,7 @@
         ],
         "cache": true,
         "outputs": [
-          "{workspaceRoot}/apps/api-server/dist/workspace_modules"
+          "{workspaceRoot}/dist/apps/api-server/workspace_modules"
         ],
         "executor": "@nx/js:copy-workspace-modules",
         "options": {
