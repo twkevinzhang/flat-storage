@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as csvlib from 'csv';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 import { Repository } from './interface';
 import { Object } from '@api-server/models';
 import { StorageService } from '@api-server/services/interface';
+import { ApiError } from '@google-cloud/storage';
 
 export const RECORDS_PATH = 'records.csv';
 
@@ -12,16 +13,16 @@ export class CSVRepository implements Repository {
   private tmpRecordsPath: string;
 
   constructor(storage: StorageService) {
-    this.tmpRecordsPath = './records.csv.tmp';
+    this.tmpRecordsPath = 'records.csv.tmp';
     this.storage = storage;
   }
   async clear(): Promise<void> {
-    await this.prepareRecords();
+    await this.prepareTmpRecords();
     await this.editRecords((record) => null); // If the callback returns null or undefined, the record is skipped.
     await this.saveRecords();
   }
   async listObjects(parent: string = '/'): Promise<Object[]> {
-    await this.prepareRecords();
+    await this.prepareTmpRecords();
     const list = await this.list();
     if (!parent) return list;
     return list.filter(
@@ -29,19 +30,20 @@ export class CSVRepository implements Repository {
     );
   }
   async getObject(objectId: string): Promise<Object> {
-    await this.prepareRecords();
+    await this.prepareTmpRecords();
     const objects = await this.list();
     const object = objects.find((obj) => obj.id === objectId);
     if (!object) throw new Error('Object not found');
     return object;
   }
   async createObject(object: Object): Promise<string> {
-    await this.prepareRecords();
+    await this.prepareTmpRecords();
     const id = object.id ?? randomUUID(); // 自動產生 UUID
     const record: Object = {
       id,
       path: object.path ?? id,
-      size: object.size ?? 0,
+      md5Hash: object.md5Hash,
+      sizeBytes: object.sizeBytes ?? 0,
       deletedAt: object.deletedAt ?? null,
     };
     await new Promise((resolve, reject) => {
@@ -64,19 +66,20 @@ export class CSVRepository implements Repository {
     return id;
   }
   async batchCreateObjects(objects: Object[]): Promise<string[]> {
-    await this.prepareRecords();
+    await this.prepareTmpRecords();
     const ids: string[] = [];
     for (const object of objects) {
       const id = object.id ?? randomUUID();
       const record: Object = {
         id,
         path: object.path ?? id,
-        size: object.size ?? 0,
+        md5Hash: object.md5Hash,
+        sizeBytes: object.sizeBytes ?? 0,
         deletedAt: object.deletedAt ?? null,
       };
       await new Promise((resolve, reject) => {
         const stringifier = csvlib.stringify({
-          header: false,
+          header: true,
         });
         const writable = fs.createWriteStream(this.tmpRecordsPath, {
           flags: 'a',
@@ -96,7 +99,7 @@ export class CSVRepository implements Repository {
     return ids;
   }
   async editObject(objectId: string, object: Partial<Object>): Promise<void> {
-    await this.prepareRecords();
+    await this.prepareTmpRecords();
     const objects = await this.list();
     const index = objects.findIndex((obj) => obj.id === objectId);
     if (index === -1) throw new Error('Object not found');
@@ -112,7 +115,7 @@ export class CSVRepository implements Repository {
     await this.saveRecords();
   }
   async deleteObject(objectId: string): Promise<void> {
-    await this.prepareRecords();
+    await this.prepareTmpRecords();
     const objects = await this.list();
     const index = objects.findIndex((obj) => obj.id === objectId);
     if (index === -1) return;
@@ -130,19 +133,33 @@ export class CSVRepository implements Repository {
     await this.saveRecords();
   }
 
-  private async prepareRecords(): Promise<void> {
-    const isExist = await this.storage.objectExists(RECORDS_PATH);
-    if (!isExist) {
-      await this.storage.uploadObject(
-        {
-          id: RECORDS_PATH,
-          path: RECORDS_PATH,
-          size: 0,
-          deletedAt: null,
-        },
-        Buffer.from('')
-      );
+  private async prepareTmpRecords(): Promise<void> {
+    const exists = await this.fileExists(this.tmpRecordsPath);
+    if (exists) return;
+
+    try {
+      await this.storage.downloadObject(RECORDS_PATH, this.tmpRecordsPath);
+    } catch (error) {
+      if (isApiErrorException(error) && error.code === 404) {
+        this.createTmpRecords();
+        return;
+      }
+      throw error;
     }
+  }
+  private async fileExists(path: string): Promise<boolean> {
+    try {
+      await fs.promises.access(path, fs.constants.F_OK);
+      return true;
+    } catch (error) {
+      if (isErrnoException(error) && error.code === 'ENOENT') {
+        return false;
+      }
+      throw error;
+    }
+  }
+  private async createTmpRecords(): Promise<void> {
+    await fs.promises.writeFile(this.tmpRecordsPath, '', 'utf8');
   }
   private async list(): Promise<Object[]> {
     return new Promise((resolve, reject) => {
@@ -160,7 +177,8 @@ export class CSVRepository implements Repository {
             return {
               id: record.id,
               path: record.path,
-              size: Number(record.size),
+              md5Hash: record.md5Hash,
+              sizeBytes: Number(record.size),
               deletedAt: record.deletedAt ? new Date(record.deletedAt) : null,
             };
           })
@@ -193,14 +211,29 @@ export class CSVRepository implements Repository {
     });
   }
   private async saveRecords(): Promise<void> {
+    const buffer = Buffer.from(fs.readFileSync(this.tmpRecordsPath));
+    const md5Hash = getMd5Hash(buffer);
     await this.storage.uploadObject(
       {
-        id: this.tmpRecordsPath,
-        path: this.tmpRecordsPath,
-        size: fs.statSync(this.tmpRecordsPath).size,
+        id: RECORDS_PATH,
+        path: RECORDS_PATH,
+        md5Hash: md5Hash,
+        sizeBytes: buffer.length,
         deletedAt: null,
       },
-      Buffer.from(fs.readFileSync(this.tmpRecordsPath))
+      buffer
     );
   }
+}
+
+function isErrnoException(e: unknown): e is NodeJS.ErrnoException {
+  return typeof e === 'object' && e !== null && 'code' in e;
+}
+
+function isApiErrorException(e: unknown): e is ApiError {
+  return typeof e === 'object' && e !== null && 'code' in e;
+}
+
+function getMd5Hash(buffer: Buffer): string {
+  return createHash('md5').update(buffer).digest('base64');
 }

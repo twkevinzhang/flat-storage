@@ -13,8 +13,10 @@ export interface UseCase {
 
   listObjects(parent?: string): Promise<Object[]>;
   getObject(objectId: string): Promise<Object>;
-  downloadAndGetObject(objectId: string): Promise<Object & { content: Buffer }>;
-  createAndUploadObject(object: Object, content: Buffer): Promise<string>;
+  getObjectAndGetDownloadLink(
+    objectId: string
+  ): Promise<Object & { downloadLink: string }>;
+  createObjectAndGetUploadLink(object: Object): Promise<{ uploadLink: string }>;
   deleteObject(objectId: string): Promise<void>;
   moveObject(objectId: string, newPath: string): Promise<void>;
 }

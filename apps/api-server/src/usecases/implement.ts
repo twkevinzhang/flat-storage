@@ -13,7 +13,7 @@ export class UseCaseImpl implements UseCase {
     const newRecords = objects.map((obj) => ({
       id: obj.path,
       path: obj.path,
-      size: obj.size,
+      sizeBytes: obj.sizeBytes,
       deletedAt: obj.deletedAt,
     }));
     await this.repository.clear();
@@ -28,19 +28,15 @@ export class UseCaseImpl implements UseCase {
   async getObject(objectId: string): Promise<Object> {
     return await this.repository.getObject(objectId);
   }
-  async downloadAndGetObject(
+  async getObjectAndGetDownloadLink(
     objectId: string
-  ): Promise<Object & { content: Buffer }> {
-    const buffer = await this.storage.downloadObject(objectId);
-    const object = await this.repository.getObject(objectId);
-    return { ...object, content: buffer };
+  ): Promise<Object & { downloadLink: string }> {
+    throw new Error('Method not implemented.');
   }
-  async createAndUploadObject(
-    object: Object,
-    content: Buffer
-  ): Promise<string> {
-    await this.repository.createObject(object);
-    return this.storage.uploadObject(object, content);
+  async createObjectAndGetUploadLink(
+    object: Object
+  ): Promise<{ uploadLink: string }> {
+    throw new Error('Method not implemented.');
   }
   async deleteObject(objectId: string): Promise<void> {
     return this.repository.deleteObject(objectId);
