@@ -17,6 +17,11 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
+  resolve: {
+    alias: {
+      '@site': path.resolve(__dirname, 'src'),
+    },
+  },
   plugins: [
     vue(),
     tailwindcss(),
