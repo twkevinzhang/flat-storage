@@ -8,8 +8,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Contents: typeof import('./layouts/Contents.vue')['default']
+    App: typeof import('./app/App.vue')['default']
     DesktopLayout: typeof import('./layouts/DesktopLayout.vue')['default']
-    Treebar: typeof import('./layouts/Treebar.vue')['default']
+    NxWelcome: typeof import('./app/NxWelcome.vue')['default']
   }
 }
