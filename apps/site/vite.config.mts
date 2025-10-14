@@ -29,16 +29,14 @@ export default defineConfig(() => ({
       dts: path.resolve(__dirname, 'src', 'auto-imports.d.ts'),
       imports: ['vue'],
     }),
-
-    // 自动注册组件，页面直接使用
     Components({
       dts: path.resolve(__dirname, 'src', 'components.d.ts'),
+      dirs: ['src'],
+      extensions: ['vue'],
+      include: [/\.vue$/, /\.vue\?vue/],
     }),
   ],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [ nxViteTsPaths() ],
-  // },
+
   build: {
     outDir: './dist',
     emptyOutDir: true,
