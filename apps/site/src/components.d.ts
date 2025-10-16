@@ -9,7 +9,11 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     App: typeof import('./app/App.vue')['default']
+    Contents: typeof import('./layouts/Contents.vue')['default']
     DesktopLayout: typeof import('./layouts/DesktopLayout.vue')['default']
+    ExplorerBar: typeof import('./components/ExplorerBar.vue')['default']
     NxWelcome: typeof import('./app/NxWelcome.vue')['default']
+    PathTreeNode: typeof import('./components/PathTreeNode.vue')['default']
+    SvgIcon: typeof import('./components/SvgIcon.vue')['default']
   }
 }

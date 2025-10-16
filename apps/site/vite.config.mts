@@ -5,6 +5,7 @@ import path from 'node:path';
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import tailwindcss from '@tailwindcss/vite';
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -34,6 +35,10 @@ export default defineConfig(() => ({
       dirs: ['src'],
       extensions: ['vue'],
       include: [/\.vue$/, /\.vue\?vue/],
+    }),
+    createSvgIconsPlugin({
+      iconDirs: [path.resolve(process.cwd(), 'src/icons')],
+      symbolId: 'icon-[dir]-[name]',
     }),
   ],
 

@@ -26,6 +26,9 @@ z. 如果有，但不合法，請使用者修正或刪除，並退出應用
 
 ### 重新攤平、製作新ID（成本較高）
 
+### 瀏覽檔案
+1. 在 desktop layout 中，左側有 SideBar 可以樹狀瀏覽檔案，按照名稱排序，最多顯示200個。
+
 
 ## before deploy
 1. create GCP project and storage bucket, set IAM permission
