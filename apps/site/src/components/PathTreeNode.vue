@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { TreeNode } from '@site/types';
-
 const {
   node,
   limit = 2,

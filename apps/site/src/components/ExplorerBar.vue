@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { FileEntity } from '@site/types';
-import { buildTree } from '@site/utilities';
-
 const { entities, filter } = defineProps<{
   entities: FileEntity[];
   filter?: (entity: FileEntity) => boolean;

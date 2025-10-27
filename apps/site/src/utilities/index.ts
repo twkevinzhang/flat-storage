@@ -1,8 +1,6 @@
-import { FileEntity, MimeType, TreeNode } from '@site/types';
-
 interface TempNode {
   name: string;
-  mimeType?: MimeType;
+  mimeType?: FileMimeType;
   children: Record<string, TempNode>;
 }
 
