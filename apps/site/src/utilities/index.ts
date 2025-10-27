@@ -12,11 +12,11 @@ export function buildTree(entities: FileEntity[]): TreeNode[] {
   // 建立樹狀結構
   for (const entity of entities) {
     const parts = entity.path.split('/').filter(Boolean);
-    if (parts.length === 0) continue;
+    if (size(parts) === 0) continue;
 
     let currentLevel = root;
 
-    for (let i = 0; i < parts.length; i++) {
+    for (let i = 0; i < size(parts); i++) {
       const part = parts[i];
       if (!currentLevel[part]) {
         currentLevel[part] = { name: part, children: {} };
@@ -25,7 +25,7 @@ export function buildTree(entities: FileEntity[]): TreeNode[] {
       const node = currentLevel[part];
 
       // 只有最後一層才指定 mimeType
-      if (i === parts.length - 1 && entity.mimeType) {
+      if (i === size(parts) - 1 && entity.mimeType) {
         node.mimeType = entity.mimeType;
       }
 
@@ -34,12 +34,10 @@ export function buildTree(entities: FileEntity[]): TreeNode[] {
   }
 
   function convert(obj: Record<string, TempNode>): TreeNode[] {
-    return Object.values(obj).map((node) => ({
+    return map(obj, (node) => ({
       name: node.name,
       mimeType: node.mimeType,
-      children: Object.keys(node.children).length
-        ? convert(node.children)
-        : undefined,
+      children: isEmpty(node.children) ? undefined : convert(node.children),
     }));
   }
 

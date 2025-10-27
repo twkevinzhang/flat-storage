@@ -6,6 +6,8 @@ import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
+import * as lodash from 'lodash-es';
+import * as utilities from './src/utilities/index';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -28,7 +30,14 @@ export default defineConfig(() => ({
     tailwindcss(),
     AutoImport({
       dts: path.resolve(__dirname, 'src', 'auto-imports.d.ts'),
-      imports: ['vue'],
+      imports: [
+        'vue',
+        {
+          'lodash-es': Object.keys(lodash),
+          '@site/utilities': Object.keys(utilities),
+        },
+      ],
+      vueTemplate: true,
     }),
     Components({
       dts: path.resolve(__dirname, 'src', 'components.d.ts'),

@@ -10,7 +10,7 @@ const emit = defineEmits<{
 const parts = computed(() => path.split('/').filter(Boolean));
 
 const handleClick = (index: number) => {
-  const newPath = parts.value.slice(0, index + 1).join('/');
+  const newPath = take(parts.value, index + 1).join('/');
   emit('navigate', newPath);
 };
 </script>
@@ -22,7 +22,7 @@ const handleClick = (index: number) => {
     <template v-for="(part, index) in parts" :key="index">
       <!-- 當前 part 不可點擊 -->
       <span
-        v-if="index === parts.length - 1"
+        v-if="index === size(parts) - 1"
         class="text-sm font-medium text-gray-900 select-none"
       >
         {{ part }}
@@ -37,7 +37,7 @@ const handleClick = (index: number) => {
         {{ part }}
       </button>
 
-      <span v-if="index < parts.length - 1" class="text-gray-400 select-none"
+      <span v-if="index < size(parts) - 1" class="text-gray-400 select-none"
         >/</span
       >
     </template>

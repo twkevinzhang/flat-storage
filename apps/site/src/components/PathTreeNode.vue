@@ -11,7 +11,7 @@ const {
   limit?: number;
 }>();
 const open = ref(false);
-const hasChildren = computed(() => node.children && node.children.length > 0);
+const hasChildren = computed(() => size(node.children) > 0);
 const isFolder = computed(() => node.mimeType === 'folder');
 function toggle() {
   open.value = !open.value;
@@ -60,17 +60,17 @@ const itemClass = ['flex', 'items-center'];
       :class="isRoot ? [] : ['pl-4']"
     >
       <PathTreeNode
-        v-for="child in node.children.slice(0, limit)"
+        v-for="child in take(node.children, limit)"
         :key="child.name"
         :node="child"
         :limit="limit"
       />
       <li
-        v-if="node.children.length > limit"
+        v-if="size(node.children) > limit"
         class="pl-2 text-gray-500 italic cursor-pointer"
         @click="showMore()"
       >
-        ... and {{ node.children.length - limit }} more
+        ... and {{ size(node.children) - limit }} more
       </li>
     </ul>
   </li>
