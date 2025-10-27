@@ -6,6 +6,7 @@
   "private": true,
   "dependencies": {
     "@google-cloud/storage": "^7.17.1",
+    "@vueuse/core": "^14.0.0",
     "body-parser": "^2.2.0",
     "csv": "^6.4.1",
     "express": "^4.21.2",
