@@ -266,6 +266,9 @@
       />
     </template>
     <template v-slot:content>
+      <Breadcrumb
+        :path="'yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy'"
+      />
       <Contents />
     </template>
   </DesktopLayout>

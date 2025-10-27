@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-// 引入 VueUse 的核心 Composables
 import { useMouse, useMousePressed } from '@vueuse/core';
 
 // --- 侧边栏图标和状态逻辑 (保持不变) ---
