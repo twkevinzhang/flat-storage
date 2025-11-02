@@ -479,6 +479,7 @@ declare global {
   const keysIn: typeof import('lodash-es')['keysIn']
   const last: typeof import('lodash-es')['last']
   const lastIndexOf: typeof import('lodash-es')['lastIndexOf']
+  const latestIndex: typeof import('@site/utilities')['latestIndex']
   const lodash: typeof import('lodash-es')['lodash']
   const lowerCase: typeof import('lodash-es')['lowerCase']
   const lowerFirst: typeof import('lodash-es')['lowerFirst']

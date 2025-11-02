@@ -1,0 +1,48 @@
+<script setup lang="ts">
+import { FileEntity } from '@site/models';
+
+const { files } = defineProps<{
+  files: FileEntity[];
+}>();
+</script>
+
+<template>
+  <div class="w-full overflow-x-scroll">
+    <!-- 標題列 -->
+    <div
+      class="flex items-center justify-between gap-4 px-4 py-2 border border-gray-300 rounded-t-lg bg-gray-200/50"
+    >
+      <div class="min-w-32 flex-1 truncate">名稱</div>
+      <div class="w-32">大小</div>
+      <div class="w-32">種類</div>
+      <div class="w-40">最後修改日期</div>
+    </div>
+
+    <!-- 檔案列 -->
+    <div
+      v-for="file in files"
+      :key="file.name"
+      class="flex items-center justify-between gap-4 px-4 py-2 border-b border-x border-gray-300 last:rounded-b-lg hover:bg-gray-200/50 transition"
+    >
+      <div class="min-w-32 flex-1 truncate flex flex-row gap-2">
+        <SvgIcon
+          v-if="file.isFolder"
+          name="folder"
+          :class-name="['size-5', 'text-blue-500']"
+        />
+        <SvgIcon
+          v-else
+          name="file-question-alt-1"
+          :class-name="['size-5', 'text-blue-500']"
+        />
+        <span>{{ file.name }}</span>
+      </div>
+
+      <span class="w-32 text-gray-500 text-right">{{
+        file.sizeFormatted
+      }}</span>
+      <span class="w-32 text-gray-500">{{ file.mimeType }}</span>
+      <span class="w-40 text-gray-500">{{ file.modifiedAtFormatted }}</span>
+    </div>
+  </div>
+</template>
