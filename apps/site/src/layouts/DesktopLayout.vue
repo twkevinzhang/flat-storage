@@ -50,7 +50,7 @@ watch(x, (currentX) => {
 </script>
 
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex h-screen text-sm">
     <div
       class="flex flex-col items-center w-14 bg-gray-900 text-white py-2 space-y-2"
     >
@@ -71,7 +71,7 @@ watch(x, (currentX) => {
     <template v-if="sidebarOpen">
       <div
         :style="{ width: sidebarWidth + 'px' }"
-        class="flex-shrink-0 bg-white border-r flex flex-col transition-all duration-0"
+        class="flex flex-col transition-all duration-0"
       >
         <slot name="sidebar" :icon="active" />
       </div>

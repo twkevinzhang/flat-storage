@@ -23,7 +23,7 @@ const hoverableClass = [
   'cursor-pointer',
   'hover:bg-gray-200/50',
 ];
-const itemClass = ['flex', 'items-center'];
+const itemClass = ['flex', 'items-center', 'select-none'];
 </script>
 
 <template>
@@ -34,10 +34,10 @@ const itemClass = ['flex', 'items-center'];
       @click="toggle()"
     >
       <div v-if="open" :class="[...itemClass, ...hoverableClass]">
-        <SvgIcon name="angle-down" :class-name="['size-5']" />
+        <SvgIcon name="angle-down" :class-name="['size-4']" />
       </div>
       <div v-else :class="[...itemClass, ...hoverableClass]">
-        <SvgIcon name="angle-right" :class-name="['size-5']" />
+        <SvgIcon name="angle-right" :class-name="['size-4']" />
       </div>
       <span :class="['w-full', ...hoverableClass]">
         {{ node.name }}
@@ -46,7 +46,7 @@ const itemClass = ['flex', 'items-center'];
 
     <div v-else :class="[...itemClass, ...hoverableClass]">
       <div :class="[...itemClass]">
-        <SvgIcon name="file-question-alt-1" :class-name="['size-5']" />
+        <SvgIcon name="file-question-alt-1" :class-name="['size-4']" />
       </div>
       <span class="w-full rounded-md pl-1">
         {{ node.name }}

@@ -17,7 +17,7 @@ const handleClick = (index: number) => {
 
 <template>
   <nav
-    class="flex items-center gap-2 px-4 py-2 bg-white/70 max-w-full overflow-x-auto whitespace-nowrap"
+    class="flex items-center gap-2 px-4 py-2 overflow-x-auto whitespace-nowrap"
   >
     <template v-for="(part, index) in parts" :key="index">
       <!-- 當前 part 不可點擊 -->
