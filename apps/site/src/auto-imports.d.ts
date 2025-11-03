@@ -874,6 +874,7 @@ declare module 'vue' {
     readonly keysIn: UnwrapRef<typeof import('lodash-es')['keysIn']>
     readonly last: UnwrapRef<typeof import('lodash-es')['last']>
     readonly lastIndexOf: UnwrapRef<typeof import('lodash-es')['lastIndexOf']>
+    readonly latestIndex: UnwrapRef<typeof import('@site/utilities')['latestIndex']>
     readonly lodash: UnwrapRef<typeof import('lodash-es')['lodash']>
     readonly lowerCase: UnwrapRef<typeof import('lodash-es')['lowerCase']>
     readonly lowerFirst: UnwrapRef<typeof import('lodash-es')['lowerFirst']>

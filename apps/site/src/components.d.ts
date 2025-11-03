@@ -10,12 +10,14 @@ declare module 'vue' {
   export interface GlobalComponents {
     App: typeof import('./app/App.vue')['default']
     Breadcrumb: typeof import('./components/Breadcrumb.vue')['default']
+    Button: typeof import('./components/Button.vue')['default']
     Contents: typeof import('./layouts/Contents.vue')['default']
     DesktopLayout: typeof import('./layouts/DesktopLayout.vue')['default']
-    ExplorerBar: typeof import('./components/ExplorerBar.vue')['default']
+    ExplorerBar: typeof import('./layouts/ExplorerBar.vue')['default']
     FileList: typeof import('./layouts/FileList.vue')['default']
-    NxWelcome: typeof import('./app/NxWelcome.vue')['default']
+    Hover: typeof import('./components/Hover.vue')['default']
     PathTreeNode: typeof import('./components/PathTreeNode.vue')['default']
     SvgIcon: typeof import('./components/SvgIcon.vue')['default']
+    ViewSettingsDialog: typeof import('./layouts/dialogs/ViewSettingsDialog.vue')['default']
   }
 }

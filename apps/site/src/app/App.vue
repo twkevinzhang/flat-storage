@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mockFiles } from "@site/models"
+import { mockFiles } from '@site/models';
 </script>
 
 <template>
@@ -8,9 +8,6 @@ import { mockFiles } from "@site/models"
       <ExplorerBar :entities="mockFiles()" />
     </template>
     <template v-slot:content>
-      <Breadcrumb
-        :path="'yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy'"
-      />
       <Contents />
     </template>
   </DesktopLayout>

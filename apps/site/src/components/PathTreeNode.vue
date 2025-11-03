@@ -17,12 +17,6 @@ function toggle() {
 function showMore() {
   // TODO
 }
-const hoverableClass = [
-  'p-1',
-  'rounded-md',
-  'cursor-pointer',
-  'hover:bg-gray-200/50',
-];
 const itemClass = ['flex', 'items-center', 'select-none'];
 </script>
 
@@ -33,25 +27,25 @@ const itemClass = ['flex', 'items-center', 'select-none'];
       :class="[...itemClass]"
       @click="toggle()"
     >
-      <div v-if="open" :class="[...itemClass, ...hoverableClass]">
-        <SvgIcon name="angle-down" :class-name="['size-4']" />
-      </div>
-      <div v-else :class="[...itemClass, ...hoverableClass]">
-        <SvgIcon name="angle-right" :class-name="['size-4']" />
-      </div>
-      <span :class="['w-full', ...hoverableClass]">
+      <Hover v-if="open" :class-name="[...itemClass]">
+        <SvgIcon name="angle-down" :class-name="['size-4', 'fill-gray-500']" />
+      </Hover>
+      <Hover v-else :class-name="[...itemClass]">
+        <SvgIcon name="angle-right" :class-name="['size-4', 'fill-gray-500']" />
+      </Hover>
+      <Hover :class-name="['w-full', 'p-1']">
         {{ node.name }}
-      </span>
+      </Hover>
     </div>
 
-    <div v-else :class="[...itemClass, ...hoverableClass]">
+    <Hover v-else :class-name="[...itemClass]">
       <div :class="[...itemClass]">
         <SvgIcon name="file-question-alt-1" :class-name="['size-4']" />
       </div>
       <span class="w-full rounded-md pl-1">
         {{ node.name }}
       </span>
-    </div>
+    </Hover>
 
     <ul
       v-if="hasChildren && open && node.children"
