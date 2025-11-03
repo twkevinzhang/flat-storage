@@ -1,5 +1,10 @@
 <script setup lang="ts">
-const { prefix, name, style } = defineProps<{
+const {
+  prefix,
+  name,
+  style,
+  className = [],
+} = defineProps<{
   prefix?: string;
   name: string;
   style?: Record<string, string>;
@@ -9,7 +14,7 @@ const symbolId = computed(() => `#${prefix ?? 'icon'}-${name}`);
 </script>
 
 <template>
-  <svg aria-hidden="true" :style="style" :class="className">
+  <svg :style="style" :class="[...className, 'shrink-0']">
     <use :href="symbolId" />
   </svg>
 </template>

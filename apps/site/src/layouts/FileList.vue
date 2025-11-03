@@ -14,7 +14,7 @@ const linkable = ['hover:text-blue-600', 'hover:underline', 'cursor-pointer'];
     <div
       class="flex items-center justify-between gap-4 px-4 py-2 border border-gray-300 rounded-t-lg bg-gray-200/50"
     >
-      <div class="min-w-32 flex-1 truncate">名稱</div>
+      <div class="min-w-32 flex-1">名稱</div>
       <div class="w-32">大小</div>
       <div class="w-32">種類</div>
       <div class="w-40">最後修改日期</div>
@@ -26,7 +26,7 @@ const linkable = ['hover:text-blue-600', 'hover:underline', 'cursor-pointer'];
       :key="file.name"
       class="flex items-center justify-between gap-4 px-4 py-2 border-b border-x border-gray-300 last:rounded-b-lg hover:bg-gray-200/50 transition"
     >
-      <div class="min-w-32 flex-1 truncate flex flex-row gap-2">
+      <div class="min-w-32 flex-1 flex flex-row gap-2">
         <SvgIcon
           v-if="file.isFolder"
           name="folder"
@@ -37,7 +37,7 @@ const linkable = ['hover:text-blue-600', 'hover:underline', 'cursor-pointer'];
           name="file-question-alt-1"
           :class-name="['size-5', 'text-blue-500']"
         />
-        <span :class="[...linkable]">{{ file.name }}</span>
+        <span :class="['truncate', ...linkable]">{{ file.name }}</span>
       </div>
 
       <span class="w-32 text-gray-500 text-right">{{
