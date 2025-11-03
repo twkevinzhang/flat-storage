@@ -1,3 +1,5 @@
+import { latestIndex } from '@site/utilities';
+
 export class FileEntity {
   private _path: string;
   private _mimeType?: FileMimeType;
@@ -55,7 +57,7 @@ export class FileEntity {
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = this._sizeBytes;
     let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
+    while (size >= 1024 && unitIndex < latestIndex(units)) {
       size /= 1024;
       unitIndex++;
     }

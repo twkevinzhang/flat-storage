@@ -13,33 +13,30 @@ const handleClick = (index: number) => {
   const newPath = take(parts.value, index + 1).join('/');
   emit('navigate', newPath);
 };
+
+const linkable = ['hover:text-blue-600', 'hover:underline', 'cursor-pointer'];
 </script>
 
 <template>
-  <nav
-    class="flex items-center gap-2 px-4 py-2 overflow-x-auto whitespace-nowrap"
-  >
-    <template v-for="(part, index) in parts" :key="index">
-      <!-- 當前 part 不可點擊 -->
-      <span
-        v-if="index === size(parts) - 1"
-        class="text-sm font-medium text-gray-900 select-none"
-      >
-        {{ part }}
+  <div class="mx-4 mt-4">
+    <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
+      <template v-for="(part, index) in parts" :key="index">
+        <button
+          :class="['text-sm', 'text-gray-500', ...linkable]"
+          @click="() => handleClick(index)"
+        >
+          {{ part }}
+        </button>
+
+        <!-- 分隔符號 -->
+        <span class="text-gray-400 select-none">></span>
+      </template>
+    </nav>
+    <div class="mt-2 mb-4 gap-1 flex items-center">
+      <span class="text-xl font-bold">Contents Layout</span>
+      <span :class="[...linkable]">
+        <SvgIcon name="copy" :class-name="['size-5']" />
       </span>
-
-      <!-- 可點擊的 part -->
-      <button
-        v-else
-        class="text-sm font-medium text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
-        @click="handleClick(index)"
-      >
-        {{ part }}
-      </button>
-
-      <span v-if="index < size(parts) - 1" class="text-gray-400 select-none"
-        >/</span
-      >
-    </template>
-  </nav>
+    </div>
+  </div>
 </template>

@@ -1,10 +1,12 @@
-interface TempNode {
-  name: string;
-  mimeType?: FileMimeType;
-  children: Record<string, TempNode>;
-}
+import { FileEntity } from '@site/models';
 
 export function buildTree(entities: FileEntity[]): TreeNode[] {
+  interface TempNode {
+    name: string;
+    mimeType?: FileMimeType;
+    children: Record<string, TempNode>;
+  }
+
   const root: Record<string, TempNode> = {};
 
   // 建立樹狀結構
@@ -23,7 +25,7 @@ export function buildTree(entities: FileEntity[]): TreeNode[] {
       const node = currentLevel[part];
 
       // 只有最後一層才指定 mimeType
-      if (i === size(parts) - 1 && entity.mimeType) {
+      if (i === latestIndex(parts) && entity.mimeType) {
         node.mimeType = entity.mimeType;
       }
 
@@ -40,4 +42,8 @@ export function buildTree(entities: FileEntity[]): TreeNode[] {
   }
 
   return convert(root);
+}
+
+export function latestIndex<T>(array: Array<T>): number {
+  return size(array) - 1;
 }
