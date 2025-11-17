@@ -2,7 +2,7 @@
 const { className, variant } = defineProps({
   className: {
     type: [String, Array<String>],
-    default: [],
+    default: '',
   },
   variant: {
     type: String as () => 'invisible' | 'link',

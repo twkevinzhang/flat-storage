@@ -21,14 +21,13 @@ const openSettings = ref(false);
             <SvgIcon name="angle-down" :class-name="['size-5']" />
           </Hover>
         </Hover>
-
-        <!-- copy button -->
-        <Hover class-name="mx-2">
-          <SvgIcon name="copy" :class-name="['size-5']" />
-        </Hover>
       </div>
       <div>
-        <Button @click="openSettings = true" icon-name="view-setting" />
+        <Button
+          @click="openSettings = true"
+          size="md"
+          icon-name="view-setting"
+        />
       </div>
     </div>
   </div>
@@ -36,4 +35,6 @@ const openSettings = ref(false);
   <div class="flex-1 px-4">
     <FileList :files="mockFiles()" />
   </div>
+
+  <GridConfigDialog :open="openSettings" @close="openSettings = false" />
 </template>

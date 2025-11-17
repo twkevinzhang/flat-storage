@@ -15,9 +15,10 @@ declare module 'vue' {
     DesktopLayout: typeof import('./layouts/DesktopLayout.vue')['default']
     ExplorerBar: typeof import('./layouts/ExplorerBar.vue')['default']
     FileList: typeof import('./layouts/FileList.vue')['default']
+    GridConfigDialog: typeof import('./layouts/dialogs/GridConfigDialog.vue')['default']
     Hover: typeof import('./components/Hover.vue')['default']
     PathTreeNode: typeof import('./components/PathTreeNode.vue')['default']
     SvgIcon: typeof import('./components/SvgIcon.vue')['default']
-    ViewSettingsDialog: typeof import('./layouts/dialogs/ViewSettingsDialog.vue')['default']
+    ToggleSwitch: typeof import('./components/ToggleSwitch.vue')['default']
   }
 }

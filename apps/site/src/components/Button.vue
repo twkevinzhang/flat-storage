@@ -5,8 +5,8 @@ const { iconName, variant, size, className } = defineProps({
     default: 'cross',
   },
   size: {
-    type: String as () => 'sm' | 'md' | 'lg',
-    default: 'md',
+    type: String as () => 'sm' | 'md' | 'lg' | 'auto',
+    default: 'auto',
   },
   variant: {
     type: String as () => 'default' | 'primary' | 'danger',
@@ -36,6 +36,8 @@ const sizeClass = computed(() => {
       return 'size-7';
     case 'lg':
       return 'size-10';
+    case 'auto':
+      return '';
     default:
       return 'size-9';
   }

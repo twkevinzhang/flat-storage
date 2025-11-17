@@ -4,8 +4,6 @@ import { FileEntity } from '@site/models';
 const { files } = defineProps<{
   files: FileEntity[];
 }>();
-
-const linkable = ['hover:text-blue-600', 'hover:underline', 'cursor-pointer'];
 </script>
 
 <template>
@@ -37,7 +35,9 @@ const linkable = ['hover:text-blue-600', 'hover:underline', 'cursor-pointer'];
           name="file-question-alt-1"
           :class-name="['size-5', 'text-blue-500']"
         />
-        <span :class="['break-all', ...linkable]">{{ file.name }}</span>
+        <Hover :class-name="['break-all']" variant="link">{{
+          file.name
+        }}</Hover>
       </div>
 
       <span class="w-32 text-gray-500 text-right">{{
