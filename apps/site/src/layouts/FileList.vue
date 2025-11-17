@@ -25,14 +25,14 @@ const { files } = defineProps<{
       class="flex items-center justify-between gap-4 px-4 py-2 border-b border-x border-gray-200 last:rounded-b-lg hover:bg-gray-200/50 transition"
     >
       <div class="min-w-24 flex-1 flex flex-row gap-2">
-        <SvgIcon
+        <PrimeIcon
           v-if="file.isFolder"
           name="folder"
           :class-name="['size-5', 'text-blue-500']"
         />
-        <SvgIcon
+        <PrimeIcon
           v-else
-          name="file-question-alt-1"
+          name="file"
           :class-name="['size-5', 'text-blue-500']"
         />
         <Hover :class-name="['break-all']" variant="link">{{

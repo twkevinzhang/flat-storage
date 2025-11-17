@@ -1,5 +1,16 @@
 {
   "name": "@flat-storage/site",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "nx": {
+    "name": "site",
+    "targets": {
+      "add-component": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "pnpx volt-vue add {args.name} --outdir {projectRoot}/src/volt"
+        }
+      }
+    }
+  }
 }

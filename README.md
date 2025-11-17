@@ -30,6 +30,11 @@ z. 如果有，但不合法，請使用者修正或刪除，並退出應用
 1. 在 desktop layout 中，左側有 SideBar 可以樹狀瀏覽檔案，按照名稱排序，最多顯示200個。
 
 
+## how to develop site
+1. 熟悉 nx 指令
+2. This site dependence on volt-vue, 當你需要新的元件（例如 Button）時需要使用指令 `nx add-component site --name=Button`，請參考 https://volt.primevue.org/vite/#download
+
+
 ## before deploy
 1. create GCP project and storage bucket, set IAM permission
 2. login gCloud cli

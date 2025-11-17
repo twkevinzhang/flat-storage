@@ -17,7 +17,7 @@ const tree = computed(() =>
       <span class="font-bold">Explorer</span>
     </div>
     <ul>
-      <PathTreeNode v-for="node in tree" :key="node.name" :node="node" />
+      <PathTree v-for="node in tree" :key="node.name" :node="node" />
     </ul>
   </div>
 </template>

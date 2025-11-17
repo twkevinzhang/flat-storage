@@ -24,9 +24,9 @@ const resolvedClassName = computed(() => {
 
 const variantClass = computed(() => {
   if (variant === 'invisible') {
-    return 'p-1 hover:bg-gray-200/50 hover:rounded-lg cursor-pointer';
+    return 'p-1 hover:bg-gray-200/50 hover:rounded-lg cursor-pointer transition-colors duration-150';
   } else if (variant === 'link') {
-    return 'hover:text-blue-600 hover:underline cursor-pointer';
+    return 'hover:text-blue-600 hover:underline cursor-pointer transition-colors duration-150';
   } else {
     return '';
   }
@@ -37,7 +37,7 @@ const classes = computed(() =>
 );
 </script>
 <template>
-  <div :class="classes" @click="emits('click')">
+  <div :class="classes" @click="(e) => emits('click', e)">
     <slot />
   </div>
 </template>

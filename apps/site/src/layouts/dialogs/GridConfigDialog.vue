@@ -3,13 +3,14 @@ const props = defineProps<{
   open: boolean;
 }>();
 
-const emit = defineEmits<{
+const emits = defineEmits<{
   (e: 'close'): void;
 }>();
 
 const viewMode = ref<'list' | 'grid' | 'dense'>('list');
 const thumbnailMode = ref<'on' | 'off'>('on');
 const sort = ref('asc');
+const value = ref('');
 </script>
 
 <template>
@@ -20,52 +21,51 @@ const sort = ref('asc');
     <div class="bg-white rounded-lg shadow-lg w-[380px] max-w-[90%] p-6">
       <!-- body -->
       <div class="space-b-4">
-        <div class="flex justify-between">
-          <span class="text-xl font-bold">檢視</span>
-          <Hover @click="emit('close')">
-            <SvgIcon name="cross" :class-name="['size-5', 'fill-gray-500']" />
-          </Hover>
-        </div>
-        <div class="grid grid-cols-2 gap-4 my-2">
-          <Hover
-            v-for="{ key, iconName } in [
-              { key: 'list', iconName: 'list', label: '清單' },
-              { key: 'grid', iconName: 'grid', label: '網格' },
+        <Fieldset legend="檢視">
+          <SelectButton
+            size="large"
+            class="w-full"
+            v-model="value"
+            :options="[
+              { icon: 'pi pi-list', name: '清單', value: 'list' },
+              { icon: 'pi pi-th-large', name: '網格', value: 'grid' },
             ]"
-            :key="key"
-            @click=""
-            class-name="flex items-center justify-center p-4"
+            optionLabel="name"
+            dataKey="value"
           >
-            <SvgIcon :name="iconName" :class-name="['size-5']" />
-          </Hover>
-        </div>
-
-        <div>
-          <span class="text-xl font-bold">排列</span>
-          <div class="grid grid-cols-3 gap-4 my-2">
-            <div class="p-4">
-              <ToggleSwitch v-model="sort" label="通知" />
-              <p class="mt-2 text-gray-600"></p>
-            </div>
-            <Hover
-              v-for="{ key, iconName } in [
-                { key: 'list', iconName: 'cross', label: '清單' },
-                { key: 'grid', iconName: 'cross', label: '網格' },
-                { key: 'dense', iconName: 'cross', label: '詳細' },
+            <template #option="slotProps">
+              <i :class="slotProps.option.icon"></i>
+            </template>
+          </SelectButton>
+        </Fieldset>
+        <Fieldset legend="排列">
+          <div v-for="section in ['名稱', '大小', '種類', '修改日期']">
+            <label for="fluid" class="mt-2 mb-1 block">{{ section }}</label>
+            <SelectButton
+              class="w-full"
+              fluid
+              id="fluid"
+              size="small"
+              v-model="value"
+              :options="[
+                { name: '順序', value: 1 },
+                { name: '無', value: 0 },
+                { name: '逆序', value: 3 },
               ]"
-              :key="key"
-              @click=""
-              class-name="flex items-center justify-center p-4"
-            >
-              <SvgIcon :name="iconName" :class-name="['size-5']" />
-            </Hover>
+              optionLabel="name"
+            />
           </div>
-        </div>
+        </Fieldset>
       </div>
 
       <!-- 底部按鈕 -->
       <div class="mt-6 flex justify-end">
-        <Button class="px-4 py-2" @click="emit('close')"> 完成 </Button>
+        <SecondaryButton
+          @click="(e) => emits('close')"
+          label="取消"
+          variant="text"
+        />
+        <Button @click="(e) => emits('close')" label="完成" />
       </div>
     </div>
   </div>

@@ -27,7 +27,7 @@ const handleClick = (index: number) => {
       </Hover>
 
       <!-- 分隔符號 -->
-      <SvgIcon name="angle-right" :class-name="['size-2', 'fill-gray-500']" />
+      <PrimeIcon name="angle-right" />
     </template>
   </nav>
 </template>

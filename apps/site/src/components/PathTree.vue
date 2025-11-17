@@ -25,13 +25,13 @@ const itemClass = ['flex', 'items-center', 'select-none'];
     <div
       v-if="isFolder || hasChildren"
       :class="[...itemClass]"
-      @click="toggle()"
+      @click="(e) => toggle()"
     >
       <Hover v-if="open" :class-name="[...itemClass]">
-        <SvgIcon name="angle-down" :class-name="['size-4', 'fill-gray-500']" />
+        <PrimeIcon name="angle-down" />
       </Hover>
       <Hover v-else :class-name="[...itemClass]">
-        <SvgIcon name="angle-right" :class-name="['size-4', 'fill-gray-500']" />
+        <PrimeIcon name="angle-right" />
       </Hover>
       <Hover :class-name="['w-full', 'p-1']">
         {{ node.name }}
@@ -40,7 +40,7 @@ const itemClass = ['flex', 'items-center', 'select-none'];
 
     <Hover v-else :class-name="[...itemClass]">
       <div :class="[...itemClass]">
-        <SvgIcon name="file-question-alt-1" :class-name="['size-4']" />
+        <PrimeIcon name="file-question-alt-1" />
       </div>
       <span class="w-full rounded-md pl-1">
         {{ node.name }}
@@ -51,7 +51,7 @@ const itemClass = ['flex', 'items-center', 'select-none'];
       v-if="hasChildren && open && node.children"
       :class="isRoot ? [] : ['pl-4']"
     >
-      <PathTreeNode
+      <PathTree
         v-for="child in take(node.children, limit)"
         :key="child.name"
         :node="child"
@@ -60,7 +60,7 @@ const itemClass = ['flex', 'items-center', 'select-none'];
       <li
         v-if="size(node.children) > limit"
         class="pl-2 text-gray-500 italic cursor-pointer"
-        @click="showMore()"
+        @click="(e) => showMore()"
       >
         ... and {{ size(node.children) - limit }} more
       </li>

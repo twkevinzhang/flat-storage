@@ -10,23 +10,18 @@ const openSettings = ref(false);
       :path="'yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy'"
     />
     <div class="mt-2 mb-3 gap-1 flex justify-between items-center">
-      <div class="gap-1 flex items-center">
-        <!-- title and dropdown menu -->
-        <Hover className="gap-1 p-1 flex items-center">
-          <span class="text-xl font-bold break-all">
-            ContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContents
-            Layout
-          </span>
-          <Hover variant="link">
-            <SvgIcon name="angle-down" :class-name="['size-5']" />
-          </Hover>
-        </Hover>
-      </div>
+      <span class="text-xl font-bold break-all">
+        ContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContents
+        Layout
+      </span>
       <div>
         <Button
-          @click="openSettings = true"
-          size="md"
-          icon-name="view-setting"
+          @click="(e) => (openGridConfig = true)"
+          aria-label="Filter"
+          variant="text"
+          rounded
+          size="large"
+          class="pi pi-eye"
         />
       </div>
     </div>

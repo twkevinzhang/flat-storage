@@ -78,7 +78,7 @@ const trackColorClass = computed(() => {
     </span>
     <div
       class="flex items-center gap-2 cursor-pointer select-none"
-      @click="toggle"
+      @click="(e) => toggle"
     >
       <span class="text-gray-500 text-sm">{{ stateLabel }}</span>
 
