@@ -1,8 +1,12 @@
 <script setup lang="ts">
-const { name, color, size } = defineProps({
+const { name, fullname, color, size } = defineProps({
   name: {
     type: String,
     default: '',
+  },
+  fullname: {
+    type: String,
+    default: null,
   },
   color: {
     type: String,
@@ -14,7 +18,10 @@ const { name, color, size } = defineProps({
   },
 });
 
-const theClasses = computed(() => ['pi', `pi-${name}`, 'shrink-0'].join(' '));
+const theClasses = computed(() => {
+  const newName = fullname ? fullname : `pi-${name}`;
+  return ['pi', newName, 'shrink-0'].join(' ');
+});
 const theFontSize = computed(() => {
   switch (size) {
     case 'large':
