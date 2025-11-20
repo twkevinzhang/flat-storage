@@ -8,14 +8,14 @@ const SidebarIconList = [
   { id: 'starred', icon: '⭐', label: 'Starred' },
   { id: 'history', icon: '⏱️', label: 'History' },
 ];
-const active = ref<string | null>(SidebarIconList[0].id);
-const sidebarOpen = computed(() => active.value !== null);
+const activeItemId = ref<string | null>(SidebarIconList[0].id);
+const sidebarOpen = computed(() => activeItemId.value !== null);
 
 function setActive(id: string) {
-  if (active.value === id) {
-    active.value = null;
+  if (activeItemId.value === id) {
+    activeItemId.value = null;
   } else {
-    active.value = id;
+    activeItemId.value = id;
   }
 }
 
@@ -51,29 +51,22 @@ watch(x, (currentX) => {
 
 <template>
   <div class="flex h-screen text-sm">
-    <div
-      class="flex flex-col items-center w-14 bg-gray-900 text-white py-2 space-y-2"
+    <SideIconBar
+      :items="SidebarIconList"
+      :active-item-id="activeItemId"
+      @click="(item, e) => setActive(item.id)"
     >
-      <button
-        v-for="icon in SidebarIconList"
-        :key="icon.id"
-        @click="setActive(icon.id)"
-        :class="[
-          active === icon.id ? 'bg-gray-700' : '',
-          'w-10 h-10 flex items-center justify-center rounded hover:bg-gray-700 transition',
-        ]"
-        :title="icon.label"
-      >
-        <span class="text-2xl">{{ icon.icon }}</span>
-      </button>
-    </div>
+      <template #default="{ item }">
+        <span class="text-2xl">{{ item.icon }}</span>
+      </template>
+    </SideIconBar>
 
     <template v-if="sidebarOpen">
       <div
         :style="{ width: sidebarWidth + 'px' }"
         class="flex flex-col transition-all duration-0"
       >
-        <slot name="sidebar" :icon="active" />
+        <slot name="sidebar" :icon="activeItemId" />
       </div>
 
       <div
