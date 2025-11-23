@@ -11,7 +11,7 @@ defineProps<Props>();
   <Dialog modal pt:root:class="w-md h-3/4">
     <Hover
       v-for="item in items"
-      className="flex items-center gap-3 p-2"
+      class="flex items-center gap-3 p-2"
       @click="(e) => item.command?.({ originalEvent: e, item })"
     >
       <PrimeIcon :fullname="item.icon" />

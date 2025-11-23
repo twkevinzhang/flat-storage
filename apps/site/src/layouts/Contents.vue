@@ -16,7 +16,7 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
     />
     <div class="mt-2">
       <Hover
-        className="gap-1 p-1 flex items-center"
+        class="gap-1 p-1 flex items-center"
         @click="(e) => (openMenu = true)"
         aria-haspopup="true"
         aria-controls="overlay_menu"
@@ -37,7 +37,7 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
           class="pi pi-sliders-h"
         />
         <Hover
-          className="gap-1 p-1 flex items-center"
+          class="gap-1 p-1 flex items-center"
           @click="(e) => (openAdd = true)"
           aria-haspopup="true"
           aria-controls="overlay_menu"
@@ -135,7 +135,7 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
           icon: 'pi-filter',
         },
       ]"
-      className="flex items-center gap-3 p-2"
+      class="flex items-center gap-3 p-2"
       @click="(e) => (openAction = item.action)"
     >
       <PrimeIcon :fullname="item.icon" />
