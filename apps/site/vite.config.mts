@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
+import { PrimeVueResolver } from '@primevue/auto-import-resolver';
 import tailwindcss from '@tailwindcss/vite';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 import * as lodash from 'lodash-es';
@@ -44,6 +45,7 @@ export default defineConfig(() => ({
       dirs: ['src'],
       extensions: ['vue'],
       include: [/\.vue$/, /\.vue\?vue/],
+      resolvers: [PrimeVueResolver()],
     }),
     createSvgIconsPlugin({
       iconDirs: [path.resolve(process.cwd(), 'src/icons')],

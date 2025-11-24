@@ -30,11 +30,12 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
     </div>
     <div class="my-1 flex justify-between">
       <div class="gap-1 flex justify-start">
-        <SecondaryButton
+        <Button
           @click="(e) => (openSetting = true)"
           aria-label="Settings"
+          severity="secondary"
           variant="text"
-          class="pi pi-sliders-h"
+          icon="pi pi-sliders-h"
         />
         <Hover
           class="gap-1 p-1 flex items-center"
@@ -47,11 +48,12 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
         </Hover>
       </div>
       <div class="gap-1 flex justify-end">
-        <SecondaryButton
+        <Button
           @click="(e) => (openInfo = true)"
           aria-label="Info"
+          severity="secondary"
           variant="text"
-          class="pi pi-info-circle"
+          icon="pi pi-info-circle"
         />
       </div>
     </div>
@@ -102,8 +104,6 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
   >
     <Fieldset legend="View Mode" class="mb-4">
       <SelectButton
-        size="large"
-        class="w-full"
         v-model="viewMode"
         :options="[
           { icon: 'pi pi-list', name: '清單', value: 'list' },
@@ -111,9 +111,10 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
         ]"
         optionLabel="name"
         dataKey="value"
+        fluid
       >
         <template #option="slotProps">
-          <i :class="slotProps.option.icon"></i>
+          <PrimeIcon :fullname="slotProps.option.icon" size="large" />
         </template>
       </SelectButton>
     </Fieldset>
@@ -200,4 +201,6 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
     :visible="openAction === 'filter'"
     @update:visible="() => (openAction = null)"
   />
+
+  <ContentsOrderDialog :visible="true" />
 </template>
