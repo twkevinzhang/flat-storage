@@ -75,7 +75,8 @@ const actions = [
             }...`"
           />
           <div class="flex justify-end">
-            <SecondaryButton
+            <Button
+              severity="secondary"
               label="Reset"
               type="reset"
               variant="text"
@@ -88,7 +89,8 @@ const actions = [
           <DatePicker :name="`${key}.start`" placeholder="Empty" fluid />
           <DatePicker :name="`${key}.end`" placeholder="Empty" fluid />
           <div class="flex justify-end">
-            <SecondaryButton
+            <Button
+              severity="secondary"
               label="Reset"
               type="reset"
               variant="text"

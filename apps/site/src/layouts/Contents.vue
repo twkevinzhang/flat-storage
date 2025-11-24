@@ -60,7 +60,7 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
   </div>
 
   <div class="flex-1 px-4">
-    <FileList :files="mockFiles()" />
+    <ContentsFileList :files="mockFiles()" />
   </div>
 
   <MenuDialog
@@ -201,6 +201,4 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
     :visible="openAction === 'filter'"
     @update:visible="() => (openAction = null)"
   />
-
-  <ContentsOrderDialog :visible="true" />
 </template>
