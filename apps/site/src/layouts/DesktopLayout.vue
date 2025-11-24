@@ -75,7 +75,7 @@ watch(x, (currentX) => {
       ></div>
     </template>
 
-    <div class="flex-1 overflow-auto">
+    <div class="flex-1 overflow-auto min-w-xs">
       <slot name="content" />
     </div>
   </div>

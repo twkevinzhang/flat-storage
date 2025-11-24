@@ -6,8 +6,16 @@ const openAction = ref<'filter' | 'sort' | 'order' | null>(null);
 const openSetting = ref(false);
 const openAdd = ref(false);
 const openInfo = ref(false);
-const viewMode = ref<'list' | 'grid' | 'dense'>('list');
+const viewMode = ref<'list' | 'grid' | 'dense'>('dense');
 </script>
+
+<style scoped>
+:deep(.p-datatable-column-resizer) {
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: var(--p-datatable-body-cell-border-color);
+}
+</style>
 
 <template>
   <div class="mx-4 mt-4">
@@ -60,7 +68,34 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
   </div>
 
   <div class="flex-1 px-4">
-    <ContentsFileList :files="mockFiles()" />
+    <DataTable
+      :value="mockFiles()"
+      resizableColumns
+      columnResizeMode="expand"
+      tableClass="min-w-md"
+    >
+      <Column field="path" header="path" class="max-w-xs">
+        <template #body="{ data: file }">
+          <Hover
+            severity="link"
+            :icon="file.isFolder ? 'pi-folder' : 'pi-file'"
+            :label="file.name"
+          />
+        </template>
+      </Column>
+      <Column field="mimeType" header="mimeType" class="max-w-xs" />
+      <Column
+        field="sizeFormatted"
+        header="sizeBytes"
+        class="max-w-xs flex justify-end"
+      />
+      <Column field="createdAtISO" header="createdAtISO" class="max-w-xs" />
+      <Column
+        field="latestUpdatedAtISO"
+        header="latestUpdatedAtISO"
+        class="max-w-xs"
+      />
+    </DataTable>
   </div>
 
   <MenuDialog

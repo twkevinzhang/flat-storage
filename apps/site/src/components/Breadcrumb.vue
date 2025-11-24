@@ -19,7 +19,7 @@ const handleClick = (index: number) => {
   <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
     <template v-for="(part, index) in parts" :key="index">
       <Hover
-        :class="['text-sm', 'text-gray-500']"
+        class="text-sm text-gray-500"
         severity="link"
         :label="part"
         @click="() => handleClick(index)"

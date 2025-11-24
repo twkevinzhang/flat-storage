@@ -17,7 +17,7 @@ const emits = defineEmits<{
 
 <template>
   <div
-    class="flex flex-col items-center w-14 bg-gray-900 text-white py-2 space-y-2"
+    class="flex flex-col items-center min-w-14 bg-gray-900 text-white py-2 space-y-2"
   >
     <Hover
       v-for="item in items"
