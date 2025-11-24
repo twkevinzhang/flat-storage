@@ -106,15 +106,15 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
       <SelectButton
         v-model="viewMode"
         :options="[
-          { icon: 'pi pi-list', name: '清單', value: 'list' },
-          { icon: 'pi pi-th-large', name: '網格', value: 'grid' },
+          { icon: 'list', name: '清單', value: 'list' },
+          { icon: 'th-large', name: '網格', value: 'grid' },
         ]"
         optionLabel="name"
         dataKey="value"
         fluid
       >
-        <template #option="slotProps">
-          <PrimeIcon :fullname="slotProps.option.icon" size="large" />
+        <template #option="{ option }">
+          <PrimeIcon :name="option.icon" size="large" />
         </template>
       </SelectButton>
     </Fieldset>
@@ -128,12 +128,12 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
         {
           label: 'Sort',
           action: 'sort',
-          icon: 'pi-filter',
+          icon: 'pi-sort-alpha-down',
         },
         {
           label: 'Order',
           action: 'order',
-          icon: 'pi-filter',
+          icon: 'pi-sort',
         },
       ]"
       class="flex items-center gap-3 p-2"
@@ -199,6 +199,16 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
 
   <ContentsFilterDialog
     :visible="openAction === 'filter'"
+    @update:visible="() => (openAction = null)"
+  />
+
+  <ContentsSortDialog
+    :visible="openAction === 'sort'"
+    @update:visible="() => (openAction = null)"
+  />
+
+  <ContentsOrderDialog
+    :visible="openAction === 'order'"
     @update:visible="() => (openAction = null)"
   />
 </template>
