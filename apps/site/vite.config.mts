@@ -4,9 +4,9 @@ import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
+import VueRouter from 'unplugin-vue-router/vite';
 import { PrimeVueResolver } from '@primevue/auto-import-resolver';
 import tailwindcss from '@tailwindcss/vite';
-import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 import * as lodash from 'lodash-es';
 import * as utilities from './src/utilities/index';
 
@@ -47,9 +47,16 @@ export default defineConfig(() => ({
       include: [/\.vue$/, /\.vue\?vue/],
       resolvers: [PrimeVueResolver()],
     }),
-    createSvgIconsPlugin({
-      iconDirs: [path.resolve(process.cwd(), 'src/icons')],
-      symbolId: 'icon-[dir]-[name]',
+    VueRouter({
+      dts: path.resolve(__dirname, 'src', 'typed-router.d.ts'),
+      routesFolder: 'src/pages',
+      /**
+       * Data Fetching is an experimental feature from vue & vue-router
+       *
+       * @see https://github.com/vuejs/rfcs/discussions/460
+       * @see https://github.com/posva/unplugin-vue-router/tree/main/src/data-fetching
+       */
+      dataFetching: true,
     }),
   ],
 

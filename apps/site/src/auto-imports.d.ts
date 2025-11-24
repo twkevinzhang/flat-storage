@@ -7,6 +7,7 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue')['EffectScope']
+  const FileEntity: typeof import('./models/index')['FileEntity']
   const _add: typeof import('../../../node_modules/.pnpm/lodash-imports@0.0.3/node_modules/lodash-imports/dist/lodash.mjs')['add']
   const _after: typeof import('../../../node_modules/.pnpm/lodash-imports@0.0.3/node_modules/lodash-imports/dist/lodash.mjs')['after']
   const _ary: typeof import('../../../node_modules/.pnpm/lodash-imports@0.0.3/node_modules/lodash-imports/dist/lodash.mjs')['ary']
@@ -503,6 +504,7 @@ declare global {
   const min: typeof import('lodash-es')['min']
   const minBy: typeof import('lodash-es')['minBy']
   const mixin: typeof import('lodash-es')['mixin']
+  const mockFiles: typeof import('./models/index')['mockFiles']
   const multiply: typeof import('lodash-es')['multiply']
   const negate: typeof import('lodash-es')['negate']
   const next: typeof import('lodash-es')['next']

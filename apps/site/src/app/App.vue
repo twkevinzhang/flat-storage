@@ -8,7 +8,9 @@ import { mockFiles } from '@site/models';
       <ExplorerBar :entities="mockFiles()" />
     </template>
     <template v-slot:content>
-      <Contents />
+      <RouterView v-slot="{ Component }">
+        <component :is="Component" />
+      </RouterView>
     </template>
   </DesktopLayout>
 </template>

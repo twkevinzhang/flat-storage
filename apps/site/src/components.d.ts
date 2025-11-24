@@ -8,11 +8,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    '[storage]': typeof import('./pages/storage/[storage].vue')['default']
     App: typeof import('./app/App.vue')['default']
     Breadcrumb: typeof import('./components/Breadcrumb.vue')['default']
     Button: typeof import('primevue/button')['default']
     Column: typeof import('primevue/column')['default']
-    Contents: typeof import('./layouts/Contents.vue')['default']
     ContentsFilterDialog: typeof import('./layouts/ContentsFilterDialog.vue')['default']
     ContentsOrderDialog: typeof import('./layouts/ContentsOrderDialog.vue')['default']
     ContentsSortDialog: typeof import('./layouts/ContentsSortDialog.vue')['default']
@@ -20,18 +20,21 @@ declare module 'vue' {
     DatePicker: typeof import('primevue/datepicker')['default']
     DesktopLayout: typeof import('./layouts/DesktopLayout.vue')['default']
     Dialog: typeof import('primevue/dialog')['default']
-    Divider: typeof import('primevue/divider')['default']
     ExplorerBar: typeof import('./layouts/ExplorerBar.vue')['default']
     Fieldset: typeof import('primevue/fieldset')['default']
     Hover: typeof import('./components/Hover.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
     MenuDialog: typeof import('./components/MenuDialog.vue')['default']
     OrderList: typeof import('primevue/orderlist')['default']
+    Pages: typeof import('./pages/index.vue')['default']
     Panel: typeof import('primevue/panel')['default']
     PathTree: typeof import('./components/PathTree.vue')['default']
     PrimeIcon: typeof import('./components/PrimeIcon.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
     SelectButton: typeof import('primevue/selectbutton')['default']
     SideIconBar: typeof import('./components/SideIconBar.vue')['default']
+    Storage: typeof import('./pages/storage.vue')['default']
   }
 }

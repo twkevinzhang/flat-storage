@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { mockFiles } from '@site/models';
+import { useFilesStore } from '@site/stores/files';
+import { storeToRefs } from 'pinia';
 
 const openMenu = ref(false);
 const openAction = ref<'filter' | 'sort' | 'order' | null>(null);
@@ -7,6 +8,9 @@ const openSetting = ref(false);
 const openAdd = ref(false);
 const openInfo = ref(false);
 const viewMode = ref<'list' | 'grid' | 'dense'>('dense');
+
+const store = useFilesStore();
+const { files, filter } = storeToRefs(store);
 </script>
 
 <style scoped>
@@ -69,7 +73,7 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('dense');
 
   <div class="flex-1 px-4">
     <DataTable
-      :value="mockFiles()"
+      :value="files"
       resizableColumns
       columnResizeMode="expand"
       tableClass="min-w-md"

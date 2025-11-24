@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { Form, FormSubmitEvent } from '@primevue/forms';
+import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
+import { FilesFilter } from '@site/models';
+import { useFilesStore } from '@site/stores/files';
+import { storeToRefs } from 'pinia';
 
 const { visible } = defineProps<{
   visible: boolean;
@@ -9,12 +12,10 @@ const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void;
 }>();
 
-function reset(actionKey: string) {}
-
-function submit({ valid, values }: FormSubmitEvent) {
-  console.log('valid', valid);
-  console.log('values', values);
-}
+const formRef = ref<FormInstance | null>(null);
+const store = useFilesStore();
+const { filter } = storeToRefs(store);
+const { setFilter } = store;
 
 const actions = [
   {
@@ -30,10 +31,58 @@ const actions = [
     type: 'date',
   },
 ];
+
+const textOptions = [
+  { label: 'Contains', value: 'contains' },
+  { label: 'Does not contain', value: 'notContains' },
+];
+
+const initialValues = computed(() => {
+  const f = filter.value;
+  return {
+    'name.operator': f.name.operator,
+    'name.condition': f.name.condition,
+    'createdAt.start': f.createdAt.start
+      ? f.createdAt.start.toISOString()
+      : null,
+    'createdAt.end': f.createdAt.end ? f.createdAt.end.toISOString() : null,
+  };
+});
+
+function clean(...columns: string[]) {
+  if (formRef && formRef.value) {
+    for (const key of columns) {
+      formRef.value.setFieldValue(key, null);
+    }
+  }
+}
+
+function reset() {
+  if (formRef && formRef.value) {
+    for (const key of keys(initialValues.value)) {
+      formRef.value.setFieldValue(key, initialValues.value[key]);
+    }
+  }
+}
+
+function submit({ valid, values }: FormSubmitEvent) {
+  console.log('Form Submitted with values:', values);
+  if (valid) {
+    emits('update:visible', false);
+    const newObj = FilesFilter.empty();
+    merge(newObj, filter.value, values);
+    setFilter(newObj);
+  }
+}
 </script>
 
 <template>
-  <Form v-slot="$form" @submit="submit">
+  <Form
+    ref="formRef"
+    v-slot="$form"
+    @submit="submit"
+    :initialValues="initialValues"
+  >
     <Dialog
       :visible="visible"
       @update:visible="(val: boolean) => emits('update:visible', val)"
@@ -49,18 +98,15 @@ const actions = [
         <div v-if="type === 'text'" class="flex flex-col gap-4">
           <Select
             :name="`${key}.operator`"
-            :options="[
-              { label: 'Contains', value: 'contains' },
-              { label: 'Does not contain', value: 'notContains' },
-            ]"
+            :options="textOptions"
             optionLabel="label"
+            optionValue="value"
             :placeholder="`If ${label}...`"
             fluid
           />
           <InputText
             v-if="!!!$form[key]?.operator.value"
             :disabled="true"
-            :name="`${key}.condition`"
             type="text"
             fluid
           />
@@ -71,16 +117,16 @@ const actions = [
             type="text"
             fluid
             :placeholder="`If ${label} ${
-              $form[key].operator.value?.label ?? ''
+              textOptions.find((o) => o.value === $form[key].operator.value)
+                ?.label
             }...`"
           />
           <div class="flex justify-end">
             <Button
               severity="secondary"
-              label="Reset"
-              type="reset"
+              label="Clean"
               variant="text"
-              @click="(e) => reset(key)"
+              @click="(e) => clean(`${key}.operator`, `${key}.condition`)"
             />
           </div>
         </div>
@@ -91,16 +137,22 @@ const actions = [
           <div class="flex justify-end">
             <Button
               severity="secondary"
-              label="Reset"
-              type="reset"
+              label="Clean"
               variant="text"
-              @click="(e) => reset(key)"
+              @click="(e) => clean(`${key}.start`, `${key}.end`)"
             />
           </div>
         </div>
       </Fieldset>
       <template #footer>
-        <Button label="Save" type="submit" variant="text" />
+        <Button
+          severity="secondary"
+          label="Reset"
+          type="reset"
+          variant="text"
+          @click="(e) => reset()"
+        />
+        <Button label="Save" variant="text" @click="(e) => formRef?.submit()" />
       </template>
     </Dialog>
   </Form>

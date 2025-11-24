@@ -1,4 +1,5 @@
 import { latestIndex } from '@site/utilities';
+import qs from 'qs';
 
 export class FileEntity {
   private _path: string;
@@ -529,4 +530,102 @@ export function mockFiles(): FileEntity[] {
       latestUpdatedAtISO: '2024-01-02T12:00:00Z',
     }),
   ];
+}
+
+interface NameFilter {
+  operator: string | null;
+  condition: string | null;
+}
+
+interface DateFilter {
+  start: Date | null;
+  end: Date | null;
+}
+
+export class FilesFilter {
+  name: NameFilter;
+  createdAt: DateFilter;
+
+  constructor(initialState?: { name?: NameFilter; createdAt?: DateFilter }) {
+    this.name = initialState?.name || { operator: null, condition: null };
+    this.createdAt = initialState?.createdAt || { start: null, end: null };
+  }
+
+  get isEmpty(): boolean {
+    return (
+      this.name.operator === null &&
+      this.name.condition === null &&
+      this.createdAt.start === null &&
+      this.createdAt.end === null
+    );
+  }
+
+  get qs(): string {
+    if (this.isEmpty) {
+      return '';
+    }
+
+    const filterObject: any = {};
+
+    if (this.name.operator && this.name.condition) {
+      filterObject.name = {
+        operator: this.name.operator,
+        condition: this.name.condition,
+      };
+    }
+
+    const dateFilter: any = {};
+    if (this.createdAt.start) {
+      dateFilter.start = this.createdAt.start.toISOString();
+    }
+    if (this.createdAt.end) {
+      dateFilter.end = this.createdAt.end.toISOString();
+    }
+    if (Object.keys(dateFilter).length > 0) {
+      filterObject.createdAt = dateFilter;
+    }
+
+    if (Object.keys(filterObject).length === 0) {
+      return '';
+    }
+
+    return qs.stringify(filterObject, {
+      skipNulls: true,
+    });
+  }
+
+  clean() {
+    this.name = { operator: null, condition: null };
+    this.createdAt = { start: null, end: null };
+  }
+
+  static empty(): FilesFilter {
+    return new FilesFilter();
+  }
+
+  static fromQs(queryString: string): FilesFilter {
+    if (!queryString) {
+      return FilesFilter.empty();
+    }
+
+    const parsedObject: any = qs.parse(queryString);
+
+    const nameData = parsedObject.name || {};
+    const nameFilter: NameFilter = {
+      operator: nameData.operator || null,
+      condition: nameData.condition || null,
+    };
+
+    const createdAtData = parsedObject.createdAt || {};
+
+    const createdAtFilter: DateFilter = {
+      start: createdAtData.start ? new Date(createdAtData.start) : null,
+      end: createdAtData.end ? new Date(createdAtData.end) : null,
+    };
+
+    return new FilesFilter({
+      name: nameFilter,
+      createdAt: createdAtFilter,
+    });
+  }
 }
