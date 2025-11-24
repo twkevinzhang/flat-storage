@@ -28,16 +28,10 @@ const { files } = defineProps<{
         <PrimeIcon
           v-if="file.isFolder"
           name="folder"
-          :class-name="['size-5', 'text-blue-500']"
+          :class="['size-5', 'text-blue-500']"
         />
-        <PrimeIcon
-          v-else
-          name="file"
-          :class-name="['size-5', 'text-blue-500']"
-        />
-        <Hover :class-name="['break-all']" variant="link">{{
-          file.name
-        }}</Hover>
+        <PrimeIcon v-else name="file" :class="['size-5', 'text-blue-500']" />
+        <Hover :class="['break-all']" severity="link">{{ file.name }}</Hover>
       </div>
 
       <span class="w-32 text-gray-500 text-right">{{

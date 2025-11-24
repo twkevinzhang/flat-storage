@@ -28,7 +28,7 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
         <PrimeIcon name="angle-down" />
       </Hover>
     </div>
-    <div class="my-1 flex justify-between">
+    <div class="flex justify-between">
       <div class="gap-1 flex justify-start">
         <Button
           @click="(e) => (openSetting = true)"
@@ -42,10 +42,10 @@ const viewMode = ref<'list' | 'grid' | 'dense'>('list');
           @click="(e) => (openAdd = true)"
           aria-haspopup="true"
           aria-controls="overlay_menu"
-        >
-          <span> Add </span>
-          <PrimeIcon name="angle-down" />
-        </Hover>
+          label="Add"
+          suffixIcon="pi-angle-down"
+          severity="compact"
+        />
       </div>
       <div class="gap-1 flex justify-end">
         <Button

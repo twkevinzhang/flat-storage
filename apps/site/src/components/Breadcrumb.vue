@@ -19,12 +19,11 @@ const handleClick = (index: number) => {
   <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
     <template v-for="(part, index) in parts" :key="index">
       <Hover
-        :class-name="['text-sm', 'text-gray-500']"
-        variant="link"
+        :class="['text-sm', 'text-gray-500']"
+        severity="link"
+        :label="part"
         @click="() => handleClick(index)"
-      >
-        {{ part }}
-      </Hover>
+      />
 
       <!-- 分隔符號 -->
       <PrimeIcon name="angle-right" />

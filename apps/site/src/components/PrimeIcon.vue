@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     name?: string;
-    fullname?: string | null;
+    fullname?: string | undefined;
     color?: string;
     size?: 'large' | 'medium' | undefined;
     class?: any;

@@ -27,25 +27,28 @@ const itemClass = ['flex', 'items-center', 'select-none'];
       :class="[...itemClass]"
       @click="(e) => toggle()"
     >
-      <Hover v-if="open" :class-name="[...itemClass]">
-        <PrimeIcon name="angle-down" />
-      </Hover>
-      <Hover v-else :class-name="[...itemClass]">
-        <PrimeIcon name="angle-right" />
-      </Hover>
-      <Hover :class-name="['w-full', 'p-1']">
-        {{ node.name }}
-      </Hover>
+      <Hover
+        v-if="open"
+        :class="[...itemClass]"
+        icon="pi-angle-down"
+        severity="compact"
+      />
+      <Hover
+        v-else
+        :class="[...itemClass]"
+        icon="pi-angle-right"
+        severity="compact"
+      />
+      <Hover :class="['w-full', 'p-1']" severity="compact" :label="node.name" />
     </div>
 
-    <Hover v-else :class-name="[...itemClass]">
-      <div :class="[...itemClass]">
-        <PrimeIcon name="file-question-alt-1" />
-      </div>
-      <span class="w-full rounded-md pl-1">
-        {{ node.name }}
-      </span>
-    </Hover>
+    <Hover
+      v-else
+      :class="['w-full', 'p-1', ...itemClass]"
+      severity="compact"
+      icon="pi-file"
+      :label="node.name"
+    />
 
     <ul
       v-if="hasChildren && open && node.children"

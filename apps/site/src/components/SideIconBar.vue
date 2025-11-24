@@ -25,9 +25,9 @@ const emits = defineEmits<{
       @click="(e) => emits('click', item, e)"
       :class="[
         activeItemId === item.id ? 'bg-gray-700' : '',
-        'w-10 h-10 flex items-center justify-center rounded hover:bg-gray-700 transition',
+        'size-10 flex items-center justify-center rounded hover:bg-gray-700 transition',
       ]"
-      :title="item.label"
+      :label="item.label"
     >
       <slot :item="item"></slot>
     </Hover>
