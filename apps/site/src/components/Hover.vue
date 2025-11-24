@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import Button, {
-  type ButtonPassThroughOptions,
-  type ButtonProps,
-} from 'primevue/button';
+import { type ButtonProps } from 'primevue/button';
 interface Props extends /* @vue-ignore */ ButtonProps {
   severity?: 'invisible' | 'link' | undefined;
 }
