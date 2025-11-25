@@ -13,4 +13,5 @@ import { mockFiles } from '@site/models';
       </RouterView>
     </template>
   </DesktopLayout>
+  <AppDialog />
 </template>

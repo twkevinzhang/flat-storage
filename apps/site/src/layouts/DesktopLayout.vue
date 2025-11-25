@@ -50,7 +50,7 @@ watch(x, (currentX) => {
 </script>
 
 <template>
-  <div class="flex h-screen text-sm">
+  <div class="flex h-screen text-sm overflow-x-hidden">
     <SideIconBar
       :items="SidebarIconList"
       :active-item-id="activeItemId"
@@ -62,10 +62,7 @@ watch(x, (currentX) => {
     </SideIconBar>
 
     <template v-if="sidebarOpen">
-      <div
-        :style="{ width: sidebarWidth + 'px' }"
-        class="flex flex-col transition-all duration-0"
-      >
+      <div :style="{ width: sidebarWidth + 'px' }">
         <slot name="sidebar" :icon="activeItemId" />
       </div>
 

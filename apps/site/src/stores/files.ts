@@ -2,10 +2,13 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { FilesFilter, mockFiles } from '@site/models';
 
 export const useFilesStore = defineStore('files', () => {
+  type ViewMode = 'list' | 'grid' | 'dense';
+  const viewMode = ref<ViewMode>('dense');
   const filter = ref<FilesFilter>(FilesFilter.empty());
   const sort = ref<string>('');
 
   return {
+    viewMode: computed(() => viewMode.value),
     filter: computed(() => filter.value),
     sort: computed(() => sort.value),
     files: computed(() => {
@@ -46,6 +49,9 @@ export const useFilesStore = defineStore('files', () => {
 
       return result;
     }),
+    setViewMode(mode: ViewMode): void {
+      viewMode.value = mode;
+    },
     setFilter(newFilter: FilesFilter): void {
       filter.value = newFilter;
     },

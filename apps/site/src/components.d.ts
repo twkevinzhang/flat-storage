@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     '[storage]': typeof import('./pages/storage/[storage].vue')['default']
     App: typeof import('./app/App.vue')['default']
+    AppDialog: typeof import('./app/AppDialog.vue')['default']
     Breadcrumb: typeof import('./components/Breadcrumb.vue')['default']
     Button: typeof import('primevue/button')['default']
     Column: typeof import('primevue/column')['default']
