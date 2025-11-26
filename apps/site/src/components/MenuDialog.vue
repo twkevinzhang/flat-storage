@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { type DialogProps } from 'primevue/dialog';
-import { MenuItem } from 'primevue/menuitem';
+
+interface Item {
+  label: string;
+  icon?: string;
+  click?: (item: Item, e: PointerEvent) => void;
+}
 interface Props extends /* @vue-ignore */ DialogProps {
-  items: MenuItem[];
+  items: Item[];
 }
 defineProps<Props>();
 </script>
@@ -12,8 +17,9 @@ defineProps<Props>();
     <Hover
       v-for="item in items"
       :label="item.label"
+      severity="list-item"
       :icon="item.icon"
-      @click="(e) => item.command?.({ originalEvent: e, item })"
+      @click="(e) => item?.click?.(item, e)"
     />
   </Dialog>
 </template>

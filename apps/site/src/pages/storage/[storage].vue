@@ -22,12 +22,7 @@ const { open } = useDialogStore();
       :path="'yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy'"
     />
     <div class="mt-2">
-      <Hover
-        class="gap-1 p-1 flex items-center"
-        @click="(e) => open('menu')"
-        aria-haspopup="true"
-        aria-controls="overlay_menu"
-      >
+      <Hover @click="(e) => open('menu')">
         <span class="text-xl font-bold break-all">
           ContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContentsContents
           Layout
@@ -45,13 +40,10 @@ const { open } = useDialogStore();
           icon="pi pi-sliders-h"
         />
         <Hover
-          class="gap-1 p-1 flex items-center"
           @click="(e) => open('add')"
-          aria-haspopup="true"
-          aria-controls="overlay_menu"
           label="Add"
           suffixIcon="pi-angle-down"
-          severity="compact"
+          severity="button"
         />
       </div>
       <div class="gap-1 flex justify-end">

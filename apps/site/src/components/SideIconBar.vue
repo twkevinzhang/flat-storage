@@ -23,10 +23,9 @@ const emits = defineEmits<{
       v-for="item in items"
       :key="item.id"
       @click="(e) => emits('click', item, e)"
-      :class="[
-        activeItemId === item.id ? 'bg-gray-700' : '',
-        'size-10 flex items-center justify-center rounded hover:bg-gray-700 transition',
-      ]"
+      severity="button"
+      :active="activeItemId === item.id"
+      class="p-2 size-10 hover:bg-gray-700"
       :label="item.label"
     >
       <slot :item="item"></slot>

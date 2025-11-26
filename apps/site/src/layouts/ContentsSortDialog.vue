@@ -51,6 +51,7 @@ const sort = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
       <Hover
         v-if="!isEmpty(avaliableOptions)"
         label="Add Sort..."
+        severity="list-item"
         icon="pi-plus"
         @click="
           (e) => {
@@ -110,6 +111,7 @@ const sort = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
         <Hover
           v-if="!isEmpty(avaliableOptions)"
           label="Add Sort..."
+          severity="list-item"
           icon="pi-plus"
           @click="
             (e) => {
