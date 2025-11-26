@@ -1,4 +1,9 @@
 <script setup lang="ts">
+interface TreeNode {
+  name: string;
+  mimeType?: FileMimeType;
+  children?: TreeNode[];
+}
 const {
   node,
   limit = 2,

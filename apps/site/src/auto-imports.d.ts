@@ -415,7 +415,6 @@ declare module 'vue' {
     readonly bind: UnwrapRef<typeof import('lodash-es')['bind']>
     readonly bindAll: UnwrapRef<typeof import('lodash-es')['bindAll']>
     readonly bindKey: UnwrapRef<typeof import('lodash-es')['bindKey']>
-    readonly buildTree: UnwrapRef<typeof import('@site/utilities')['buildTree']>
     readonly camelCase: UnwrapRef<typeof import('lodash-es')['camelCase']>
     readonly capitalize: UnwrapRef<typeof import('lodash-es')['capitalize']>
     readonly castArray: UnwrapRef<typeof import('lodash-es')['castArray']>
