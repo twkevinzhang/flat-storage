@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { FileEntity } from '@site/models';
-import { TreeNode } from 'primevue/treenode';
 
 const props = defineProps<{
   entities: FileEntity[];
@@ -46,7 +45,7 @@ const tree = computed(() => {
   function convert(obj: Record<string, TempNode>): any {
     return map(obj, (node) => ({
       name: node.name,
-      mimeType: node.mimeType,
+      isFolder: node.mimeType === 'folder',
       children: isEmpty(node.children) ? undefined : convert(node.children),
     }));
   }

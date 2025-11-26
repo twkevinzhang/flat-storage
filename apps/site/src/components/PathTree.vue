@@ -1,7 +1,7 @@
 <script setup lang="ts">
 interface TreeNode {
   name: string;
-  mimeType?: FileMimeType;
+  isFolder?: boolean;
   children?: TreeNode[];
 }
 const {
@@ -14,50 +14,44 @@ const {
   limit?: number;
 }>();
 const open = ref(false);
-const hasChildren = computed(() => size(node.children) > 0);
-const isFolder = computed(() => node.mimeType === 'folder');
 function toggle() {
   open.value = !open.value;
 }
 function showMore() {
   // TODO
 }
-const itemClass = ['flex', 'items-center', 'select-none'];
 </script>
 
 <template>
   <li>
-    <div
-      v-if="isFolder || hasChildren"
-      :class="[...itemClass]"
-      @click="(e) => toggle()"
-    >
+    <div v-if="node.isFolder" class="flex" @click="(e) => toggle()">
       <Hover
-        v-if="open"
-        :class="[...itemClass]"
-        icon="pi-angle-down"
-        severity="compact"
+        :icon="open ? 'pi-angle-down' : 'pi-angle-right'"
+        severity="compact-split-left"
       />
       <Hover
-        v-else
-        :class="[...itemClass]"
-        icon="pi-angle-right"
-        severity="compact"
+        class="w-full"
+        severity="compact-split-right"
+        :icon="
+          node.isFolder ? (open ? 'pi-folder-open' : 'pi-folder') : 'pi-file'
+        "
+        :label="node.name"
       />
-      <Hover :class="['w-full', 'p-1']" severity="compact" :label="node.name" />
     </div>
 
-    <Hover
-      v-else
-      :class="['w-full', 'p-1', ...itemClass]"
-      severity="compact"
-      icon="pi-file"
-      :label="node.name"
-    />
+    <div v-else class="flex" @click="(e) => toggle()">
+      <span class="pl-2" />
+      <Hover
+        class="w-full"
+        severity="compact"
+        icon="pi-file"
+        :label="node.name"
+      />
+    </div>
 
     <ul
-      v-if="hasChildren && open && node.children"
-      :class="isRoot ? [] : ['pl-4']"
+      v-if="node.isFolder && open && node.children"
+      :class="isRoot ? [] : ['pl-6']"
     >
       <PathTree
         v-for="child in take(node.children, limit)"
