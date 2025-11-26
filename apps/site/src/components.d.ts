@@ -37,6 +37,5 @@ declare module 'vue' {
     SelectButton: typeof import('primevue/selectbutton')['default']
     SideIconBar: typeof import('./components/SideIconBar.vue')['default']
     Storage: typeof import('./pages/storage.vue')['default']
-    Tree: typeof import('primevue/tree')['default']
   }
 }

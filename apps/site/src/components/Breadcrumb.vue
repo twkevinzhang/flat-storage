@@ -20,7 +20,6 @@ const handleClick = (index: number) => {
     <template v-for="(part, index) in parts" :key="index">
       <Hover severity="link" @click="() => handleClick(index)" :label="part" />
 
-      <!-- 分隔符號 -->
       <PrimeIcon name="angle-right" />
     </template>
   </nav>

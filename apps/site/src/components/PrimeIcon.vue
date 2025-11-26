@@ -27,7 +27,7 @@ const fontSize = computed(() => {
 });
 const theStyle = computed(() => ({
   color: props.color,
-  fontSize,
+  fontSize: fontSize.value,
 }));
 </script>
 
