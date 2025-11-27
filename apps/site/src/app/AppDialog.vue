@@ -23,27 +23,22 @@ const viewMode = computed({
       {
         label: '重新命名',
         icon: 'pi pi-pencil',
-        command: (e) => {},
       },
       {
         label: '移動到...',
         icon: 'pi pi-directions',
-        command: (e) => {},
       },
       {
         label: '上鎖',
         icon: 'pi pi-lock',
-        command: (e) => {},
       },
       {
         label: '新增到最愛',
         icon: 'pi pi-star',
-        command: (e) => {},
       },
       {
         label: '刪除',
         icon: 'pi pi-trash',
-        command: (e) => {},
       },
     ]"
   />
@@ -70,6 +65,7 @@ const viewMode = computed({
         </template>
       </SelectButton>
     </Fieldset>
+    <div class="p-4" />
     <Hover
       v-for="item in [
         {
@@ -92,7 +88,7 @@ const viewMode = computed({
       @click="() => open(item.action)"
     >
       <PrimeIcon :fullname="item.icon" />
-      <span class="flex-grow">
+      <span>
         {{ item.label }}
       </span>
     </Hover>
@@ -106,17 +102,14 @@ const viewMode = computed({
       {
         label: '新增資料夾',
         icon: 'pi pi-folder-plus',
-        command: (e) => {},
       },
       {
         label: '上傳檔案',
         icon: 'pi pi-upload',
-        command: (e) => {},
       },
       {
         label: '上傳資料夾',
         icon: 'pi pi-upload',
-        command: (e) => {},
       },
     ]"
   />
@@ -129,22 +122,18 @@ const viewMode = computed({
       {
         label: '下載',
         icon: 'pi pi-download',
-        command: (e) => {},
       },
       {
         label: '複製路徑',
         icon: 'pi pi-clone',
-        command: (e) => {},
       },
       {
         label: '統計',
         icon: 'pi pi-chart-bar',
-        command: (e) => {},
       },
       {
         label: '操作紀錄',
         icon: 'pi pi-history',
-        command: (e) => {},
       },
     ]"
   />

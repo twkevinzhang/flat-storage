@@ -105,7 +105,7 @@ function submit({ valid, values }: FormSubmitEvent) {
             fluid
           />
           <InputText
-            v-if="!!!$form[`${key}.operator`]?.value"
+            v-if="!!!$form[key]?.operator.value"
             :disabled="true"
             type="text"
             fluid
@@ -117,9 +117,7 @@ function submit({ valid, values }: FormSubmitEvent) {
             type="text"
             fluid
             :placeholder="`If ${label} ${
-              textOptions.find(
-                (o) => o.value === $form[`${key}.operator`].value
-              )?.label
+              $form[key].operator.value?.label ?? ''
             }...`"
           />
           <div class="flex justify-end">
