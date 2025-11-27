@@ -149,17 +149,17 @@ const viewMode = computed({
     ]"
   />
 
-  <ContentsFilterDialog
+  <FilesFilterDialog
     :visible="visible('filter')"
     @update:visible="() => close('filter')"
   />
 
-  <ContentsSortDialog
+  <FilesSortDialog
     :visible="visible('sort')"
     @update:visible="() => close('sort')"
   />
 
-  <ContentsOrderDialog
+  <FilesOrderDialog
     :visible="visible('order')"
     @update:visible="() => close('order')"
   />
