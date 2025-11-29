@@ -7,24 +7,32 @@ export class FileEntity {
   private _sizeBytes?: number;
   private _createdAtISO?: string;
   private _latestUpdatedAtISO?: string;
+  private _md5Hash?: string;
+  private _deletedAtISO?: string;
   constructor({
     path,
     mimeType,
     sizeBytes,
     createdAtISO,
     latestUpdatedAtISO,
+    md5Hash,
+    deletedAtISO,
   }: {
     path: string;
     mimeType?: FileMimeType;
     sizeBytes?: number;
     createdAtISO?: string;
     latestUpdatedAtISO?: string;
+    md5Hash?: string;
+    deletedAtISO?: string;
   }) {
     this._path = path;
     this._mimeType = mimeType;
     this._sizeBytes = sizeBytes;
     this._createdAtISO = createdAtISO;
     this._latestUpdatedAtISO = latestUpdatedAtISO;
+    this._md5Hash = md5Hash;
+    this._deletedAtISO = deletedAtISO;
   }
 
   get name(): string {
@@ -40,7 +48,7 @@ export class FileEntity {
   }
 
   get isFolder(): boolean {
-    return this._mimeType === 'folder';
+    return this._mimeType === 'inode/directory';
   }
 
   get createdAt(): Date | undefined {
@@ -70,466 +78,14 @@ export class FileEntity {
     const d = new Date(this._latestUpdatedAtISO);
     return d.toLocaleString();
   }
-}
 
-export function mockFiles(): FileEntity[] {
-  return [
-    new FileEntity({
-      path: 'root1',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root1/sub1',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root2',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder1',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder2',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub1',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub2',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub3',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub4',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub5',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub6',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub7',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub8',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub9',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub10',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub11',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub12',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub13',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub14',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub15',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub16',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub17',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub18',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub19',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub20',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub21',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub22',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub23',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub24',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub25',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub26',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub27',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub28',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub29',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root3/folder3/sub30',
-      mimeType: 'txt',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root5',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root6',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root7',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root8',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root9',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root10',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root11',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root12',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root13',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root14',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root15',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root16',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root17',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root18',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root19',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root20',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root21',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root21',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root22',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root23',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root24',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root25',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root26',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root27',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root28',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root29',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-    new FileEntity({
-      path: 'root30',
-      mimeType: 'folder',
-      sizeBytes: 1234,
-      createdAtISO: '2024-01-01T12:00:00Z',
-      latestUpdatedAtISO: '2024-01-02T12:00:00Z',
-    }),
-  ];
+  get md5Hash(): string | undefined {
+    return this._md5Hash;
+  }
+
+  get deletedAt(): Date | undefined {
+    return this._deletedAtISO ? new Date(this._deletedAtISO) : undefined;
+  }
 }
 
 interface NameFilter {

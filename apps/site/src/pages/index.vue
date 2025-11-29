@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePage({
-  redirect: '/storage/google-cloud',
+  redirect: '/storage/gcs',
 });
 </script>
 <template></template>

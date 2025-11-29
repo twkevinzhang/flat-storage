@@ -45,7 +45,7 @@ const tree = computed(() => {
   function convert(obj: Record<string, TempNode>): any {
     return map(obj, (node) => ({
       name: node.name,
-      isFolder: node.mimeType === 'folder',
+      isFolder: node.mimeType === 'inode/directory',
       children: isEmpty(node.children) ? undefined : convert(node.children),
     }));
   }

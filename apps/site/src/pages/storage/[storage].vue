@@ -4,7 +4,7 @@ import { useFilesStore } from '@site/stores/files';
 import { storeToRefs } from 'pinia';
 
 const store = useFilesStore();
-const { files } = storeToRefs(store);
+const { filteredFiles } = storeToRefs(store);
 const { open } = useDialogStore();
 </script>
 
@@ -60,7 +60,7 @@ const { open } = useDialogStore();
 
   <div class="flex-1 px-4">
     <DataTable
-      :value="files"
+      :value="filteredFiles"
       resizableColumns
       columnResizeMode="expand"
       tableClass="min-w-md"
@@ -77,15 +77,21 @@ const { open } = useDialogStore();
       <Column field="mimeType" header="mimeType" class="max-w-xs" />
       <Column
         field="sizeFormatted"
-        header="sizeBytes"
+        header="size"
         class="max-w-xs flex justify-end"
       />
-      <Column field="createdAtISO" header="createdAtISO" class="max-w-xs" />
-      <Column
-        field="latestUpdatedAtISO"
-        header="latestUpdatedAtISO"
-        class="max-w-xs"
-      />
+      <Column header="createdAt" class="max-w-xs">
+        <template #body="{ data: file }">
+          {{ file.createdAt ? file.createdAt.toLocaleString() : '-' }}
+        </template>
+      </Column>
+      <Column header="updatedAt" class="max-w-xs">
+        <template #body="{ data: file }">
+          {{
+            file.latestUpdatedAt ? file.latestUpdatedAt.toLocaleString() : '-'
+          }}
+        </template>
+      </Column>
     </DataTable>
   </div>
 </template>

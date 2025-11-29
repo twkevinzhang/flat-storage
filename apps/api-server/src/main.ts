@@ -1,15 +1,18 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import { GCSService } from '@api-server/services/gcs';
 import { CSVRepository, RECORDS_PATH } from '@api-server/repositories/csv';
 import { UseCaseImpl } from '@api-server/usecases/implement';
 import { StorageService } from '@api-server/services/interface';
+import { MockRepository } from '@api-server/repositories/mock';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/health', (req, res) => {
@@ -19,10 +22,12 @@ app.get('/health', (req, res) => {
 app.get(
   '/storage/:storage/bucket/:bucket/records',
   async ({ params, query }, res) => {
+    console.log('GET /storage/:storage/bucket/:bucket/records', params, query);
     const { storage, bucket } = params;
     const service = serviceFactory(storage, bucket);
-    const repo = new CSVRepository(service);
-    const usecase = new UseCaseImpl(repo, service);
+    // const repo = new CSVRepository(service);
+    const repo = new MockRepository();
+    const usecase = new UseCaseImpl(repo);
 
     const parent = query.parent ? String(query.parent) : undefined;
     const objects = await usecase.listObjects(parent);
@@ -35,10 +40,10 @@ app.post(
   '/storage/:storage/bucket/:bucket/records',
   async ({ params }, res) => {
     const { storage, bucket } = params;
-    // bucket = bucket ?? 'storage-403503-test';
     const service = serviceFactory(storage, bucket);
-    const repo = new CSVRepository(service);
-    const usecase = new UseCaseImpl(repo, service);
+    // const repo = new CSVRepository(service);
+    const repo = new MockRepository();
+    const usecase = new UseCaseImpl(repo);
 
     await usecase.generateRecordsWithPathId();
 
@@ -58,8 +63,9 @@ app.put(
     }
 
     const service = serviceFactory(storage, bucket);
-    const repo = new CSVRepository(service);
-    const usecase = new UseCaseImpl(repo, service);
+    // const repo = new CSVRepository(service);
+    const repo = new MockRepository();
+    const usecase = new UseCaseImpl(repo);
 
     await usecase.moveObject(id, newPath);
 

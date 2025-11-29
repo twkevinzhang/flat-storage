@@ -81,7 +81,10 @@
         "executor": "@nx/js:node",
         "defaultConfiguration": "development",
         "dependsOn": [
-          "build"
+          {
+            "target": "build",
+            "configurations": "inherited"
+          }
         ],
         "options": {
           "buildTarget": "api-server:build",

@@ -14,7 +14,12 @@ const { setFilter } = store;
 const initialFilter = route.query.q
   ? FilesFilter.fromQs(route.query.q)
   : FilesFilter.empty();
-setFilter(initialFilter);
+
+function load() {
+  console.log('load');
+  setFilter(initialFilter);
+  store.fetchFiles();
+}
 
 watch(
   () => filter,
@@ -25,6 +30,7 @@ watch(
         query: { q: newQuery },
       });
     }
+    load();
   },
   { deep: true, immediate: true }
 );

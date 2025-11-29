@@ -1,5 +1,5 @@
 declare global {
-  type FileMimeType = 'zipfile' | 'txt' | 'folder';
+  type FileMimeType = 'zipfile' | 'txt' | 'inode/directory';
 }
 
 export {};

@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { mockFiles } from '@site/models';
+import { useFilesStore } from '@site/stores/files';
+import { storeToRefs } from 'pinia';
+
+const store = useFilesStore();
+const { filteredFiles } = storeToRefs(store);
 </script>
 
 <template>
   <DesktopLayout>
     <template v-slot:sidebar>
-      <ExplorerBar :entities="mockFiles()" />
+      <ExplorerBar :entities="filteredFiles" />
     </template>
     <template v-slot:content>
       <RouterView v-slot="{ Component }">

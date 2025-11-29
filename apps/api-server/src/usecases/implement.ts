@@ -1,15 +1,11 @@
 import { Repository } from '@api-server/repositories/interface';
 import { UseCase } from './interface';
 import { Object } from '@api-server/models';
-import { StorageService } from '@api-server/services/interface';
 
 export class UseCaseImpl implements UseCase {
-  constructor(
-    private repository: Repository,
-    private storage: StorageService
-  ) {}
+  constructor(private repository: Repository) {}
   async generateRecordsWithPathId(): Promise<void> {
-    const objects = await this.storage.listObjects();
+    const objects = await this.repository.listObjects();
     const newRecords = objects.map((obj) => ({
       id: obj.path,
       path: obj.path,

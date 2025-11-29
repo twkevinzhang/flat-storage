@@ -20,7 +20,6 @@ declare global {
   const bind: typeof import('lodash-es')['bind']
   const bindAll: typeof import('lodash-es')['bindAll']
   const bindKey: typeof import('lodash-es')['bindKey']
-  const buildTree: typeof import('@site/utilities')['buildTree']
   const camelCase: typeof import('lodash-es')['camelCase']
   const capitalize: typeof import('lodash-es')['capitalize']
   const castArray: typeof import('lodash-es')['castArray']
