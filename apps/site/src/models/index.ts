@@ -1,5 +1,6 @@
 import { latestIndex } from '@site/utilities';
 import qs from 'qs';
+import { LocationQueryValue } from 'vue-router';
 
 export class FileEntity {
   private _path: string;
@@ -159,12 +160,14 @@ export class FilesFilter {
     return new FilesFilter();
   }
 
-  static fromQs(queryString: string): FilesFilter {
+  static fromQs(
+    queryString: LocationQueryValue | LocationQueryValue[]
+  ): FilesFilter {
     if (!queryString) {
       return FilesFilter.empty();
     }
 
-    const parsedObject: any = qs.parse(queryString);
+    const parsedObject: any = qs.parse(queryString as unknown as string);
 
     const nameData = parsedObject.name || {};
     const nameFilter: NameFilter = {
