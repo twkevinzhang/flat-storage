@@ -1,91 +1,60 @@
 import { latestIndex } from '@site/utilities';
-import qs from 'qs';
-import { LocationQueryValue } from 'vue-router';
+import { v4 as uuidv4 } from 'uuid';
 
-export class FileEntity {
-  private _path: string;
-  private _mimeType?: FileMimeType;
-  private _sizeBytes?: number;
-  private _createdAtISO?: string;
-  private _latestUpdatedAtISO?: string;
-  private _md5Hash?: string;
-  private _deletedAtISO?: string;
-  constructor({
-    path,
-    mimeType,
-    sizeBytes,
-    createdAtISO,
-    latestUpdatedAtISO,
-    md5Hash,
-    deletedAtISO,
-  }: {
-    path: string;
-    mimeType?: FileMimeType;
-    sizeBytes?: number;
-    createdAtISO?: string;
-    latestUpdatedAtISO?: string;
-    md5Hash?: string;
-    deletedAtISO?: string;
-  }) {
-    this._path = path;
-    this._mimeType = mimeType;
-    this._sizeBytes = sizeBytes;
-    this._createdAtISO = createdAtISO;
-    this._latestUpdatedAtISO = latestUpdatedAtISO;
-    this._md5Hash = md5Hash;
-    this._deletedAtISO = deletedAtISO;
-  }
+export enum Driver {
+  'gcs' = 'gcs',
+  's3' = 's3',
+  'localFilesystem' = 'local-filesystem',
+}
+
+export class ObjectEntity {
+  constructor(
+    public readonly path: string,
+    public readonly mimeType?: ObjectMimeType,
+    public readonly sizeBytes?: number,
+    public readonly createdAtISO?: string,
+    public readonly latestUpdatedAtISO?: string,
+    public readonly md5Hash?: string,
+    public readonly deletedAtISO?: string
+  ) {}
 
   get name(): string {
-    return this._path.split('/').pop() || '';
-  }
-
-  get path(): string {
-    return this._path;
-  }
-
-  get mimeType(): FileMimeType | undefined {
-    return this._mimeType;
+    return this.path.split('/').pop() || '';
   }
 
   get isFolder(): boolean {
-    return this._mimeType === 'inode/directory';
+    return this.mimeType === ObjectMimeType.folder;
   }
 
   get createdAt(): Date | undefined {
-    return this._createdAtISO ? new Date(this._createdAtISO) : undefined;
+    return this.createdAtISO ? new Date(this.createdAtISO) : undefined;
   }
 
   get latestUpdatedAt(): Date | undefined {
-    return this._latestUpdatedAtISO
-      ? new Date(this._latestUpdatedAtISO)
+    return this.latestUpdatedAtISO
+      ? new Date(this.latestUpdatedAtISO)
       : undefined;
   }
 
   get sizeFormatted(): string {
-    if (!this._sizeBytes) return '';
+    if (!this.sizeBytes) return '';
     const units = ['B', 'KB', 'MB', 'GB'];
-    let size = this._sizeBytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < latestIndex(units)) {
+    let size = this.sizeBytes;
+    let i = 0;
+    while (size >= 1024 && i < units.length - 1) {
       size /= 1024;
-      unitIndex++;
+      i++;
     }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
+    return `${size.toFixed(1)} ${units[i]}`;
   }
 
   get modifiedAtFormatted(): string {
-    if (!this._latestUpdatedAtISO) return '-';
-    const d = new Date(this._latestUpdatedAtISO);
-    return d.toLocaleString();
-  }
-
-  get md5Hash(): string | undefined {
-    return this._md5Hash;
+    if (!this.latestUpdatedAtISO) return '-';
+    return new Date(this.latestUpdatedAtISO).toLocaleString();
   }
 
   get deletedAt(): Date | undefined {
-    return this._deletedAtISO ? new Date(this._deletedAtISO) : undefined;
+    return this.deletedAtISO ? new Date(this.deletedAtISO) : undefined;
   }
 }
 
@@ -99,7 +68,7 @@ interface DateFilter {
   end: Date | null;
 }
 
-export class FilesFilter {
+export class ObjectsFilter {
   name: NameFilter;
   createdAt: DateFilter;
 
@@ -117,12 +86,12 @@ export class FilesFilter {
     );
   }
 
-  static empty(): FilesFilter {
-    return new FilesFilter();
+  static empty(): ObjectsFilter {
+    return new ObjectsFilter();
   }
 
   static fromObj(obj: any) {
-    return new FilesFilter({
+    return new ObjectsFilter({
       name: obj.name,
       createdAt: obj.createdAt,
     });

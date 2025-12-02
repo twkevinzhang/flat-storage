@@ -1,9 +1,4 @@
 <script setup lang="ts">
-interface TreeNode {
-  name: string;
-  isFolder?: boolean;
-  children?: TreeNode[];
-}
 const {
   node,
   limit = 2,

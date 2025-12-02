@@ -30,18 +30,18 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/storage': RouteRecordInfo<
-      '/storage',
-      '/storage',
+    '/sessions': RouteRecordInfo<
+      '/sessions',
+      '/sessions',
       Record<never, never>,
       Record<never, never>,
-      | '/storage/[storage]'
+      | '/sessions/[sessionId]'
     >,
-    '/storage/[storage]': RouteRecordInfo<
-      '/storage/[storage]',
-      '/storage/:storage',
-      { storage: ParamValue<true> },
-      { storage: ParamValue<false> },
+    '/sessions/[sessionId]': RouteRecordInfo<
+      '/sessions/[sessionId]',
+      '/sessions/:sessionId',
+      { sessionId: ParamValue<true> },
+      { sessionId: ParamValue<false> },
       | never
     >,
   }
@@ -63,16 +63,16 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/storage.vue': {
+    'src/pages/sessions.vue': {
       routes:
-        | '/storage'
-        | '/storage/[storage]'
+        | '/sessions'
+        | '/sessions/[sessionId]'
       views:
         | 'default'
     }
-    'src/pages/storage/[storage].vue': {
+    'src/pages/sessions/[sessionId].vue': {
       routes:
-        | '/storage/[storage]'
+        | '/sessions/[sessionId]'
       views:
         | never
     }

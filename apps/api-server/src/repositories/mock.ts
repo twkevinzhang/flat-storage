@@ -37,11 +37,11 @@ export class MockRepository implements Repository {
 
   private async prepareTmpRecords(): Promise<void> {}
   private async list(): Promise<Object[]> {
-    return mockFiles();
+    return mockObjects();
   }
 }
 
-function mockFiles(): Object[] {
+function mockObjects(): Object[] {
   return [
     {
       id: 'ID1',

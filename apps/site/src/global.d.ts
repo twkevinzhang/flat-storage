@@ -1,5 +1,9 @@
 declare global {
-  type FileMimeType = 'zipfile' | 'txt' | 'inode/directory';
+  enum ObjectMimeType {
+    zip = 'application/zip',
+    txt = 'application/txt',
+    folder = 'inode/directory',
+  }
 }
 
 export {};

@@ -83,6 +83,7 @@ declare global {
   const findLast: typeof import('lodash-es')['findLast']
   const findLastIndex: typeof import('lodash-es')['findLastIndex']
   const findLastKey: typeof import('lodash-es')['findLastKey']
+  const findOrThrow: typeof import('@site/utilities')['findOrThrow']
   const first: typeof import('lodash-es')['first']
   const flatMap: typeof import('lodash-es')['flatMap']
   const flatMapDeep: typeof import('lodash-es')['flatMapDeep']
@@ -477,6 +478,7 @@ declare module 'vue' {
     readonly findLast: UnwrapRef<typeof import('lodash-es')['findLast']>
     readonly findLastIndex: UnwrapRef<typeof import('lodash-es')['findLastIndex']>
     readonly findLastKey: UnwrapRef<typeof import('lodash-es')['findLastKey']>
+    readonly findOrThrow: UnwrapRef<typeof import('@site/utilities')['findOrThrow']>
     readonly first: UnwrapRef<typeof import('lodash-es')['first']>
     readonly flatMap: UnwrapRef<typeof import('lodash-es')['flatMap']>
     readonly flatMapDeep: UnwrapRef<typeof import('lodash-es')['flatMapDeep']>

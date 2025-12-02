@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { FileEntity } from '@site/models';
+import { ObjectEntity } from '@site/models';
+import { useObjectsStore } from '@site/stores/objects';
+import { useSessionsStore } from '@site/stores/sessions';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   entities: FileEntity[];
@@ -12,7 +15,7 @@ const tree = computed(() => {
     : props.entities;
   interface TempNode {
     name: string;
-    mimeType?: FileMimeType;
+    mimeType?: ObjectMimeType;
     children: Record<string, TempNode>;
   }
 

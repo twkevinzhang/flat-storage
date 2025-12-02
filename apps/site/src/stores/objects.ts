@@ -1,37 +1,38 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { FilesFilter, FileEntity } from '@site/models';
+import { ObjectsFilter, SessionEntity, Driver } from '@site/models';
 import { ref, computed } from 'vue';
-import { ApiService } from '@site/services/api-service';
-import { FileAdapter } from '@site/services/entity-adapter';
+import { ObjectAdapter } from '@site/services/entity-adapter';
 import { useAsyncState } from '@vueuse/core';
 import { LocationQuery } from 'vue-router';
+import { ObjectService } from '@site/services/object';
 
-const api = new ApiService();
-
-export const useFilesStore = defineStore('files', () => {
+export const useObjectsStore = defineStore('objects', () => {
   type ViewMode = 'list' | 'grid' | 'dense';
   const viewMode = ref<ViewMode>('dense');
-  const filter = ref<FilesFilter>(FilesFilter.empty());
+  const filter = ref<ObjectsFilter>(ObjectsFilter.empty());
   const sort = ref<string>('');
 
   const {
-    state: rawFiles,
+    state: rawObjects,
     isLoading,
     error,
     execute: fetch,
-  } = useAsyncState(async () => {
-    const res = await api.fetchFiles();
-    return FileAdapter.listFromBackend(res.data.data);
-  }, []);
-
-  fetch();
+  } = useAsyncState(
+    async (session: SessionEntity) => {
+      const api = new ObjectService();
+      const res = await api.listObjects({ session });
+      return ObjectAdapter.listFromBackend(res);
+    },
+    [],
+    { immediate: false }
+  );
 
   return {
     viewMode: computed(() => viewMode.value),
     filter: computed(() => filter.value),
     sort: computed(() => sort.value),
-    filteredFiles: computed(() => {
-      let result = rawFiles.value;
+    filteredObjects: computed(() => {
+      let result = rawObjects.value;
       if (filter.value.isEmpty) return result;
 
       const { name, createdAt } = filter.value;
@@ -69,12 +70,13 @@ export const useFilesStore = defineStore('files', () => {
     setViewMode(mode: ViewMode): void {
       viewMode.value = mode;
     },
+    fetch,
     setFilter(newFilter: LocationQuery): void {
-      filter.value = FilesFilter.fromObj(newFilter);
+      filter.value = ObjectsFilter.fromObj(newFilter);
     },
   };
 });
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useFilesStore, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(useObjectsStore, import.meta.hot));
 }

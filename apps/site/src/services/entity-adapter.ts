@@ -1,17 +1,17 @@
-import { FileEntity } from '@site/models';
+import { ObjectEntity } from '@site/models';
 
 /**
- * FileAdapter: transforms backend payload <-> frontend model (FileEntity)
- * All mapping rules live here so rest of app uses stable FileEntity objects.
+ * ObjectAdapter: transforms backend payload <-> frontend model (ObjectEntity)
+ * All mapping rules live here so rest of app uses stable ObjectEntity objects.
  */
-export class FileAdapter {
+export class ObjectAdapter {
   static normalizeMime(m: any): any {
     if (!m) return undefined;
     if (typeof m === 'string') return m as any;
     return String(m);
   }
 
-  static fromBackend(item: any): FileEntity {
+  static fromBackend(item: any): ObjectEntity {
     const {
       path,
       mimeType,
@@ -22,7 +22,7 @@ export class FileAdapter {
       deletedAtISO,
     } = item;
 
-    return new FileEntity({
+    return ObjectEntity.new({
       path,
       mimeType,
       sizeBytes,
@@ -33,13 +33,13 @@ export class FileAdapter {
     });
   }
 
-  static listFromBackend(items: any[]): FileEntity[] {
+  static listFromBackend(items: any[]): ObjectEntity[] {
     if (!Array.isArray(items)) return [];
     return items.map((i) => this.fromBackend(i));
   }
 
-  // Optionally convert frontend FileEntity back to backend payload
-  static toBackend(entity: FileEntity): any {
+  // Optionally convert frontend ObjectEntity back to backend payload
+  static toBackend(entity: ObjectEntity): any {
     return {
       path: entity.path,
       mimeType: entity.mimeType,
