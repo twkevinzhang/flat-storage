@@ -117,74 +117,14 @@ export class FilesFilter {
     );
   }
 
-  get qs(): string {
-    if (this.isEmpty) {
-      return '';
-    }
-
-    const filterObject: any = {};
-
-    if (this.name.operator && this.name.condition) {
-      filterObject.name = {
-        operator: this.name.operator,
-        condition: this.name.condition,
-      };
-    }
-
-    const dateFilter: any = {};
-    if (this.createdAt.start) {
-      dateFilter.start = this.createdAt.start.toISOString();
-    }
-    if (this.createdAt.end) {
-      dateFilter.end = this.createdAt.end.toISOString();
-    }
-    if (Object.keys(dateFilter).length > 0) {
-      filterObject.createdAt = dateFilter;
-    }
-
-    if (Object.keys(filterObject).length === 0) {
-      return '';
-    }
-
-    return qs.stringify(filterObject, {
-      skipNulls: true,
-    });
-  }
-
-  clean() {
-    this.name = { operator: null, condition: null };
-    this.createdAt = { start: null, end: null };
-  }
-
   static empty(): FilesFilter {
     return new FilesFilter();
   }
 
-  static fromQs(
-    queryString: LocationQueryValue | LocationQueryValue[]
-  ): FilesFilter {
-    if (!queryString) {
-      return FilesFilter.empty();
-    }
-
-    const parsedObject: any = qs.parse(queryString as unknown as string);
-
-    const nameData = parsedObject.name || {};
-    const nameFilter: NameFilter = {
-      operator: nameData.operator || null,
-      condition: nameData.condition || null,
-    };
-
-    const createdAtData = parsedObject.createdAt || {};
-
-    const createdAtFilter: DateFilter = {
-      start: createdAtData.start ? new Date(createdAtData.start) : null,
-      end: createdAtData.end ? new Date(createdAtData.end) : null,
-    };
-
+  static fromObj(obj: any) {
     return new FilesFilter({
-      name: nameFilter,
-      createdAt: createdAtFilter,
+      name: obj.name,
+      createdAt: obj.createdAt,
     });
   }
 }

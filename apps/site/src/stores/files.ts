@@ -4,6 +4,7 @@ import { ref, computed } from 'vue';
 import { ApiService } from '@site/services/api-service';
 import { FileAdapter } from '@site/services/entity-adapter';
 import { useAsyncState } from '@vueuse/core';
+import { LocationQuery } from 'vue-router';
 
 const api = new ApiService();
 
@@ -23,58 +24,53 @@ export const useFilesStore = defineStore('files', () => {
     return FileAdapter.listFromBackend(res.data.data);
   }, []);
 
-  const filteredFiles = computed(() => {
-    let result = rawFiles.value;
-    if (filter.value.isEmpty) return result;
-
-    const { name, createdAt } = filter.value;
-
-    if (name && name.operator && name.condition) {
-      const condition = name.condition.toLowerCase();
-      if (name.operator === 'contains') {
-        result = result.filter((f) => f.name.toLowerCase().includes(condition));
-      } else if (name.operator === 'notContains') {
-        result = result.filter(
-          (f) => !f.name.toLowerCase().includes(condition)
-        );
-      }
-    }
-
-    if (createdAt) {
-      if (createdAt.start) {
-        result = result.filter(
-          (f: any) => f.createdAt && f.createdAt >= createdAt.start!
-        );
-      }
-      if (createdAt.end) {
-        result = result.filter(
-          (f: any) => f.createdAt && f.createdAt <= createdAt.end!
-        );
-      }
-    }
-
-    return result;
-  });
+  fetch();
 
   return {
     viewMode: computed(() => viewMode.value),
     filter: computed(() => filter.value),
     sort: computed(() => sort.value),
-    filteredFiles,
+    filteredFiles: computed(() => {
+      let result = rawFiles.value;
+      if (filter.value.isEmpty) return result;
+
+      const { name, createdAt } = filter.value;
+
+      if (name && name.operator && name.condition) {
+        const condition = name.condition.toLowerCase();
+        if (name.operator === 'contains') {
+          result = result.filter((f) =>
+            f.name.toLowerCase().includes(condition)
+          );
+        } else if (name.operator === 'notContains') {
+          result = result.filter(
+            (f) => !f.name.toLowerCase().includes(condition)
+          );
+        }
+      }
+
+      if (createdAt) {
+        if (createdAt.start) {
+          result = result.filter(
+            (f: any) => f.createdAt && f.createdAt >= createdAt.start!
+          );
+        }
+        if (createdAt.end) {
+          result = result.filter(
+            (f: any) => f.createdAt && f.createdAt <= createdAt.end!
+          );
+        }
+      }
+
+      return result;
+    }),
     loading: computed(() => isLoading.value),
     error: computed(() => error.value),
-    fetchFiles: fetch,
     setViewMode(mode: ViewMode): void {
       viewMode.value = mode;
     },
-    setFilter(newFilter: FilesFilter): void {
-      filter.value = newFilter;
-    },
-    resetFilter(): void {
-      filter.value = FilesFilter.empty();
-    },
-    clearRawFiles(): void {
-      rawFiles.value = [];
+    setFilter(newFilter: LocationQuery): void {
+      filter.value = FilesFilter.fromObj(newFilter);
     },
   };
 });

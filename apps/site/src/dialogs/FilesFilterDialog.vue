@@ -3,6 +3,7 @@ import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
 import { FilesFilter } from '@site/models';
 import { useFilesStore } from '@site/stores/files';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 
 const { visible } = defineProps<{
   visible: boolean;
@@ -15,7 +16,7 @@ const emits = defineEmits<{
 const formRef = ref<FormInstance | null>(null);
 const store = useFilesStore();
 const { filter } = storeToRefs(store);
-const { setFilter } = store;
+const router = useRouter();
 
 const actions = [
   {
@@ -71,8 +72,14 @@ function submit({ valid, values }: FormSubmitEvent) {
     emits('update:visible', false);
     const newObj = FilesFilter.empty();
     merge(newObj, filter.value, values);
-    setFilter(newObj);
+    navigate(newObj);
   }
+}
+
+function navigate(filter: FilesFilter) {
+  router.push({
+    query: filter,
+  });
 }
 </script>
 
