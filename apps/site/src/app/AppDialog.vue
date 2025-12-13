@@ -152,4 +152,9 @@ const viewMode = computed({
     :visible="visible('order')"
     @update:visible="() => close('order')"
   />
+
+  <NewSessionDialog
+    :visible="visible('new-session')"
+    @update:visible="() => close('new-session')"
+  />
 </template>

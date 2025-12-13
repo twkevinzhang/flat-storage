@@ -1,10 +1,13 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ObjectsFilter, SessionEntity, Driver } from '@site/models';
-import { ref, computed } from 'vue';
-import { ObjectAdapter } from '@site/services/entity-adapter';
 import { useAsyncState } from '@vueuse/core';
 import { LocationQuery } from 'vue-router';
-import { ObjectService } from '@site/services/object';
+import {
+  MockObjectService,
+  ObjectAdapter,
+  ObjectService,
+} from '@site/services/object';
+import { MockSessionService, SessionAdapter } from '@site/services/session';
 
 export const useObjectsStore = defineStore('objects', () => {
   type ViewMode = 'list' | 'grid' | 'dense';
@@ -18,10 +21,13 @@ export const useObjectsStore = defineStore('objects', () => {
     error,
     execute: fetch,
   } = useAsyncState(
-    async (session: SessionEntity) => {
-      const api = new ObjectService();
-      const res = await api.listObjects({ session });
-      return ObjectAdapter.listFromBackend(res);
+    async (sessionId: string) => {
+      const sessionApi = new MockSessionService();
+      const objectApi = new MockObjectService();
+      const sessionRes = await sessionApi.get(sessionId);
+      const session = SessionAdapter.fromBackend(sessionRes);
+      const objectRes = await objectApi.listObjects({ session });
+      return ObjectAdapter.listFromBackend(objectRes);
     },
     [],
     { immediate: false }

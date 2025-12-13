@@ -8,7 +8,8 @@ export const useDialogStore = defineStore('dialog', () => {
     | 'setting'
     | 'add'
     | 'info'
-    | 'menu';
+    | 'menu'
+    | 'new-session';
   const state = ref<Partial<Record<DialogKey, boolean>>>({});
 
   return {

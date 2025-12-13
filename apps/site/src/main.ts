@@ -8,6 +8,9 @@ import { createRouter, createWebHistory, LocationQuery } from 'vue-router';
 import { routes } from 'vue-router/auto-routes';
 import LZString from 'lz-string';
 import qs from 'qs';
+import 'virtual:svg-icons-register';
+import { MockSessionService } from './services/session';
+import { MockObjectService } from './services/object';
 
 export async function createApp() {
   const app = createVueApp(App);
@@ -55,6 +58,10 @@ export async function createApp() {
         preset: Aura,
       },
     });
+
+  app
+    .provide('sessionService', new MockSessionService())
+    .provide('objectService', new MockObjectService());
 
   return { app, context };
 }

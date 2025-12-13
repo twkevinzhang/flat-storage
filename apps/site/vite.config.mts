@@ -9,6 +9,7 @@ import { PrimeVueResolver } from '@primevue/auto-import-resolver';
 import tailwindcss from '@tailwindcss/vite';
 import * as lodash from 'lodash-es';
 import * as utilities from './src/utilities/index';
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -57,6 +58,12 @@ export default defineConfig(() => ({
        * @see https://github.com/posva/unplugin-vue-router/tree/main/src/data-fetching
        */
       dataFetching: true,
+    }),
+    createSvgIconsPlugin({
+      iconDirs: [path.resolve(process.cwd(), 'public/svg')],
+      symbolId: 'icon-[dir]-[name]',
+      inject: 'body-last',
+      customDomId: '__svg__icons__dom__', // Sprite 容器的 ID
     }),
   ],
 

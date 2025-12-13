@@ -35,7 +35,15 @@ declare module 'vue-router/auto-routes' {
       '/sessions',
       Record<never, never>,
       Record<never, never>,
+      | '/sessions/'
       | '/sessions/[sessionId]'
+    >,
+    '/sessions/': RouteRecordInfo<
+      '/sessions/',
+      '/sessions',
+      Record<never, never>,
+      Record<never, never>,
+      | never
     >,
     '/sessions/[sessionId]': RouteRecordInfo<
       '/sessions/[sessionId]',
@@ -66,9 +74,16 @@ declare module 'vue-router/auto-routes' {
     'src/pages/sessions.vue': {
       routes:
         | '/sessions'
+        | '/sessions/'
         | '/sessions/[sessionId]'
       views:
         | 'default'
+    }
+    'src/pages/sessions/index.vue': {
+      routes:
+        | '/sessions/'
+      views:
+        | never
     }
     'src/pages/sessions/[sessionId].vue': {
       routes:

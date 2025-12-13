@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePage({
-  redirect: '/storage/gcs',
+  redirect: '/sessions',
 });
 </script>
 <template></template>

@@ -4,11 +4,18 @@ import { v4 as uuidv4 } from 'uuid';
 export enum Driver {
   'gcs' = 'gcs',
   's3' = 's3',
+  'azure' = 'azure',
   'localFilesystem' = 'local-filesystem',
 }
 
+export enum ObjectMimeType {
+  zip = 'application/zip',
+  txt = 'application/txt',
+  folder = 'inode/directory',
+}
+
 export class ObjectEntity {
-  constructor(
+  private constructor(
     public readonly path: string,
     public readonly mimeType?: ObjectMimeType,
     public readonly sizeBytes?: number,
@@ -17,6 +24,38 @@ export class ObjectEntity {
     public readonly md5Hash?: string,
     public readonly deletedAtISO?: string
   ) {}
+
+  static new(params: {
+    path: string;
+    mimeType?: ObjectMimeType;
+    sizeBytes?: number;
+    createdAtISO?: string;
+    latestUpdatedAtISO?: string;
+    md5Hash?: string;
+    deletedAtISO?: string;
+  }): ObjectEntity {
+    return new ObjectEntity(
+      params.path,
+      params.mimeType,
+      params.sizeBytes,
+      params.createdAtISO,
+      params.latestUpdatedAtISO,
+      params.md5Hash,
+      params.deletedAtISO
+    );
+  }
+
+  static fromAny(json: any): ObjectEntity {
+    return new ObjectEntity(
+      json.path,
+      json.mimeType,
+      json.sizeBytes,
+      json.createdAtISO,
+      json.latestUpdatedAtISO,
+      json.md5Hash,
+      json.deletedAtISO
+    );
+  }
 
   get name(): string {
     return this.path.split('/').pop() || '';
@@ -95,5 +134,87 @@ export class ObjectsFilter {
       name: obj.name,
       createdAt: obj.createdAt,
     });
+  }
+}
+
+export class SessionEntity {
+  private constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly description: string | undefined,
+    public readonly driver: Driver,
+    public readonly mountPath: string,
+    public readonly createdAtISO: string,
+    public readonly latestConnectedISO: string | undefined,
+    public readonly metadataPath: string,
+    public readonly accessKey: string,
+    public readonly secretKey: string
+  ) {}
+
+  static new(params: {
+    name?: string;
+    description?: string;
+    driver: Driver;
+    mountPath: string;
+    createdAtISO?: string;
+    latestConnectedISO?: string;
+    metadataPath?: string;
+    accessKey: string;
+    secretKey: string;
+  }): SessionEntity {
+    return new SessionEntity(
+      uuidv4(),
+      params.name ?? 'Untitled',
+      params.description,
+      params.driver,
+      params.mountPath,
+      params.createdAtISO ?? new Date().toISOString(),
+      params.latestConnectedISO,
+      params.metadataPath ?? '/',
+      params.accessKey,
+      params.secretKey
+    );
+  }
+
+  static fromAny(json: any): SessionEntity {
+    return new SessionEntity(
+      json.id,
+      json.name,
+      json.description,
+      json.driver,
+      json.mountPath,
+      json.createdAtISO,
+      json.latestConnectedISO,
+      json.metadataPath,
+      json.accessKey,
+      json.secretKey
+    );
+  }
+
+  get createdAt() {
+    return new Date(this.createdAtISO);
+  }
+  get latestConnectedAt() {
+    return this.latestConnectedISO
+      ? new Date(this.latestConnectedISO)
+      : undefined;
+  }
+}
+
+export class SessionForm implements Partial<Omit<SessionEntity, 'id'>> {
+  constructor(
+    public readonly name: string | undefined,
+    public readonly description: string | undefined,
+    public readonly driver: Driver,
+    public readonly mountPath: string,
+    public readonly createdAtISO: string,
+    public readonly latestConnectedISO: string | undefined,
+    public readonly metadataPath: string,
+    public readonly accessKey: string,
+    public readonly secretKey: string
+  ) {}
+
+  check(): void {
+    if (!this.name) throw new Error('Name is required');
   }
 }

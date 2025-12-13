@@ -1,15 +1,28 @@
 <script setup lang="ts">
 import { useMouse, useMousePressed } from '@vueuse/core';
 
-// --- 侧边栏图标和状态逻辑 (保持不变) ---
+interface IconItem {
+  id: string;
+  icon: string;
+  label: string;
+}
 
-const SidebarIconList = [
-  { id: 'explorer', icon: '📁', label: 'Explorer' },
-  { id: 'starred', icon: '⭐', label: 'Starred' },
-  { id: 'history', icon: '⏱️', label: 'History' },
-];
-const activeItemId = ref<string | null>(SidebarIconList[0].id);
-const sidebarOpen = computed(() => activeItemId.value !== null);
+const { sidebarIconList } = withDefaults(
+  defineProps<{
+    sidebarIconList?: Array<IconItem>;
+  }>(),
+  {
+    sidebarIconList: () => [],
+  }
+);
+
+const activeItemId = ref<string | null>(sidebarIconList?.[0]?.id ?? null);
+const sidebarOpen = computed(() => {
+  if (isEmpty(sidebarIconList)) {
+    return true;
+  }
+  return activeItemId.value !== null;
+});
 
 function setActive(id: string) {
   if (activeItemId.value === id) {
@@ -52,7 +65,7 @@ watch(x, (currentX) => {
 <template>
   <div class="flex h-screen text-sm overflow-x-hidden">
     <SideIconBar
-      :items="SidebarIconList"
+      :items="sidebarIconList"
       :active-item-id="activeItemId"
       @click="(item, e) => setActive(item.id)"
     >
@@ -72,7 +85,7 @@ watch(x, (currentX) => {
       ></div>
     </template>
 
-    <div class="flex-1 overflow-auto min-w-xs">
+    <div class="flex-1 overflow-auto">
       <slot name="content" />
     </div>
   </div>
