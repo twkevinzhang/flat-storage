@@ -30,26 +30,11 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/sessions': RouteRecordInfo<
-      '/sessions',
-      '/sessions',
-      Record<never, never>,
-      Record<never, never>,
-      | '/sessions/'
-      | '/sessions/[sessionId]'
-    >,
-    '/sessions/': RouteRecordInfo<
-      '/sessions/',
-      '/sessions',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/sessions/[sessionId]': RouteRecordInfo<
-      '/sessions/[sessionId]',
-      '/sessions/:sessionId',
-      { sessionId: ParamValue<true> },
-      { sessionId: ParamValue<false> },
+    '/sessions/[sessionId]/mount/[...mountPath]': RouteRecordInfo<
+      '/sessions/[sessionId]/mount/[...mountPath]',
+      '/sessions/:sessionId/mount/:mountPath(.*)',
+      { sessionId: ParamValue<true>, mountPath: ParamValue<true> },
+      { sessionId: ParamValue<false>, mountPath: ParamValue<false> },
       | never
     >,
   }
@@ -71,23 +56,35 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/sessions.vue': {
+    'src/pages/sessions/[sessionId]/mount/[...mountPath].vue': {
       routes:
-        | '/sessions'
-        | '/sessions/'
-        | '/sessions/[sessionId]'
-      views:
-        | 'default'
-    }
-    'src/pages/sessions/index.vue': {
-      routes:
-        | '/sessions/'
+        | '/sessions/[sessionId]/mount/[...mountPath]'
       views:
         | never
     }
-    'src/pages/sessions/[sessionId].vue': {
+  }
+
+  /**
+   * Get a union of possible route names in a certain route component file.
+   * Used by the \`sfc-typed-router\` Volar plugin to automatically type \`useRoute()\`.
+   *
+   * @internal
+   */
+  export type _RouteNamesForFilePath<FilePath extends string> =
+    _RouteFileInfoMap extends Record<FilePath, infer Info>
+      ? Info['routes']
+      : keyof RouteNamedMap
+}
+: {
       routes:
         | '/sessions/[sessionId]'
+        | '/sessions/[sessionId]/mount/[...mountPath]'
+      views:
+        | 'default'
+    }
+    'src/pages/sessions/[sessionId]/mount/[...mountPath].vue': {
+      routes:
+        | '/sessions/[sessionId]/mount/[...mountPath]'
       views:
         | never
     }

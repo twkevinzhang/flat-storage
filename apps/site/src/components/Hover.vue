@@ -6,11 +6,13 @@ const props = withDefaults(
       | 'button'
       | 'link'
       | 'compact'
-      | 'compact-split-left'
-      | 'compact-split-right'
-      | undefined;
+    | undefined;
+    rounded?: 'full' | 'l' | 'r' | undefined;
     label?: string | undefined;
     icon?: string | undefined;
+    pt?: {
+      primeIcon?: any;
+    };
     suffixIcon?: string | undefined;
     position?: 'left' | 'right' | 'center' | undefined;
     active?: boolean | undefined;
@@ -18,6 +20,7 @@ const props = withDefaults(
   }>(),
   {
     severity: 'list-item',
+    rounded:'full',
     position: 'center',
     active: false,
   }
@@ -29,22 +32,21 @@ const internalClasses = computed(() => {
 
   if (props.severity === 'link') {
     base += ' hover:text-blue-600 hover:underline';
-    base += ' rounded-lg';
   } else if (props.severity === 'list-item') {
     base += ' hover:bg-gray-200/50';
-    base += ' gap-4 p-2 rounded-lg w-full';
+    base += ' gap-4 p-2 w-full';
   } else if (props.severity === 'button') {
     base += ' hover:bg-gray-200';
-    base += ' px-2 rounded-lg';
+    base += ' px-2';
   } else if (props.severity === 'compact') {
     base += ' hover:bg-gray-200/50';
-    base += ' gap-1 rounded-lg p-2';
-  } else if (props.severity === 'compact-split-left') {
-    base += ' hover:bg-gray-200/50';
+  }
+  if (props.rounded === 'l') {
     base += ' gap-1 rounded-l-lg pl-2 pr-[4px] py-2 justify-end';
-  } else if (props.severity === 'compact-split-right') {
-    base += ' hover:bg-gray-200/50';
+  } else if (props.rounded === 'r') {
     base += ' gap-1 rounded-r-lg pl-[4px] pr-2 py-2 justify-start';
+  } else if (props.rounded === 'full') {
+    base += ' rounded-lg';
   }
 
   if (props.position === 'left') base += ' items-start';
@@ -67,11 +69,11 @@ const classes = computed(() => {
       :class="classes"
       @click="(e) => emits('click', e)"
     >
-      <PrimeIcon v-if="icon" :fullname="icon" />
+      <PrimeIcon v-if="icon" :fullname="icon" v-bind="pt?.primeIcon" />
       <slot>
         <span v-if="!isEmpty(label)">{{ label }}</span>
       </slot>
-      <PrimeIcon v-if="suffixIcon" :fullname="suffixIcon" />
+      <PrimeIcon v-if="suffixIcon" :fullname="suffixIcon" v-bind="pt?.primeIcon" />
     </button>
   </Button>
 </template>

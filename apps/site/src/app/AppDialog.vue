@@ -40,100 +40,33 @@ const viewMode = computed({
         label: '刪除',
         icon: 'pi pi-trash',
       },
-    ]"
-  />
-  <Dialog
-    :visible="visible('setting')"
-    @update:visible="() => close('setting')"
-    header="Setting"
-    modal
-    pt:root:class="w-md h-3/4"
-  >
-    <Fieldset legend="View Mode" class="mb-4">
-      <SelectButton
-        v-model="viewMode"
-        :options="[
-          { icon: 'list', name: '清單', value: 'list' },
-          { icon: 'th-large', name: '網格', value: 'grid' },
-        ]"
-        optionLabel="name"
-        dataKey="value"
-        fluid
-      >
-        <template #option="{ option }">
-          <PrimeIcon :name="option.icon" size="large" />
-        </template>
-      </SelectButton>
-    </Fieldset>
-    <div class="p-4" />
-    <Hover
-      v-for="item in [
-        {
-          label: 'Filter',
-          action: 'filter',
-          icon: 'pi-filter',
-        },
-        {
-          label: 'Sort',
-          action: 'sort',
-          icon: 'pi-sort-alpha-down',
-        },
-        {
-          label: 'Order',
-          action: 'order',
-          icon: 'pi-sort',
-        },
-      ]"
-      class="flex items-center gap-3 p-2"
-      @click="() => open(item.action)"
-    >
-      <PrimeIcon :fullname="item.icon" />
-      <span>
-        {{ item.label }}
-      </span>
-    </Hover>
-  </Dialog>
 
-  <MenuDialog
-    :visible="visible('add')"
-    @update:visible="() => close('add')"
-    header="Add"
-    :items="[
       {
-        label: '新增資料夾',
-        icon: 'pi pi-folder-plus',
-      },
-      {
-        label: '上傳檔案',
-        icon: 'pi pi-upload',
-      },
-      {
-        label: '上傳資料夾',
-        icon: 'pi pi-upload',
+        label: 'Info',
+        items: [
+          {
+            label: '下載',
+            icon: 'pi pi-download',
+          },
+          {
+            label: '複製路徑',
+            icon: 'pi pi-clone',
+          },
+          {
+            label: '統計',
+            icon: 'pi pi-chart-bar',
+          },
+          {
+            label: '操作紀錄',
+            icon: 'pi pi-history',
+          },
+        ],
       },
     ]"
-  />
-
-  <MenuDialog
-    :visible="visible('info')"
-    @update:visible="() => close('info')"
-    header="Info"
-    :items="[
+    :danger-items="[
       {
-        label: '下載',
-        icon: 'pi pi-download',
-      },
-      {
-        label: '複製路徑',
-        icon: 'pi pi-clone',
-      },
-      {
-        label: '統計',
-        icon: 'pi pi-chart-bar',
-      },
-      {
-        label: '操作紀錄',
-        icon: 'pi pi-history',
+        label: 'Delete',
+        icon: 'pi pi-trash',
       },
     ]"
   />

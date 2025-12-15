@@ -8,10 +8,11 @@ import {
   ObjectService,
 } from '@site/services/object';
 import { MockSessionService, SessionAdapter } from '@site/services/session';
+import { INJECT_KEYS } from '@site/services';
 
 export const useObjectsStore = defineStore('objects', () => {
-  type ViewMode = 'list' | 'grid' | 'dense';
-  const viewMode = ref<ViewMode>('dense');
+  type ViewMode = 'grid' | 'column';
+  const viewMode = ref<ViewMode>('column');
   const filter = ref<ObjectsFilter>(ObjectsFilter.empty());
   const sort = ref<string>('');
 
@@ -21,12 +22,10 @@ export const useObjectsStore = defineStore('objects', () => {
     error,
     execute: fetch,
   } = useAsyncState(
-    async (sessionId: string) => {
-      const sessionApi = new MockSessionService();
-      const objectApi = new MockObjectService();
-      const sessionRes = await sessionApi.get(sessionId);
-      const session = SessionAdapter.fromBackend(sessionRes);
-      const objectRes = await objectApi.listObjects({ session });
+    async (path: string) => {
+      const objectApi = inject<ObjectService>(INJECT_KEYS.ObjectService)!;
+      const session = inject<SessionEntity>('session')!;
+      const objectRes = await objectApi.listObjects({ session, path });
       return ObjectAdapter.listFromBackend(objectRes);
     },
     [],

@@ -15,7 +15,7 @@ const props = withDefaults(
 
 const classes = computed(() => {
   const { fullname, name } = props;
-  return ['pi', fullname ?? `pi-${name}`, 'shrink-0'].join(' ');
+  return ['pi', fullname ?? `pi-${name}`, 'shrink-0', props.class].join(' ');
 });
 const fontSize = computed(() => {
   switch (props.size) {

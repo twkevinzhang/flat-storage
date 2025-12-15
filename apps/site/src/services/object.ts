@@ -423,18 +423,16 @@ export class MockObjectService {
     session: SessionEntity;
     path?: string;
   }): Promise<ObjectEntity[]> {
-    const parentPath = path === '/' ? '' : (path || '');
-    const prefix = parentPath ? `${parentPath}/` : '/';
+    if (!path || isEmpty(path)) {
+      path = '/';
+    }
+    if (!path.startsWith('/')) {
+      path = '/' + path;
+    }
 
     const result = this.data.filter((item) => {
-      // 1. Must start with prefix
-      if (!item.path.startsWith(prefix)) return false;
-
-      // 2. The remainder of the path must NOT contain another '/'
-      // e.g. parentPath='/root1', prefix='/root1/'
-      // item='/root1/sub1' -> remainder='sub1' (OK)
-      // item='/root1/sub1/leaf' -> remainder='sub1/leaf' (False)
-      const remainder = item.path.slice(prefix.length);
+      if (!item.path.startsWith(path)) return false;
+      const remainder = item.path.slice(path.length);
       return !remainder.includes('/');
     });
 

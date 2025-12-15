@@ -21,6 +21,7 @@ const props = withDefaults(
 
 const emits = defineEmits<{
   (e: 'loadChildren', p: string): void;
+  (e: 'click', p: string): void;
   (e: 'showMore'): void;
 }>();
 
@@ -31,11 +32,7 @@ const children = computed(() => {
 
 const open = ref(false);
 const angleIcon = computed(() => {
-  if (props.loading) { // Loading state management might need refactoring too?
-    // Using loading prop passed from parent or inferred?
-    // User plan: "ExplorerBar updates map. ObjectTree shows children when they exist."
-    // If I want loading spinner, I need to know if THIS node is loading.
-    // Parent handles loading map? For now I'll skip complex loading or use provided 'loading' prop if parent passes it.
+  if (props.loading) {
     return 'pi-spin pi-spinner';
   }
   if (open.value) {
@@ -43,7 +40,9 @@ const angleIcon = computed(() => {
   }
   return 'pi-angle-right';
 });
-const isCollapsible = computed(() => props.node.mimeType === ObjectMimeType.folder);
+const isCollapsible = computed(
+  () => props.node.mimeType === ObjectMimeType.folder
+);
 const name = computed(() => props.node.path.split('/').pop());
 const mimeIcon = computed(() => {
   if (isCollapsible.value) {
@@ -62,38 +61,49 @@ function toggle() {
     open.value = false;
   } else {
     open.value = true;
-    emits('loadChildren', props.node.path)
+    emits('loadChildren', props.node.path);
   }
 }
 </script>
 
 <template>
   <li>
-    <div v-if="isCollapsible" class="flex" @click="(e) => toggle()">
-      <Hover :icon="angleIcon" severity="compact-split-left" />
+    <div v-if="isCollapsible" class="flex">
+      <Hover
+        :icon="angleIcon"
+        severity="compact"
+        rounded="l"
+        @click="(e) => toggle()"
+      />
       <Hover
         class="w-full"
-        severity="compact-split-right"
+        severity="compact"
+        rounded="r"
         :icon="mimeIcon"
         :label="name"
+        @click="(e) => emits('click', props.node.path)"
       />
     </div>
 
     <div v-else class="flex">
       <span class="pl-2" />
-      <Hover class="w-full" severity="compact" icon="pi-file" :label="name" />
+      <Hover
+        class="w-full"
+        severity="compact"
+        icon="pi-file"
+        :label="name"
+        @click="(e) => emits('click', props.node.path)"
+      />
     </div>
 
-    <ul
-      v-if="isCollapsible && open"
-      :class="isRoot ? [] : ['pl-6']"
-    >
+    <ul v-if="isCollapsible && open" :class="isRoot ? [] : ['pl-6']">
       <ObjectTree
         v-for="child in take(children, limit)"
         :key="child.path"
         :node="child"
         :limit="limit"
         :children-map="childrenMap"
+        @click="(e) => emits('click', child.path)"
         @load-children="(p) => emits('loadChildren', p)"
       />
       <li
