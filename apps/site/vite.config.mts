@@ -31,7 +31,7 @@ export default defineConfig(() => ({
     vue(),
     tailwindcss(),
     AutoImport({
-      dts: path.resolve(__dirname, 'src', 'auto-imports.d.ts'),
+      dts: path.resolve(__dirname, 'src', 'types/auto-imports.d.ts'),
       imports: [
         'vue',
         {
@@ -42,22 +42,15 @@ export default defineConfig(() => ({
       vueTemplate: true,
     }),
     Components({
-      dts: path.resolve(__dirname, 'src', 'components.d.ts'),
+      dts: path.resolve(__dirname, 'src', 'types/components.d.ts'),
       dirs: ['src'],
       extensions: ['vue'],
       include: [/\.vue$/, /\.vue\?vue/],
       resolvers: [PrimeVueResolver()],
     }),
     VueRouter({
-      dts: path.resolve(__dirname, 'src', 'typed-router.d.ts'),
+      dts: path.resolve(__dirname, 'src', 'types/typed-router.d.ts'),
       routesFolder: 'src/pages',
-      /**
-       * Data Fetching is an experimental feature from vue & vue-router
-       *
-       * @see https://github.com/vuejs/rfcs/discussions/460
-       * @see https://github.com/posva/unplugin-vue-router/tree/main/src/data-fetching
-       */
-      dataFetching: true,
     }),
     createSvgIconsPlugin({
       iconDirs: [path.resolve(process.cwd(), 'public/svg')],
