@@ -30,6 +30,7 @@ declare module 'vue' {
     Listbox: typeof import('primevue/listbox')['default']
     Menu: typeof import('primevue/menu')['default']
     MenuDialog: typeof import('./../components/MenuDialog.vue')['default']
+    Mount: typeof import('./../pages/sessions/[sessionId]/mount/index.vue')['default']
     NewSessionDialog: typeof import('./../dialogs/NewSessionDialog.vue')['default']
     ObjectsColumn: typeof import('./../layouts/ObjectsColumn.vue')['default']
     ObjectsFilterDialog: typeof import('./../dialogs/ObjectsFilterDialog.vue')['default']
@@ -56,6 +57,7 @@ declare module 'vue' {
     StepPanels: typeof import('primevue/steppanels')['default']
     Stepper: typeof import('primevue/stepper')['default']
     SvgIcon: typeof import('./../components/SvgIcon.vue')['default']
+    Tree: typeof import('primevue/tree')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']

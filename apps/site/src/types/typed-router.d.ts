@@ -30,6 +30,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/sessions/[sessionId]/': RouteRecordInfo<
+      '/sessions/[sessionId]/',
+      '/sessions/:sessionId',
+      { sessionId: ParamValue<true> },
+      { sessionId: ParamValue<false> },
+      | never
+    >,
+    '/sessions/[sessionId]/mount/': RouteRecordInfo<
+      '/sessions/[sessionId]/mount/',
+      '/sessions/:sessionId/mount',
+      { sessionId: ParamValue<true> },
+      { sessionId: ParamValue<false> },
+      | never
+    >,
     '/sessions/[sessionId]/mount/[...mountPath]': RouteRecordInfo<
       '/sessions/[sessionId]/mount/[...mountPath]',
       '/sessions/:sessionId/mount/:mountPath(.*)',
@@ -56,31 +70,17 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/sessions/[sessionId]/mount/[...mountPath].vue': {
+    'src/pages/sessions/[sessionId]/index.vue': {
       routes:
-        | '/sessions/[sessionId]/mount/[...mountPath]'
+        | '/sessions/[sessionId]/'
       views:
         | never
     }
-  }
-
-  /**
-   * Get a union of possible route names in a certain route component file.
-   * Used by the \`sfc-typed-router\` Volar plugin to automatically type \`useRoute()\`.
-   *
-   * @internal
-   */
-  export type _RouteNamesForFilePath<FilePath extends string> =
-    _RouteFileInfoMap extends Record<FilePath, infer Info>
-      ? Info['routes']
-      : keyof RouteNamedMap
-}
-: {
+    'src/pages/sessions/[sessionId]/mount/index.vue': {
       routes:
-        | '/sessions/[sessionId]'
-        | '/sessions/[sessionId]/mount/[...mountPath]'
+        | '/sessions/[sessionId]/mount/'
       views:
-        | 'default'
+        | never
     }
     'src/pages/sessions/[sessionId]/mount/[...mountPath].vue': {
       routes:

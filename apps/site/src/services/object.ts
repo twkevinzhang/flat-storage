@@ -422,14 +422,8 @@ export class MockObjectService {
   }: {
     session: SessionEntity;
     path?: string;
-  }): Promise<ObjectEntity[]> {
-    if (!path || isEmpty(path)) {
-      path = '/';
-    }
-    if (!path.startsWith('/')) {
-      path = '/' + path;
-    }
-
+    }): Promise<ObjectEntity[]> {
+    path = path || '/';
     const result = this.data.filter((item) => {
       if (!item.path.startsWith(path)) return false;
       const remainder = item.path.slice(path.length);

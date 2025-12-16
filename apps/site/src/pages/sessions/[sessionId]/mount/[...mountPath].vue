@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { ObjectEntity, SessionEntity } from '@site/models';
+import { ObjectEntity, ObjectMimeType, SessionEntity } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
 import { ObjectAdapter, ObjectService } from '@site/services/object';
 import { useDialogStore } from '@site/stores/dialog';
 import { useObjectsStore } from '@site/stores/objects';
 import { useAsyncState } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const objectApi = inject<ObjectService>(INJECT_KEYS.ObjectService)!;
-const session = inject<SessionEntity>('session')!;
+const session = inject<Ref<SessionEntity>>('sessionRef')!;
 const route = useRoute();
-const mountPath = computed(() => route.params.mountPath as string);
+const router = useRouter();
 
 const res = useAsyncState(
   async () => {
     const objectsRes = await objectApi.listObjects({
-      session,
+      session: session.value,
       path: mountPath.value,
     });
     return ObjectAdapter.listFromBackend(objectsRes);
@@ -30,25 +30,76 @@ const dialogStore = useDialogStore();
 const objectsStore = useObjectsStore();
 const objectsStoreRefs = storeToRefs(objectsStore);
 
-const childrenMap = ref<Record<string, ObjectEntity[]>>({});
-
+const mountPath = computed(() => {
+  const _mountPath = route.params.mountPath as string;
+  if (!_mountPath || isEmpty(_mountPath)) {
+    return '/';
+  }
+  if (!_mountPath.startsWith('/')) {
+    return '/' + _mountPath;
+  }
+  return _mountPath;
+});
+const name = computed(() => {
+  if (mountPath.value === '/') {
+    return '/';
+  }
+  return mountPath.value;
+});
 const viewMode = computed({
   get: () => objectsStoreRefs.viewMode.value,
   set: objectsStore.setViewMode,
 });
+const values = ref<any[]>([]);
 
 function handleUpload() {}
 
-async function handleLoadChildren(path: string): Promise<void> {
-  const objectsRes = await objectApi.listObjects({
-    session,
-    path,
-  });
-  const entities = ObjectAdapter.listFromBackend(objectsRes);
-  childrenMap.value[path] = entities;
+function handleNodeExpand(node: any) {
+  if (!node.children) {
+    node.loading = true;
+
+    objectApi
+      .listObjects({
+        session: session.value,
+        path: node.path,
+      })
+      .then((res) => {
+        const children = ObjectAdapter.listFromBackend(res);
+        node.children = children.map((v) => ({
+          key: v.path,
+          label: v.name,
+          leaf: v.mimeType === ObjectMimeType.folder,
+          loading: false,
+          path: v.path,
+          mimeType: v.mimeType,
+        }));
+      })
+      .finally(() => {
+        node.loading = false;
+      });
+  }
 }
 
-function handleItemClick(path: string): void {}
+function handleNodeClick(node: any): void { }
+
+function handleNavigate(newPath: string): void {
+  router.push({
+    path: `/sessions/${session.value.id}/mount${newPath}`,
+  });
+}
+
+watchEffect(() => {
+  if (res.state.value) {
+    values.value = res.state.value.map((v) => ({
+      key: v.path,
+      label: v.name,
+      leaf: v.mimeType === ObjectMimeType.folder,
+      loading: false,
+      path: v.path,
+      mimeType: v.mimeType,
+    }));
+  }
+});
 
 onMounted(() => {
   res.execute();
@@ -118,13 +169,10 @@ onMounted(() => {
     <div class="my-2 overflow-y-auto">
       <ul v-if="viewMode === 'column'">
         <ObjectTree
-          v-for="obj in res.state.value"
-          :key="obj.path"
-          :isRoot="true"
-          :node="obj"
-          :children-map="childrenMap"
-          @click="handleItemClick"
-          @load-children="handleLoadChildren"
+          :values="values"
+          :limit="100"
+          @node-click="handleNodeClick"
+          @node-expand="handleNodeExpand"
         />
       </ul>
     </div>

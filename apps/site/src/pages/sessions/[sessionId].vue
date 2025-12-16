@@ -32,7 +32,7 @@ watch(
   { immediate: true }
 );
 
-provide('session', session);
+provide('sessionRef', session);
 </script>
 
 <template>
