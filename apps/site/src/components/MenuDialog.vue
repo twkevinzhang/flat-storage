@@ -36,6 +36,7 @@ const dangerItems = computed(() => {
           v-bind="props.action"
           :label="item.label ?? ''"
           severity="list-item"
+          fluid
           :icon="item.icon"
         />
       </template>
@@ -48,6 +49,7 @@ const dangerItems = computed(() => {
         <Hover
           v-bind="props.action"
           severity="list-item"
+          fluid
           :icon="item.icon"
           :pt="{ primeIcon: { class: '!text-red-500' } }"
         >

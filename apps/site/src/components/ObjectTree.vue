@@ -67,34 +67,33 @@ function toggle() {
 </script>
 
 <template>
-  <li>
-    <div v-if="isCollapsible" class="flex">
-      <Hover
-        :icon="angleIcon"
-        severity="compact"
-        rounded="l"
-        @click="(e) => toggle()"
-      />
-      <Hover
-        class="w-full"
-        severity="compact"
-        rounded="r"
-        :icon="mimeIcon"
-        :label="name"
-        @click="(e) => emits('click', props.node.path)"
-      />
-    </div>
+  <ul class="pl-6">
+    <li v-for="node in take(values, limit)" :key="node.key">
+      <div v-if="node.leaf" class="flex">
+        <Hover
+          class="w-6"
+          :icon="angleIcon(node)"
+          rounded="l"
+          @click="(e) => nodeToggle(node)"
+        />
+        <Hover
+          rounded="r"
+          :icon="mimeIcon(node)"
+          :label="node.label"
+          fluid
+          @click="(e) => emits('nodeClick', node)"
+        />
+      </div>
 
-    <div v-else class="flex">
-      <span class="pl-2" />
-      <Hover
-        class="w-full"
-        severity="compact"
-        icon="pi-file"
-        :label="name"
-        @click="(e) => emits('click', props.node.path)"
-      />
-    </div>
+      <div v-else class="flex">
+        <span class="pl-2" />
+        <Hover
+          class="w-full"
+          :icon="mimeIcon(node)"
+          :label="node.label"
+          @click="(e) => emits('nodeClick', node)"
+        />
+      </div>
 
     <ul v-if="isCollapsible && open" :class="isRoot ? [] : ['pl-6']">
       <ObjectTree

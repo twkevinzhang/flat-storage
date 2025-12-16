@@ -61,8 +61,12 @@ onMounted(() => {
       :path="'yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy'"
     />
     <div>
-      <Hover severity="compact" @click="(e) => dialogStore.open('menu')">
-        <span class="text-xl font-bold break-all"> ContentsContentsCono </span>
+      <Hover
+        severity="list-item"
+        fluid
+        @click="(e) => dialogStore.open('menu')"
+      >
+        <span class="text-xl font-bold break-all"> {{ name }} </span>
         <PrimeIcon name="angle-down" />
       </Hover>
     </div>

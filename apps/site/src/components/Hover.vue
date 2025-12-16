@@ -1,12 +1,7 @@
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    severity?:
-      | 'list-item'
-      | 'button'
-      | 'link'
-      | 'compact'
-    | undefined;
+    severity?: 'list-item' | 'button' | 'link' | undefined;
     rounded?: 'full' | 'l' | 'r' | undefined;
     label?: string | undefined;
     icon?: string | undefined;
@@ -17,12 +12,14 @@ const props = withDefaults(
     position?: 'left' | 'right' | 'center' | undefined;
     active?: boolean | undefined;
     class?: any;
+    fluid?: boolean | undefined;
   }>(),
   {
     severity: 'list-item',
-    rounded:'full',
+    rounded: 'full',
     position: 'center',
     active: false,
+    fluid: false,
   }
 );
 const emits = defineEmits(['click']);
@@ -34,12 +31,10 @@ const internalClasses = computed(() => {
     base += ' hover:text-blue-600 hover:underline';
   } else if (props.severity === 'list-item') {
     base += ' hover:bg-gray-200/50';
-    base += ' gap-4 p-2 w-full';
+    base += ' gap-4 p-2';
   } else if (props.severity === 'button') {
     base += ' hover:bg-gray-200';
     base += ' px-2';
-  } else if (props.severity === 'compact') {
-    base += ' hover:bg-gray-200/50';
   }
   if (props.rounded === 'l') {
     base += ' gap-1 rounded-l-lg pl-2 pr-[4px] py-2 justify-end';
@@ -47,6 +42,10 @@ const internalClasses = computed(() => {
     base += ' gap-1 rounded-r-lg pl-[4px] pr-2 py-2 justify-start';
   } else if (props.rounded === 'full') {
     base += ' rounded-lg';
+  }
+
+  if (props.fluid) {
+    base += ' w-full';
   }
 
   if (props.position === 'left') base += ' items-start';
@@ -73,7 +72,11 @@ const classes = computed(() => {
       <slot>
         <span v-if="!isEmpty(label)">{{ label }}</span>
       </slot>
-      <PrimeIcon v-if="suffixIcon" :fullname="suffixIcon" v-bind="pt?.primeIcon" />
+      <PrimeIcon
+        v-if="suffixIcon"
+        :fullname="suffixIcon"
+        v-bind="pt?.primeIcon"
+      />
     </button>
   </Button>
 </template>
