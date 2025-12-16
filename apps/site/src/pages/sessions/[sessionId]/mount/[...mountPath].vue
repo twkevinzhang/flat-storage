@@ -14,10 +14,10 @@ const route = useRoute();
 const router = useRouter();
 
 const res = useAsyncState(
-  async () => {
+  async (path: string) => {
     const objectsRes = await objectApi.listObjects({
       session: session.value,
-      path: mountPath.value,
+      path,
     });
     return ObjectAdapter.listFromBackend(objectsRes);
   },
@@ -44,7 +44,7 @@ const name = computed(() => {
   if (mountPath.value === '/') {
     return '/';
   }
-  return mountPath.value;
+  return mountPath.value.split('/').pop()!;
 });
 const viewMode = computed({
   get: () => objectsStoreRefs.viewMode.value,
@@ -80,7 +80,7 @@ function handleNodeExpand(node: any) {
   }
 }
 
-function handleNodeClick(node: any): void { 
+function handleNodeClick(node: any): void {
   handleNavigate(node.path);
 }
 
@@ -103,9 +103,13 @@ watchEffect(() => {
   }
 });
 
-onMounted(() => {
-  res.execute();
-});
+watch(
+  mountPath,
+  () => {
+    res.execute(0, mountPath.value);
+  },
+  { immediate: true }
+);
 </script>
 
 <template>

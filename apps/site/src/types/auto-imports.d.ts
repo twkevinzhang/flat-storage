@@ -39,6 +39,7 @@ declare global {
   const conforms: typeof import('lodash-es')['conforms']
   const conformsTo: typeof import('lodash-es')['conformsTo']
   const constant: typeof import('lodash-es')['constant']
+  const count: typeof import('@site/utilities')['count']
   const countBy: typeof import('lodash-es')['countBy']
   const create: typeof import('lodash-es')['create']
   const createApp: typeof import('vue')['createApp']
@@ -435,6 +436,7 @@ declare module 'vue' {
     readonly conforms: UnwrapRef<typeof import('lodash-es')['conforms']>
     readonly conformsTo: UnwrapRef<typeof import('lodash-es')['conformsTo']>
     readonly constant: UnwrapRef<typeof import('lodash-es')['constant']>
+    readonly count: UnwrapRef<typeof import('@site/utilities')['count']>
     readonly countBy: UnwrapRef<typeof import('lodash-es')['countBy']>
     readonly create: UnwrapRef<typeof import('lodash-es')['create']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>

@@ -424,10 +424,14 @@ export class MockObjectService {
     path?: string;
     }): Promise<ObjectEntity[]> {
     path = path || '/';
+    if (path === '/') {
+      return Promise.resolve(this.data.filter(d => count(d.path, '/') === 1));
+    }
     const result = this.data.filter((item) => {
-      if (!item.path.startsWith(path)) return false;
-      const remainder = item.path.slice(path.length);
-      return !remainder.includes('/');
+      const startsWith = item.path.startsWith(path);
+      const same = item.path === path;
+      const endsWith = item.path.slice(path.length).startsWith('/');
+      return startsWith && !same && endsWith
     });
 
     return Promise.resolve(result);

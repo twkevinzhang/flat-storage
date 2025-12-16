@@ -13,3 +13,7 @@ export function findOrThrow<T>(array: Array<T>, f: (arg: T) => {}): T {
 export function joinPath(...paths: string[]): string {
   return paths.join('/').replace(/\/+/g, '/');
 }
+
+export function count(a: string, target: string): number {
+  return a.split(target).length -1;
+}
