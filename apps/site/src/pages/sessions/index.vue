@@ -27,7 +27,7 @@ function image(driver: Driver) {
 }
 
 function handleClick(session: SessionEntity) {
-  router.push({ path: '/sessions/' + session.id });
+  router.push({ path: joinPath('/sessions', session.id)});
 }
 
 onMounted(() => {

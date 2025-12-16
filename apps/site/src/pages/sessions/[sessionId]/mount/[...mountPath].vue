@@ -80,11 +80,13 @@ function handleNodeExpand(node: any) {
   }
 }
 
-function handleNodeClick(node: any): void { }
+function handleNodeClick(node: any): void { 
+  handleNavigate(node.path);
+}
 
 function handleNavigate(newPath: string): void {
   router.push({
-    path: `/sessions/${session.value.id}/mount${newPath}`,
+    path: joinPath('/sessions', session.value.id, 'mount', newPath),
   });
 }
 
@@ -108,13 +110,10 @@ onMounted(() => {
 
 <template>
   <div class="m-4 flex flex-col gap-2">
-    <Breadcrumb
-      :path="'yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy/yyyyyyyyyyyyyyy'"
-    />
+    <Breadcrumb v-if="mountPath !== '/'" :path="mountPath" @navigate="handleNavigate" />
     <div>
       <Hover
         severity="list-item"
-        fluid
         @click="(e) => dialogStore.open('menu')"
       >
         <span class="text-xl font-bold break-all"> {{ name }} </span>

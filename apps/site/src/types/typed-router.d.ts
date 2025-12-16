@@ -30,6 +30,22 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/sessions/': RouteRecordInfo<
+      '/sessions/',
+      '/sessions',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/sessions/[sessionId]': RouteRecordInfo<
+      '/sessions/[sessionId]',
+      '/sessions/:sessionId',
+      { sessionId: ParamValue<true> },
+      { sessionId: ParamValue<false> },
+      | '/sessions/[sessionId]/'
+      | '/sessions/[sessionId]/mount/'
+      | '/sessions/[sessionId]/mount/[...mountPath]'
+    >,
     '/sessions/[sessionId]/': RouteRecordInfo<
       '/sessions/[sessionId]/',
       '/sessions/:sessionId',
@@ -69,6 +85,21 @@ declare module 'vue-router/auto-routes' {
         | '/'
       views:
         | never
+    }
+    'src/pages/sessions/index.vue': {
+      routes:
+        | '/sessions/'
+      views:
+        | never
+    }
+    'src/pages/sessions/[sessionId].vue': {
+      routes:
+        | '/sessions/[sessionId]'
+        | '/sessions/[sessionId]/'
+        | '/sessions/[sessionId]/mount/'
+        | '/sessions/[sessionId]/mount/[...mountPath]'
+      views:
+        | 'default'
     }
     'src/pages/sessions/[sessionId]/index.vue': {
       routes:

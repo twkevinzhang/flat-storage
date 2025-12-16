@@ -9,3 +9,7 @@ export function findOrThrow<T>(array: Array<T>, f: (arg: T) => {}): T {
   }
   return r;
 }
+
+export function joinPath(...paths: string[]): string {
+  return paths.join('/').replace(/\/+/g, '/');
+}

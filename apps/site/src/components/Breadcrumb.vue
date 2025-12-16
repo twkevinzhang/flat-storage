@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { path } = defineProps<{
+const props = defineProps<{
   path: string;
 }>();
 
@@ -7,7 +7,25 @@ const emit = defineEmits<{
   (e: 'navigate', newPath: string): void;
 }>();
 
-const parts = computed(() => path.split('/').filter(Boolean));
+const path = computed(() => {
+  let r = props.path
+  if (isEmpty(r)) {
+    r = '/';
+  }
+  if (!r.startsWith('/')) {
+    r = '/' + r
+  }
+  if (r.endsWith('/')) {
+    r = r.slice(0, -1);
+  }
+  return r;
+})
+
+const parts = computed(() => {
+  const a = path.value.split('/').slice(1);
+  a.unshift('/');
+  return a;
+});
 
 const handleClick = (index: number) => {
   const newPath = take(parts.value, index + 1).join('/');
@@ -16,9 +34,9 @@ const handleClick = (index: number) => {
 </script>
 
 <template>
-  <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
+  <nav class="px-2 flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
     <template v-for="(part, index) in parts" :key="index">
-      <Hover severity="link" @click="() => handleClick(index)" :label="part" />
+      <Hover severity="link" :fluid="false" @click="() => handleClick(index)" :label="part" />
 
       <PrimeIcon name="angle-right" />
     </template>

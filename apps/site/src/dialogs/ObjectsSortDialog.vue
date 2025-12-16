@@ -52,7 +52,6 @@ const sort = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
         v-if="!isEmpty(avaliableOptions)"
         label="Add Sort..."
         severity="list-item"
-        fluid
         icon="pi-plus"
         @click="
           (e) => {
@@ -113,7 +112,6 @@ const sort = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
           v-if="!isEmpty(avaliableOptions)"
           label="Add Sort..."
           severity="list-item"
-          fluid
           icon="pi-plus"
           @click="
             (e) => {

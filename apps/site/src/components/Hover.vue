@@ -13,13 +13,15 @@ const props = withDefaults(
     active?: boolean | undefined;
     class?: any;
     fluid?: boolean | undefined;
+    paddingSize?: 'none' | 'sm' | 'lg' | undefined;
   }>(),
   {
     severity: 'list-item',
     rounded: 'full',
     position: 'center',
     active: false,
-    fluid: false,
+    fluid: true,
+    paddingSize: 'lg',
   }
 );
 const emits = defineEmits(['click']);
@@ -31,7 +33,6 @@ const internalClasses = computed(() => {
     base += ' hover:text-blue-600 hover:underline';
   } else if (props.severity === 'list-item') {
     base += ' hover:bg-gray-200/50';
-    base += ' gap-4 p-2';
   } else if (props.severity === 'button') {
     base += ' hover:bg-gray-200';
     base += ' px-2';
@@ -42,6 +43,14 @@ const internalClasses = computed(() => {
     base += ' gap-1 rounded-r-lg pl-[4px] pr-2 py-2 justify-start';
   } else if (props.rounded === 'full') {
     base += ' rounded-lg';
+  }
+
+  if (props.paddingSize === 'lg') {
+    base += ' gap-4 p-2';
+  } else if (props.paddingSize === 'sm') {
+    base += ' gap-2 p-1';
+  } else if (props.paddingSize === 'none') {
+    base += ' p-0';
   }
 
   if (props.fluid) {

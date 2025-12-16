@@ -172,6 +172,7 @@ declare global {
   const isWeakSet: typeof import('lodash-es')['isWeakSet']
   const iteratee: typeof import('lodash-es')['iteratee']
   const join: typeof import('lodash-es')['join']
+  const joinPath: typeof import('@site/utilities')['joinPath']
   const kebabCase: typeof import('lodash-es')['kebabCase']
   const keyBy: typeof import('lodash-es')['keyBy']
   const keys: typeof import('lodash-es')['keys']
@@ -567,6 +568,7 @@ declare module 'vue' {
     readonly isWeakSet: UnwrapRef<typeof import('lodash-es')['isWeakSet']>
     readonly iteratee: UnwrapRef<typeof import('lodash-es')['iteratee']>
     readonly join: UnwrapRef<typeof import('lodash-es')['join']>
+    readonly joinPath: UnwrapRef<typeof import('@site/utilities')['joinPath']>
     readonly kebabCase: UnwrapRef<typeof import('lodash-es')['kebabCase']>
     readonly keyBy: UnwrapRef<typeof import('lodash-es')['keyBy']>
     readonly keys: UnwrapRef<typeof import('lodash-es')['keys']>
