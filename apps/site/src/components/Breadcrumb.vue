@@ -22,7 +22,7 @@ const path = computed(() => {
 })
 
 const parts = computed(() => {
-  const a = path.value.split('/').slice(1);
+  const a = path.value.split('/').slice(1, -1); // 最後一個 part 不顯示
   a.unshift('/');
   return a;
 });

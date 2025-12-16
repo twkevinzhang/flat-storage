@@ -81,13 +81,23 @@ function handleNodeExpand(node: any) {
 }
 
 function handleNodeClick(node: any): void {
-  handleNavigate(node.path);
+  if (node.leaf) {
+    handleNavigate(node.path);
+  }
 }
 
 function handleNavigate(newPath: string): void {
   router.push({
     path: joinPath('/sessions', session.value.id, 'mount', newPath),
   });
+}
+
+
+function handleUp() {
+  const p = mountPath.value;
+  if (p === '/') return;
+  const parent = p.substring(0, p.lastIndexOf('/')) || '/';
+  handleNavigate(parent);
 }
 
 watchEffect(() => {
@@ -114,12 +124,13 @@ watch(
 
 <template>
   <div class="m-4 flex flex-col gap-2">
-    <Breadcrumb v-if="mountPath !== '/'" :path="mountPath" @navigate="handleNavigate" />
     <div>
-      <Hover
-        severity="list-item"
-        @click="(e) => dialogStore.open('menu')"
-      >
+      <Breadcrumb
+        v-if="mountPath !== '/'"
+        :path="mountPath"
+        @navigate="handleNavigate"
+      />
+      <Hover severity="list-item" @click="(e) => dialogStore.open('menu')">
         <span class="text-xl font-bold break-all"> {{ name }} </span>
         <PrimeIcon name="angle-down" />
       </Hover>
@@ -155,22 +166,44 @@ watch(
         <Button
           icon="pi pi-filter"
           severity="secondary"
+          variant="outlined"
+          badge="2"
+          badgeSeverity="contrast"
           @click="(e) => dialogStore.open('filter')"
         />
         <Button
           icon="pi pi-sort-alpha-down"
-          severity="secondary"
+         severity="secondary"
+          variant="outlined"
+          badge="2"
+          badgeSeverity="contrast"
           @click="(e) => dialogStore.open('sort')"
         />
         <Button
           icon="pi pi-sort"
           severity="secondary"
+          variant="outlined"
+          badge="2"
+          badgeSeverity="contrast"
           @click="(e) => dialogStore.open('order')"
         />
       </ButtonGroup>
     </div>
     <div class="my-2 overflow-y-auto">
       <ul v-if="viewMode === 'column'">
+        <li v-if="mountPath !== '/'">
+          <div class="flex">
+            <span class="pl-2" />
+            <Hover
+              icon="pi pi-folder"
+              label=".."
+              severity="link"
+              :fluid="true"
+              paddingSize="lg"
+              @click="handleUp"
+            />
+          </div>
+        </li>
         <ObjectTree
           :values="values"
           :limit="100"

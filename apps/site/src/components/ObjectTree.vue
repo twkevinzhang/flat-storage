@@ -14,10 +14,12 @@ const props = withDefaults(
   defineProps<{
     values?: Entity[];
     limit?: number;
+    indent?: boolean;
   }>(),
   {
     values: () => [],
     limit: 2,
+    indent: false,
   }
 );
 
@@ -64,12 +66,13 @@ function nodeToggle(node: Entity) {
 </script>
 
 <template>
-  <ul class="pl-6">
+  <ul :class="indent ? 'pl-6' : ''">
     <li v-for="node in take(values, limit)" :key="node.key">
       <div v-if="node.leaf" class="flex">
         <Hover
           class="w-6"
           :icon="angleIcon(node)"
+          :fluid="false"
           rounded="l"
           @click="(e) => nodeToggle(node)"
         />
@@ -77,7 +80,9 @@ function nodeToggle(node: Entity) {
           rounded="r"
           :icon="mimeIcon(node)"
           :label="node.label"
-          fluid
+          severity="link"
+          :fluid="true"
+          paddingSize="lg"
           @click="(e) => emits('nodeClick', node)"
         />
       </div>
@@ -85,15 +90,18 @@ function nodeToggle(node: Entity) {
       <div v-else class="flex">
         <span class="pl-2" />
         <Hover
-          class="w-full"
           :icon="mimeIcon(node)"
           :label="node.label"
+          severity="link"
+          :fluid="true"
+          paddingSize="lg"
           @click="(e) => emits('nodeClick', node)"
         />
       </div>
 
       <template v-if="node.leaf && expanded(node) && node.children">
         <ObjectTree
+          :indent="true"
           :values="node.children"
           :limit="limit"
           @node-click="(node) => emits('nodeClick', node)"

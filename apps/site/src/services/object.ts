@@ -428,10 +428,12 @@ export class MockObjectService {
       return Promise.resolve(this.data.filter(d => count(d.path, '/') === 1));
     }
     const result = this.data.filter((item) => {
-      const startsWith = item.path.startsWith(path);
-      const same = item.path === path;
-      const endsWith = item.path.slice(path.length).startsWith('/');
-      return startsWith && !same && endsWith
+      const prefix = path!.endsWith('/') ? path : path + '/';
+      if (!item.path.startsWith(prefix!)) return false;
+
+      const itemSlashes = item.path.split('/').length - 1;
+      const pathSlashes = path!.split('/').length - 1;
+      return itemSlashes === pathSlashes + 1;
     });
 
     return Promise.resolve(result);
