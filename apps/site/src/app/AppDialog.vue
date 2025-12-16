@@ -1,17 +1,7 @@
 <script setup lang="ts">
 import { useDialogStore } from '@site/stores/dialog';
-import { useObjectsStore } from '@site/stores/objects';
-import { storeToRefs } from 'pinia';
 
-const { visible, open, close } = useDialogStore();
-const store = useObjectsStore();
-const { viewMode: viewModeRef } = storeToRefs(store);
-const { setViewMode } = store;
-
-const viewMode = computed({
-  get: () => viewModeRef.value,
-  set: setViewMode,
-});
+const { visible, close } = useDialogStore();
 </script>
 
 <template>
@@ -71,17 +61,17 @@ const viewMode = computed({
     ]"
   />
 
-  <ObjectsFilterDialog
+  <MountFilterDialog
     :visible="visible('filter')"
     @update:visible="() => close('filter')"
   />
 
-  <ObjectsSortDialog
+  <MountSortDialog
     :visible="visible('sort')"
     @update:visible="() => close('sort')"
   />
 
-  <ObjectsOrderDialog
+  <MountOrderDialog
     :visible="visible('order')"
     @update:visible="() => close('order')"
   />

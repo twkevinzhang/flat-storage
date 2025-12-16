@@ -422,10 +422,11 @@ export class MockObjectService {
   }: {
     session: SessionEntity;
     path?: string;
-    }): Promise<ObjectEntity[]> {
+  }): Promise<ObjectEntity[]> {
+    console.log('listObjects', path);
     path = path || '/';
     if (path === '/') {
-      return Promise.resolve(this.data.filter(d => count(d.path, '/') === 1));
+      return Promise.resolve(this.data.filter((d) => count(d.path, '/') === 1));
     }
     const result = this.data.filter((item) => {
       const prefix = path!.endsWith('/') ? path : path + '/';

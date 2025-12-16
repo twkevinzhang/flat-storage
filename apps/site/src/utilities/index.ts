@@ -17,3 +17,10 @@ export function joinPath(...paths: string[]): string {
 export function count(a: string, target: string): number {
   return a.split(target).length -1;
 }
+
+export function normalizePath(path: string | string[] | undefined | null): string {
+  if (!path || (Array.isArray(path) && path.length === 0)) return '/';
+  let pathStr = Array.isArray(path) ? '/' + path.join('/') : (path as string);
+  if (!pathStr.startsWith('/')) pathStr = '/' + pathStr;
+  return pathStr.replace(/\/+/g, '/');
+}

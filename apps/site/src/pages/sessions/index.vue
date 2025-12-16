@@ -71,7 +71,7 @@ onMounted(() => {
           <p class="text-gray-600 dark:text-gray-400">
             {{ session.description }}
           </p>
-          <p>mount: {{ session.mountPath }}</p>
+          <p>mount: {{ session.mount }}</p>
         </template>
       </Card>
       <Card

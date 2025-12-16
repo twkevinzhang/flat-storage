@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { MountColumns } from '@site/models';
+
 const { visible } = defineProps<{
   visible: boolean;
 }>();
@@ -13,20 +15,7 @@ function submit() {
   console.log('submitted');
 }
 
-const columns = ref([
-  {
-    label: 'Name',
-    key: 'name',
-    icon: '',
-    type: 'text',
-  },
-  {
-    label: 'Created At',
-    key: 'createdAt',
-    icon: '',
-    type: 'date',
-  },
-]);
+const columns = ref(MountColumns);
 </script>
 
 <template>

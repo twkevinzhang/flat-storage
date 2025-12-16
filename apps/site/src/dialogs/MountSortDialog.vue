@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { MountColumns } from '@site/models';
+
 const { visible } = defineProps<{
   visible: boolean;
 }>();
@@ -14,20 +16,7 @@ function submit() {
 }
 
 const allOptions = computed(() => {
-  return [
-    {
-      label: 'Name',
-      key: 'name',
-      icon: '',
-      type: 'text',
-    },
-    {
-      label: 'Created At',
-      key: 'createdAt',
-      icon: '',
-      type: 'date',
-    },
-  ];
+  return MountColumns;
 });
 
 const avaliableOptions = computed(() => {

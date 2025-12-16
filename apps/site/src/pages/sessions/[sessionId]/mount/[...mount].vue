@@ -1,58 +1,100 @@
 <script setup lang="ts">
-import { ObjectEntity, ObjectMimeType, SessionEntity } from '@site/models';
+import { ObjectMimeType } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
 import { ObjectAdapter, ObjectService } from '@site/services/object';
+import { SessionService } from '@site/services/session';
 import { useDialogStore } from '@site/stores/dialog';
-import { useObjectsStore } from '@site/stores/objects';
+import { useListViewStore } from '@site/stores/list-view';
 import { useAsyncState } from '@vueuse/core';
-import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 
+/**
+ * =====
+ * Data fetching and listeners
+ * =====
+ */
+
+const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
 const objectApi = inject<ObjectService>(INJECT_KEYS.ObjectService)!;
-const session = inject<Ref<SessionEntity>>('sessionRef')!;
+
 const route = useRoute();
+const listViewStore = useListViewStore();
+
+const sessionId = computed(() => (route.params as any).sessionId as string);
+const mount = computed(() => {
+  const m = (route.params as any).mount as string;
+  if (!m || isEmpty(m)) return '/';
+  if (!m.startsWith('/')) return '/' + m;
+  return m;
+});
+
+const { state: session, execute: fetchSession } = useAsyncState(
+  async () => {
+    if (!sessionId.value) return null;
+    return await sessionApi.get(sessionId.value);
+  },
+  null,
+  { immediate: false }
+);
+
+const { state: objects, execute: fetchObjects } = useAsyncState(
+  async () => {
+    if (!session.value) return null;
+    if (!mount.value) return null;
+    return await objectApi.listObjects({
+      session: session.value,
+      path: mount.value,
+    });
+  },
+  null,
+  { immediate: false }
+);
+
+watch(
+  () => [sessionId.value, mount.value],
+  ([newSessionId, newMount]) => {
+    if (newSessionId && newMount) {
+      fetchSession().then(() => fetchObjects());
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  objects,
+  (newObjects) => {
+    if (newObjects) {
+      listViewStore.setList(newObjects);
+    }
+  },
+  { immediate: true }
+);
+
+/**
+ * =====
+ * UI State
+ * =====
+ */
+
+const dialogStore = useDialogStore();
+const viewMode = ref<'grid' | 'list' | 'column'>('list');
+const name = computed(() => '/' + mount.value?.split('/').pop());
+
+/**
+ * =====
+ * Handlers
+ * =====
+ */
+
 const router = useRouter();
 
-const res = useAsyncState(
-  async (path: string) => {
-    const objectsRes = await objectApi.listObjects({
-      session: session.value,
-      path,
-    });
-    return ObjectAdapter.listFromBackend(objectsRes);
-  },
-  [],
-  {
-    immediate: false,
-  }
-);
-const dialogStore = useDialogStore();
-const objectsStore = useObjectsStore();
-const objectsStoreRefs = storeToRefs(objectsStore);
-
-const mountPath = computed(() => {
-  const _mountPath = route.params.mountPath as string;
-  if (!_mountPath || isEmpty(_mountPath)) {
-    return '/';
-  }
-  if (!_mountPath.startsWith('/')) {
-    return '/' + _mountPath;
-  }
-  return _mountPath;
-});
-const name = computed(() => {
-  if (mountPath.value === '/') {
-    return '/';
-  }
-  return mountPath.value.split('/').pop()!;
-});
-const viewMode = computed({
-  get: () => objectsStoreRefs.viewMode.value,
-  set: objectsStore.setViewMode,
-});
-const values = ref<any[]>([]);
-
 function handleUpload() {}
+
+function handleNavigate(newPath: string): void {
+  router.push({
+    path: joinPath('/sessions', sessionId.value!, 'mount', newPath),
+  });
+}
 
 function handleNodeExpand(node: any) {
   if (!node.children) {
@@ -60,7 +102,7 @@ function handleNodeExpand(node: any) {
 
     objectApi
       .listObjects({
-        session: session.value,
+        session: session.value!,
         path: node.path,
       })
       .then((res) => {
@@ -86,23 +128,24 @@ function handleNodeClick(node: any): void {
   }
 }
 
-function handleNavigate(newPath: string): void {
-  router.push({
-    path: joinPath('/sessions', session.value.id, 'mount', newPath),
-  });
-}
-
-
 function handleUp() {
-  const p = mountPath.value;
+  const p = mount.value;
   if (p === '/') return;
   const parent = p.substring(0, p.lastIndexOf('/')) || '/';
   handleNavigate(parent);
 }
 
+/**
+ * =====
+ * Tree
+ * =====
+ */
+
+const tree = ref<any[]>([]);
+
 watchEffect(() => {
-  if (res.state.value) {
-    values.value = res.state.value.map((v) => ({
+  if (objects.value) {
+    tree.value = objects.value.map((v) => ({
       key: v.path,
       label: v.name,
       leaf: v.mimeType === ObjectMimeType.folder,
@@ -112,22 +155,14 @@ watchEffect(() => {
     }));
   }
 });
-
-watch(
-  mountPath,
-  () => {
-    res.execute(0, mountPath.value);
-  },
-  { immediate: true }
-);
 </script>
 
 <template>
   <div class="m-4 flex flex-col gap-2">
     <div>
       <Breadcrumb
-        v-if="mountPath !== '/'"
-        :path="mountPath"
+        v-if="mount && mount !== '/'"
+        :path="mount"
         @navigate="handleNavigate"
       />
       <Hover severity="list-item" @click="(e) => dialogStore.open('menu')">
@@ -145,7 +180,7 @@ watch(
           { icon: 'map', name: 'Column', value: 'column' },
         ]"
         optionLabel="name"
-        dataKey="value"
+        optionValue="value"
       >
         <template #option="{ option }">
           <PrimeIcon :name="option.icon" />
@@ -173,7 +208,7 @@ watch(
         />
         <Button
           icon="pi pi-sort-alpha-down"
-         severity="secondary"
+          severity="secondary"
           variant="outlined"
           badge="2"
           badgeSeverity="contrast"
@@ -190,8 +225,8 @@ watch(
       </ButtonGroup>
     </div>
     <div class="my-2 overflow-y-auto">
-      <ul v-if="viewMode === 'column'">
-        <li v-if="mountPath !== '/'">
+      <ul v-if="viewMode === 'list'">
+        <li v-if="mount !== '/'">
           <div class="flex">
             <span class="pl-2" />
             <Hover
@@ -205,12 +240,13 @@ watch(
           </div>
         </li>
         <ObjectTree
-          :values="values"
-          :limit="100"
+          :values="tree"
+          :limit="10"
           @node-click="handleNodeClick"
           @node-expand="handleNodeExpand"
         />
       </ul>
+      <MountGrid v-if="viewMode === 'grid'" />
     </div>
   </div>
 </template>

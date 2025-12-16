@@ -1,4 +1,5 @@
 import { latestIndex } from '@site/utilities';
+import Column from 'primevue/column';
 import { v4 as uuidv4 } from 'uuid';
 
 export enum Driver {
@@ -13,6 +14,21 @@ export enum ObjectMimeType {
   txt = 'application/txt',
   folder = 'inode/directory',
 }
+
+export const MountColumns = [
+    {
+      label: 'Name',
+      key: 'name',
+      icon: '',
+      type: 'text',
+    },
+    {
+      label: 'Created At',
+      key: 'createdAt',
+      icon: '',
+      type: 'date',
+    },
+  ]
 
 export class ObjectEntity {
   private constructor(
@@ -143,7 +159,7 @@ export class SessionEntity {
     public readonly name: string,
     public readonly description: string | undefined,
     public readonly driver: Driver,
-    public readonly mountPath: string,
+    public readonly mount: string,
     public readonly createdAtISO: string,
     public readonly latestConnectedISO: string | undefined,
     public readonly metadataPath: string,
@@ -155,7 +171,7 @@ export class SessionEntity {
     name?: string;
     description?: string;
     driver: Driver;
-    mountPath: string;
+    mount: string;
     createdAtISO?: string;
     latestConnectedISO?: string;
     metadataPath?: string;
@@ -167,7 +183,7 @@ export class SessionEntity {
       params.name ?? 'Untitled',
       params.description,
       params.driver,
-      params.mountPath,
+      params.mount,
       params.createdAtISO ?? new Date().toISOString(),
       params.latestConnectedISO,
       params.metadataPath ?? '/',
@@ -182,7 +198,7 @@ export class SessionEntity {
       json.name,
       json.description,
       json.driver,
-      json.mountPath,
+      json.mount,
       json.createdAtISO,
       json.latestConnectedISO,
       json.metadataPath,
@@ -206,7 +222,7 @@ export class SessionForm implements Partial<Omit<SessionEntity, 'id'>> {
     public readonly name: string | undefined,
     public readonly description: string | undefined,
     public readonly driver: Driver,
-    public readonly mountPath: string,
+    public readonly mount: string,
     public readonly createdAtISO: string,
     public readonly latestConnectedISO: string | undefined,
     public readonly metadataPath: string,

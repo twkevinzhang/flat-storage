@@ -8,7 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    '[...mountPath]': typeof import('./../pages/sessions/[sessionId]/mount/[...mountPath].vue')['default']
+    '[...mount]': typeof import('./../pages/sessions/[sessionId]/mount/[...mount].vue')['default']
     '[sessionId]': typeof import('./../pages/sessions/[sessionId]/index.vue')['default']
     App: typeof import('./../app/App.vue')['default']
     AppDialog: typeof import('./../app/AppDialog.vue')['default']
@@ -26,12 +26,11 @@ declare module 'vue' {
     Menu: typeof import('primevue/menu')['default']
     MenuDialog: typeof import('./../components/MenuDialog.vue')['default']
     Mount: typeof import('./../pages/sessions/[sessionId]/mount/index.vue')['default']
+    MountFilterDialog: typeof import('./../dialogs/MountFilterDialog.vue')['default']
+    MountGrid: typeof import('./../layouts/MountGrid.vue')['default']
+    MountOrderDialog: typeof import('./../dialogs/MountOrderDialog.vue')['default']
+    MountSortDialog: typeof import('./../dialogs/MountSortDialog.vue')['default']
     NewSessionDialog: typeof import('./../dialogs/NewSessionDialog.vue')['default']
-    ObjectsColumn: typeof import('./../layouts/ObjectsColumn.vue')['default']
-    ObjectsFilterDialog: typeof import('./../dialogs/ObjectsFilterDialog.vue')['default']
-    ObjectsGrid: typeof import('./../layouts/ObjectsGrid.vue')['default']
-    ObjectsOrderDialog: typeof import('./../dialogs/ObjectsOrderDialog.vue')['default']
-    ObjectsSortDialog: typeof import('./../dialogs/ObjectsSortDialog.vue')['default']
     ObjectTree: typeof import('./../components/ObjectTree.vue')['default']
     OrderList: typeof import('primevue/orderlist')['default']
     Pages: typeof import('./../pages/index.vue')['default']

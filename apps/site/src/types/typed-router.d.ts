@@ -44,7 +44,7 @@ declare module 'vue-router/auto-routes' {
       { sessionId: ParamValue<false> },
       | '/sessions/[sessionId]/'
       | '/sessions/[sessionId]/mount/'
-      | '/sessions/[sessionId]/mount/[...mountPath]'
+      | '/sessions/[sessionId]/mount/[...mount]'
     >,
     '/sessions/[sessionId]/': RouteRecordInfo<
       '/sessions/[sessionId]/',
@@ -60,11 +60,11 @@ declare module 'vue-router/auto-routes' {
       { sessionId: ParamValue<false> },
       | never
     >,
-    '/sessions/[sessionId]/mount/[...mountPath]': RouteRecordInfo<
-      '/sessions/[sessionId]/mount/[...mountPath]',
-      '/sessions/:sessionId/mount/:mountPath(.*)',
-      { sessionId: ParamValue<true>, mountPath: ParamValue<true> },
-      { sessionId: ParamValue<false>, mountPath: ParamValue<false> },
+    '/sessions/[sessionId]/mount/[...mount]': RouteRecordInfo<
+      '/sessions/[sessionId]/mount/[...mount]',
+      '/sessions/:sessionId/mount/:mount(.*)',
+      { sessionId: ParamValue<true>, mount: ParamValue<true> },
+      { sessionId: ParamValue<false>, mount: ParamValue<false> },
       | never
     >,
   }
@@ -97,7 +97,7 @@ declare module 'vue-router/auto-routes' {
         | '/sessions/[sessionId]'
         | '/sessions/[sessionId]/'
         | '/sessions/[sessionId]/mount/'
-        | '/sessions/[sessionId]/mount/[...mountPath]'
+        | '/sessions/[sessionId]/mount/[...mount]'
       views:
         | 'default'
     }
@@ -113,9 +113,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/sessions/[sessionId]/mount/[...mountPath].vue': {
+    'src/pages/sessions/[sessionId]/mount/[...mount].vue': {
       routes:
-        | '/sessions/[sessionId]/mount/[...mountPath]'
+        | '/sessions/[sessionId]/mount/[...mount]'
       views:
         | never
     }

@@ -2,7 +2,7 @@
 import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
 import { ObjectsFilter, SessionEntity, Driver } from '@site/models';
 import { ObjectService } from '@site/services/object';
-import { useObjectsStore } from '@site/stores/objects';
+import { useListViewStore } from '@site/stores/list-view';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 
@@ -26,7 +26,7 @@ const emits = defineEmits<{
 
 const formRef = ref<FormInstance | null>(null);
 const router = useRouter();
-const store = useObjectsStore();
+const store = useListViewStore();
 const { filter } = storeToRefs(store);
 
 const isLoading = ref(false);

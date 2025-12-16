@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
-import { ObjectsFilter } from '@site/models';
-import { useObjectsStore } from '@site/stores/objects';
+import { MountColumns, ObjectsFilter } from '@site/models';
+import { useListViewStore } from '@site/stores/list-view';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 
@@ -14,24 +14,11 @@ const emits = defineEmits<{
 }>();
 
 const formRef = ref<FormInstance | null>(null);
-const store = useObjectsStore();
+const store = useListViewStore();
 const { filter } = storeToRefs(store);
 const router = useRouter();
 
-const actions = [
-  {
-    label: 'Name',
-    key: 'name',
-    icon: '',
-    type: 'text',
-  },
-  {
-    label: 'Created At',
-    key: 'createdAt',
-    icon: '',
-    type: 'date',
-  },
-];
+const actions = MountColumns;
 
 const textOptions = [
   { label: 'Contains', value: 'contains' },
