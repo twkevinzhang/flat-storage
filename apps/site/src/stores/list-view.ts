@@ -1,6 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ObjectEntity, ObjectsFilter } from '@site/models';
-import { LocationQuery } from 'vue-router';
 
 export const useListViewStore = defineStore('list-view', () => {
   const filter = ref<ObjectsFilter>(ObjectsFilter.empty());
@@ -12,12 +11,16 @@ export const useListViewStore = defineStore('list-view', () => {
     setList: (data: ObjectEntity[]) => {
       rawList.value = data;
     },
-    setFilter(newFilter: LocationQuery): void {
-      filter.value = ObjectsFilter.fromObj(newFilter);
+    setFilter(newFilter: ObjectsFilter): void {
+      filter.value = newFilter;
     },
     setSort(): void {},
     setOrder(): void {},
     filter: computed(() => filter.value),
+    filterCount: computed(() => {
+      if (filter.value.isEmpty) return undefined;
+      return filter.value.count?.toString();
+    }),
     sort: computed(() => sort.value),
     order: computed(() => order.value),
 
@@ -36,6 +39,7 @@ function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {
   if (f.isEmpty) return raw;
   if (!raw) return [];
   if (isEmpty(raw)) return [];
+  if (f.isEmpty) return raw;
   let result = raw;
 
   const { name, createdAt } = f;

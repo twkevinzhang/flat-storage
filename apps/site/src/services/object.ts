@@ -422,8 +422,7 @@ export class MockObjectService {
   }: {
     session: SessionEntity;
     path?: string;
-  }): Promise<ObjectEntity[]> {
-    console.log('listObjects', path);
+    }): Promise<ObjectEntity[]> {
     path = path || '/';
     if (path === '/') {
       return Promise.resolve(this.data.filter((d) => count(d.path, '/') === 1));
@@ -436,7 +435,6 @@ export class MockObjectService {
       const pathSlashes = path!.split('/').length - 1;
       return itemSlashes === pathSlashes + 1;
     });
-
     return Promise.resolve(result);
   }
 }

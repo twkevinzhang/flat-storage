@@ -4,7 +4,7 @@ import { ObjectsFilter, SessionEntity, Driver } from '@site/models';
 import { ObjectService } from '@site/services/object';
 import { useListViewStore } from '@site/stores/list-view';
 import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const HmacDriver = [
   Driver.gcs,
@@ -26,6 +26,7 @@ const emits = defineEmits<{
 
 const formRef = ref<FormInstance | null>(null);
 const router = useRouter();
+const route = useRoute();
 const store = useListViewStore();
 const { filter } = storeToRefs(store);
 
@@ -52,7 +53,6 @@ async function handleStep1Next(activateCallback: (step: string) => void) {
 }
 
 function submit({ valid, values }: FormSubmitEvent) {
-  console.log('Form Submitted with values:', values);
   if (valid) {
     emits('update:visible', false);
     const newObj = ObjectsFilter.empty();
@@ -63,7 +63,8 @@ function submit({ valid, values }: FormSubmitEvent) {
 
 function navigate(filter: ObjectsFilter) {
   router.push({
-    query: filter,
+    path: route.path,
+    query: filter.toQuery(),
   });
 }
 </script>

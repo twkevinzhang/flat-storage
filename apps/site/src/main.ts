@@ -17,15 +17,16 @@ export async function createApp() {
   const router = createRouter({
     history: createWebHistory(),
     routes,
-    parseQuery: (search) => {
-      const parsed = qs.parse(search, { ignoreQueryPrefix: true });
+    parseQuery: (query) => {
+      const parsed = qs.parse(query, { ignoreQueryPrefix: true });
       const compressedString = parsed['q'] as string | undefined;
       if (compressedString) {
-        const decompressedString =
+        const jsonString =
           LZString.decompressFromEncodedURIComponent(compressedString);
-        if (decompressedString) {
+        if (jsonString) {
+          console.log('decode querystring', jsonString)
           try {
-            return JSON.parse(decompressedString) as LocationQuery;
+            return JSON.parse(jsonString);
           } catch (e) {
             console.error('Failed to parse decompressed JSON:', e);
           }
@@ -39,7 +40,6 @@ export async function createApp() {
       const jsonString = JSON.stringify(query);
       const compressedString =
         LZString.compressToEncodedURIComponent(jsonString);
-
       return qs.stringify({ ['q']: compressedString }, { encode: false });
     },
   });

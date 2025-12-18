@@ -3,7 +3,7 @@ import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
 import { MountColumns, ObjectsFilter } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
 import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const { visible } = defineProps<{
   visible: boolean;
@@ -17,6 +17,7 @@ const formRef = ref<FormInstance | null>(null);
 const store = useListViewStore();
 const { filter } = storeToRefs(store);
 const router = useRouter();
+const route = useRoute();
 
 const actions = MountColumns;
 
@@ -26,15 +27,7 @@ const textOptions = [
 ];
 
 const initialValues = computed(() => {
-  const f = filter.value;
-  return {
-    'name.operator': f.name.operator,
-    'name.condition': f.name.condition,
-    'createdAt.start': f.createdAt.start
-      ? f.createdAt.start.toISOString()
-      : null,
-    'createdAt.end': f.createdAt.end ? f.createdAt.end.toISOString() : null,
-  };
+  return filter.value.toFlattenObj();
 });
 
 function clean(...columns: string[]) {
@@ -54,20 +47,20 @@ function reset() {
 }
 
 function submit({ valid, values }: FormSubmitEvent) {
-  console.log('Form Submitted with values:', values);
   if (valid) {
     emits('update:visible', false);
-    const newObj = ObjectsFilter.empty();
-    merge(newObj, filter.value, values);
-    navigate(newObj);
+    const newFilter = ObjectsFilter.fromQuery(values);
+    navigate(newFilter);
   }
 }
 
 function navigate(filter: ObjectsFilter) {
   router.push({
-    query: filter,
+    path: route.path,
+    query: filter.toQuery(),
   });
 }
+
 </script>
 
 <template>
@@ -99,7 +92,7 @@ function navigate(filter: ObjectsFilter) {
             fluid
           />
           <InputText
-            v-if="!!!$form[key]?.operator.value"
+            v-if="!$form[key]?.operator?.value"
             :disabled="true"
             type="text"
             fluid
@@ -110,9 +103,7 @@ function navigate(filter: ObjectsFilter) {
             :name="`${key}.condition`"
             type="text"
             fluid
-            :placeholder="`If ${label} ${
-              $form[key].operator.value?.label ?? ''
-            }...`"
+            :placeholder="`If ${label}...`"
           />
           <div class="flex justify-end">
             <Button
@@ -125,8 +116,8 @@ function navigate(filter: ObjectsFilter) {
         </div>
 
         <div v-if="type === 'date'" class="flex flex-col gap-4">
-          <DatePicker :name="`${key}.start`" placeholder="Empty" fluid />
-          <DatePicker :name="`${key}.end`" placeholder="Empty" fluid />
+          <DatePicker :name="`${key}.start`" placeholder="Range Start" fluid />
+          <DatePicker :name="`${key}.end`" placeholder="Range End" fluid />
           <div class="flex justify-end">
             <Button
               severity="secondary"

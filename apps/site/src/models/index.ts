@@ -120,14 +120,22 @@ export class ObjectEntity {
   }
 }
 
-interface NameFilter {
-  operator: string | null;
-  condition: string | null;
+class NameFilter {
+  operator: string | null = null;
+  condition: string | null = null;
+
+  get isEmpty(): boolean {
+    return this.operator === null && this.condition === null;
+  }
 }
 
-interface DateFilter {
-  start: Date | null;
-  end: Date | null;
+class DateFilter {
+  start: Date | null = null;
+  end: Date | null = null;
+
+  get isEmpty(): boolean {
+    return this.start === null && this.end === null;
+  }
 }
 
 export class ObjectsFilter {
@@ -135,28 +143,64 @@ export class ObjectsFilter {
   createdAt: DateFilter;
 
   constructor(initialState?: { name?: NameFilter; createdAt?: DateFilter }) {
-    this.name = initialState?.name || { operator: null, condition: null };
-    this.createdAt = initialState?.createdAt || { start: null, end: null };
+    this.name = initialState?.name ||   new NameFilter();
+    this.createdAt = initialState?.createdAt || new DateFilter();
   }
 
   get isEmpty(): boolean {
-    return (
-      this.name.operator === null &&
-      this.name.condition === null &&
-      this.createdAt.start === null &&
-      this.createdAt.end === null
-    );
+    return this.name.isEmpty && this.createdAt.isEmpty;
+  }
+
+  get count(): number {
+    let c = 0;
+    if (!this.name.isEmpty) c++;
+    if (!this.createdAt.isEmpty) c++;
+    return c;
   }
 
   static empty(): ObjectsFilter {
     return new ObjectsFilter();
   }
 
-  static fromObj(obj: any) {
-    return new ObjectsFilter({
-      name: obj.name,
-      createdAt: obj.createdAt,
-    });
+  toQuery(): any {
+    return {
+      name: {
+        operator: this.name.operator,
+        condition: this.name.condition,
+      },
+      createdAt: {
+        start: this.createdAt.start
+          ? this.createdAt.start.toISOString()
+          : null,
+        end: this.createdAt.end ? this.createdAt.end.toISOString() : null,
+      },
+    };
+  }
+
+  toFlattenObj(): any {
+    return {
+      'name.operator': this.name.operator,
+      'name.condition': this.name.condition,
+      'createdAt.start': this.createdAt.start
+        ? this.createdAt.start.toISOString()
+        : null,
+      'createdAt.end': this.createdAt.end ? this.createdAt.end.toISOString() : null,
+    };
+  }
+
+  static fromQuery(obj: any): ObjectsFilter {
+    const filter = new ObjectsFilter();
+    if (!obj) return filter;  
+
+    filter.name.operator = obj.name?.operator || null;
+    filter.name.condition = obj.name?.condition || null;
+    if (obj.createdAt?.start) {
+      filter.createdAt.start = new Date(obj.createdAt.start);
+    }
+    if (obj.createdAt?.end) {
+      filter.createdAt.end = new Date(obj.createdAt.end);
+    }
+    return filter;
   }
 }
 

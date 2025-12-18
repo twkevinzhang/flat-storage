@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ObjectEntity, ObjectMimeType } from '@site/models';
+import { Entity } from '@site/components/ObjectTree';
+import { ObjectEntity, ObjectMimeType, ObjectsFilter } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
 import { ObjectAdapter, ObjectService } from '@site/services/object';
 import { SessionService } from '@site/services/session';
 import { useDialogStore } from '@site/stores/dialog';
 import { useListViewStore } from '@site/stores/list-view';
 import { useAsyncState } from '@vueuse/core';
+import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 
 /**
@@ -19,6 +21,7 @@ const objectApi = inject<ObjectService>(INJECT_KEYS.ObjectService)!;
 
 const route = useRoute();
 const listViewStore = useListViewStore();
+const listViewStoreRefs = storeToRefs(listViewStore);
 
 const sessionId = computed(() => (route.params as any).sessionId as string);
 const mount = computed(() => {
@@ -61,10 +64,32 @@ watch(
 );
 
 watch(
+  () => [route.query],
+  ([newQuery]) => {
+    if (newQuery) {
+      listViewStore.setFilter(ObjectsFilter.fromQuery(newQuery));
+    }
+  },
+  { immediate: true }
+);
+
+const tree = ref<Entity[]>([]);
+
+watch(
   objects,
   (newObjects) => {
     if (newObjects) {
       listViewStore.setList(newObjects);
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  listViewStoreRefs.statefulList,
+  (newList) => {
+    if (newList) {
+      tree.value = newList.map(toLeafNode);
     }
   },
   { immediate: true }
@@ -96,7 +121,7 @@ function handleNavigate(newPath: string): void {
   });
 }
 
-function handleNodeExpand(node: any) {
+function handleNodeExpand(node: Entity) {
   if (!node.children) {
     node.loading = true;
 
@@ -115,7 +140,7 @@ function handleNodeExpand(node: any) {
   }
 }
 
-function handleNodeClick(node: any): void {
+function handleNodeClick(node: Entity): void {
   if (node.leaf) {
     handleNavigate(node.path);
   }
@@ -130,19 +155,6 @@ function handleUp() {
 
 function handleShowMoreClick() {}
 
-/**
- * =====
- * Tree
- * =====
- */
-
-const tree = ref<any[]>([]);
-
-watchEffect(() => {
-  if (objects.value) {
-    tree.value = objects.value.map(toLeafNode);
-  }
-});
 
 /**
  * =====
@@ -150,8 +162,9 @@ watchEffect(() => {
  * =====
  */
 
-function toLeafNode(v: ObjectEntity): any {
+function toLeafNode(v: ObjectEntity): Entity {
   return {
+    ...v,
     key: v.path,
     label: v.name,
     leaf: v.mimeType === ObjectMimeType.folder,
@@ -184,7 +197,7 @@ function toLeafNode(v: ObjectEntity): any {
             icon="pi pi-filter"
             severity="secondary"
             variant="outlined"
-            badge="2"
+            :badge="listViewStoreRefs.filterCount.value"
             badgeSeverity="contrast"
             @click="(e) => dialogStore.open('filter')"
           />
