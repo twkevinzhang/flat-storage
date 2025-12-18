@@ -170,82 +170,88 @@ watchEffect(() => {
         <PrimeIcon name="angle-down" />
       </Hover>
     </div>
-    <div class="flex flex-row gap-2">
-      <SelectButton
-        v-model="viewMode"
-        size="large"
-        :options="[
-          { icon: 'th-large', name: 'Grid', value: 'grid' },
-          { icon: 'list', name: 'List', value: 'list' },
-          { icon: 'map', name: 'Column', value: 'column' },
-        ]"
-        optionLabel="name"
-        optionValue="value"
-      >
-        <template #option="{ option }">
-          <PrimeIcon :name="option.icon" />
-        </template>
-      </SelectButton>
-      <SplitButton
-        label="Upload"
-        @click="(e) => handleUpload()"
-        :model="[
-          {
-            label: 'Create Folder',
-            icon: 'pi pi-folder-plus',
-            command: () => {},
-          },
-        ]"
-      />
-      <ButtonGroup>
-        <Button
-          icon="pi pi-filter"
-          severity="secondary"
-          variant="outlined"
-          badge="2"
-          badgeSeverity="contrast"
-          @click="(e) => dialogStore.open('filter')"
+    <div class="flex flex-row justify-between">
+      <div class="flex flex-row gap-2">
+        <ButtonGroup>
+          <Button
+            icon="pi pi-filter"
+            severity="secondary"
+            variant="outlined"
+            badge="2"
+            badgeSeverity="contrast"
+            @click="(e) => dialogStore.open('filter')"
+          />
+          <Button
+            icon="pi pi-sort-alpha-down"
+            severity="secondary"
+            variant="outlined"
+            badge="2"
+            badgeSeverity="contrast"
+            @click="(e) => dialogStore.open('sort')"
+          />
+          <Button
+            icon="pi pi-sort"
+            severity="secondary"
+            variant="outlined"
+            badge="2"
+            badgeSeverity="contrast"
+            @click="(e) => dialogStore.open('order')"
+          />
+        </ButtonGroup>
+      </div>
+      <div class="flex flex-row gap-2">
+        <SplitButton
+          label="Upload"
+          @click="(e) => handleUpload()"
+          :model="[
+            {
+              label: 'Create Folder',
+              icon: 'pi pi-folder-plus',
+              command: () => {},
+            },
+          ]"
         />
-        <Button
-          icon="pi pi-sort-alpha-down"
-          severity="secondary"
-          variant="outlined"
-          badge="2"
-          badgeSeverity="contrast"
-          @click="(e) => dialogStore.open('sort')"
-        />
-        <Button
-          icon="pi pi-sort"
-          severity="secondary"
-          variant="outlined"
-          badge="2"
-          badgeSeverity="contrast"
-          @click="(e) => dialogStore.open('order')"
-        />
-      </ButtonGroup>
+        <SelectButton
+          v-model="viewMode"
+          size="large"
+          :options="[
+            { icon: 'th-large', name: 'Grid', value: 'grid' },
+            { icon: 'list', name: 'List', value: 'list' },
+            { icon: 'map', name: 'Column', value: 'column' },
+          ]"
+          optionLabel="name"
+          optionValue="value"
+        >
+          <template #option="{ option }">
+            <PrimeIcon :name="option.icon" />
+          </template>
+        </SelectButton>
+      </div>
     </div>
     <div class="my-2 overflow-y-auto">
-      <ul v-if="viewMode === 'list'">
-        <li v-if="mount !== '/'">
-          <div class="flex">
-            <span class="pl-2" />
-            <Hover
-              icon="pi pi-folder"
-              label=".."
-              severity="link"
-              :fluid="true"
-              paddingSize="lg"
-              @click="handleUp"
-            />
-          </div>
-        </li>
-        <ObjectTree
-          :values="tree"
-          :limit="10"
-          @node-click="handleNodeClick"
-          @node-expand="handleNodeExpand"
-        />
-      </ul>
+      <template v-if="viewMode === 'list'">
+        <ul>
+          <li v-if="mount !== '/'">
+            <div class="flex">
+              <span class="pl-2" />
+              <Hover
+                icon="pi pi-folder"
+                label=".."
+                severity="link"
+                :fluid="true"
+                paddingSize="lg"
+                @click="handleUp"
+              />
+            </div>
+          </li>
+          <ObjectTree
+            :values="tree"
+            :limit="10"
+            @node-click="handleNodeClick"
+            @node-expand="handleNodeExpand"
+          />
+        </ul>
+      </template>
       <MountGrid v-if="viewMode === 'grid'" />
     </div>
   </div>
