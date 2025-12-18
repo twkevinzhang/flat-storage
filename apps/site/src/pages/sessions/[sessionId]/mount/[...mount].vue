@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ObjectMimeType } from '@site/models';
+import { ObjectEntity, ObjectMimeType } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
 import { ObjectAdapter, ObjectService } from '@site/services/object';
 import { SessionService } from '@site/services/session';
@@ -107,14 +107,7 @@ function handleNodeExpand(node: any) {
       })
       .then((res) => {
         const children = ObjectAdapter.listFromBackend(res);
-        node.children = children.map((v) => ({
-          key: v.path,
-          label: v.name,
-          leaf: v.mimeType === ObjectMimeType.folder,
-          loading: false,
-          path: v.path,
-          mimeType: v.mimeType,
-        }));
+        node.children = children.map(toLeafNode);
       })
       .finally(() => {
         node.loading = false;
@@ -135,6 +128,8 @@ function handleUp() {
   handleNavigate(parent);
 }
 
+function handleShowMoreClick() {}
+
 /**
  * =====
  * Tree
@@ -145,16 +140,28 @@ const tree = ref<any[]>([]);
 
 watchEffect(() => {
   if (objects.value) {
-    tree.value = objects.value.map((v) => ({
-      key: v.path,
-      label: v.name,
-      leaf: v.mimeType === ObjectMimeType.folder,
-      loading: false,
-      path: v.path,
-      mimeType: v.mimeType,
-    }));
+    tree.value = objects.value.map(toLeafNode);
   }
 });
+
+/**
+ * =====
+ * Utilities
+ * =====
+ */
+
+function toLeafNode(v: ObjectEntity): any {
+  return {
+    key: v.path,
+    label: v.name,
+    leaf: v.mimeType === ObjectMimeType.folder,
+    loading: false,
+    path: v.path,
+    mimeType: v.mimeType,
+    sizeBytes: v.sizeBytes,
+    latestUpdatedAtISO: v.latestUpdatedAtISO,
+  };
+}
 </script>
 
 <template>
@@ -229,29 +236,15 @@ watchEffect(() => {
       </div>
     </div>
     <div class="my-2 overflow-y-auto">
-      <template v-if="viewMode === 'list'">
-        <ul>
-          <li v-if="mount !== '/'">
-            <div class="flex">
-              <span class="pl-2" />
-              <Hover
-                icon="pi pi-folder"
-                label=".."
-                severity="link"
-                :fluid="true"
-                paddingSize="lg"
-                @click="handleUp"
-              />
-            </div>
-          </li>
-          <ObjectTree
-            :values="tree"
-            :limit="10"
-            @node-click="handleNodeClick"
-            @node-expand="handleNodeExpand"
-          />
-        </ul>
-      </template>
+      <MountList
+        v-if="viewMode === 'list'"
+        :mount="mount"
+        :tree="tree"
+        @node-click="handleNodeClick"
+        @node-expand="handleNodeExpand"
+        @up="handleUp"
+        @show-more-click="handleShowMoreClick"
+      />
       <MountGrid v-if="viewMode === 'grid'" />
     </div>
   </div>

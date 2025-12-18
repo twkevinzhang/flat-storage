@@ -1,10 +1,18 @@
 <script setup lang="ts">
+const INITIAL_WIDTH = 256;
+const MIN_WIDTH = 100;
+
+const sidebarWidths = ref({
+  sidebar: INITIAL_WIDTH,
+});
 </script>
 
+
 <template>
-  <SplitContainer>
-    <template #left>
-      <div class="p-2 h-screen overflow-y-auto">
+  <div class="flex h-screen text-sm overflow-x-hidden">
+    <SplitterPx v-model:widths="sidebarWidths">
+      <SplitterPxPanel id="sidebar" :size="sidebarWidths.sidebar" :min-size="MIN_WIDTH" show-handle>
+        <div class="p-2 h-screen overflow-y-auto">
       <Menu
         :model="[
           {
@@ -69,9 +77,10 @@
         </template>
       </Menu>
       </div>
-    </template>
-    <template #right>
-      <RouterView />
-    </template>
-  </SplitContainer>
+      </SplitterPxPanel>
+      <div class="flex-1 overflow-auto">
+        <RouterView />
+      </div>
+    </SplitterPx>
+  </div>
 </template>

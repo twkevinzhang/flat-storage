@@ -15,20 +15,27 @@ export enum ObjectMimeType {
   folder = 'inode/directory',
 }
 
+export enum ColumnKeys {
+  name = 'name',
+  mimeType = 'mimeType',
+  createdAt = 'createdAt',
+  latestUpdatedAt = 'latestUpdatedAt',
+}
+
 export const MountColumns = [
-    {
-      label: 'Name',
-      key: 'name',
-      icon: '',
-      type: 'text',
-    },
-    {
-      label: 'Created At',
-      key: 'createdAt',
-      icon: '',
-      type: 'date',
-    },
-  ]
+  {
+    label: 'Name',
+    key: ColumnKeys.name,
+    icon: '',
+    type: 'text',
+  },
+  {
+    label: 'Created At',
+    key: ColumnKeys.createdAt,
+    icon: '',
+    type: 'date',
+  },
+];
 
 export class ObjectEntity {
   private constructor(

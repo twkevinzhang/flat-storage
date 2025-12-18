@@ -247,7 +247,7 @@ export class MockObjectService {
         sizeBytes: 1234,
       }),
       ObjectEntity.new({
-        path: '/root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4',
+        path: '/root4root4roo t4root4root4r oot4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4',
         md5Hash: 'ID76',
         sizeBytes: 1234,
       }),

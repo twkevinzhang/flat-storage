@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     severity?: 'list-item' | 'button' | 'link' | undefined;
-    rounded?: 'full' | 'l' | 'r' | undefined;
+    rounded?: 'full' | 'l' | 'r' | 'none' | undefined;
     label?: string | undefined;
     icon?: string | undefined;
     pt?: {
@@ -43,6 +43,8 @@ const internalClasses = computed(() => {
     base += ' gap-1 rounded-r-lg pl-[4px] pr-2 py-2 justify-start';
   } else if (props.rounded === 'full') {
     base += ' rounded-lg';
+  } else if (props.rounded === 'none') {
+    base += ' rounded-none';
   }
 
   if (props.paddingSize === 'lg') {
@@ -79,7 +81,9 @@ const classes = computed(() => {
     >
       <PrimeIcon v-if="icon" :fullname="icon" v-bind="pt?.primeIcon" />
       <slot>
-        <span v-if="!isEmpty(label)">{{ label }}</span>
+        <span v-if="!isEmpty(label)" class="text-left break-all whitespace-normal">
+          {{ label }}
+        </span>
       </slot>
       <PrimeIcon
         v-if="suffixIcon"
