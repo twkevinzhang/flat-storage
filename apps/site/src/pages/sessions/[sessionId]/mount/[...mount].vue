@@ -73,8 +73,6 @@ watch(
   { immediate: true }
 );
 
-const tree = ref<Entity[]>([]);
-
 watch(
   objects,
   (newObjects) => {
@@ -85,6 +83,14 @@ watch(
   { immediate: true }
 );
 
+/**
+ * =====
+ * Tree
+ * =====
+ */
+
+const tree = ref<Entity[]>([]);
+
 watch(
   listViewStoreRefs.statefulList,
   (newList) => {
@@ -94,6 +100,13 @@ watch(
   },
   { immediate: true }
 );
+
+/**
+ * =====
+ * Sort
+ * =====
+ */
+
 
 /**
  * =====
@@ -213,7 +226,6 @@ function toLeafNode(v: ObjectEntity): Entity {
             icon="pi pi-sort"
             severity="secondary"
             variant="outlined"
-            badge="2"
             badgeSeverity="contrast"
             @click="(e) => dialogStore.open('order')"
           />

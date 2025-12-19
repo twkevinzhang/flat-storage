@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ColumnKeys } from '@site/models';
 import { Entity } from './ObjectTree';
 
 const props = withDefaults(
@@ -6,23 +7,14 @@ const props = withDefaults(
     tree?: Entity[];
     limit?: number;
     indent?: boolean;
-    columnWidths?: {
-      name: number;
-      type: number;
-      size: number;
-      modified: number;
-    };
+    columns?: { label: string; key: ColumnKeys }[];
+    columnWidths: Record<string, number>;
   }>(),
   {
     tree: () => [],
     limit: 10,
     indent: false,
-    columnWidths: () => ({
-      name: 200,
-      type: 128,
-      size: 96,
-      modified: 176,
-    }),
+    columns: () => [],
   }
 );
 
@@ -66,70 +58,83 @@ function nodeToggle(node: Entity) {
     emits('nodeExpand', node);
   }
 }
+
+function getCellValue(node: Entity, key: ColumnKeys) {
+  switch (key) {
+    case ColumnKeys.name:
+      return node.label;
+    case ColumnKeys.mimeType:
+      return node.mimeType || '-';
+    case ColumnKeys.sizeBytes:
+      return node.sizeFormatted || '-';
+    case ColumnKeys.createdAt:
+      return node.createdAt?.toLocaleString() || '-';
+    case ColumnKeys.latestUpdatedAt:
+      return node.modifiedAtFormatted || '-';
+    default:
+      return (node as any)[key] || '-';
+  }
+}
 </script>
 
 <template>
   <ul :class="indent ? 'pl-6' : ''">
     <li v-for="node in take(props.tree, props.limit)" :key="node.key">
-      <!-- Folder row with expand button -->
+      <!-- Row with dynamic columns -->
       <div class="flex items-center border-b border-gray-100 hover:bg-gray-50">
-        <div
-          class="flex items-center"
-          :style="{ width: props.columnWidths.name + 'px' }"
-        >
-          <template v-if="node.leaf">
-            <Hover
-              class="w-6 flex-shrink-0"
-              :icon="angleIcon(node)"
-              :fluid="false"
-              rounded="none"
-              @click="(e) => nodeToggle(node)"
-            />
-            <div class="w-full p-2">
+        <template v-for="col in props.columns" :key="col.key">
+          <!-- Special handling for Name column with toggle/icons -->
+          <div
+            v-if="col.key === ColumnKeys.name"
+            class="flex items-center flex-shrink-0 min-w-0"
+            :style="{ width: props.columnWidths[col.key] + 'px' }"
+          >
+            <template v-if="node.leaf">
               <Hover
-                class="min-w-0"
-                :icon="mimeIcon(node)"
-                :label="node.label"
-                severity="link"
+                class="w-6 flex-shrink-0"
+                :icon="angleIcon(node)"
                 :fluid="false"
-                paddingSize="none"
-                @click="(e) => emits('nodeClick', node)"
+                rounded="none"
+                @click="(e) => nodeToggle(node)"
               />
-            </div>
-          </template>
-          <template v-else>
-            <span class="w-2 flex-shrink-0" />
-            <div class="w-full p-2">
-              <Hover
-                class="min-w-0"
-                :icon="mimeIcon(node)"
-                :label="node.label"
-                severity="link"
-                :fluid="false"
-                paddingSize="none"
-                @click="(e) => emits('nodeClick', node)"
-              />
-            </div>
-          </template>
-        </div>
-        <div
-          class="px-2 text-sm text-gray-600 flex-shrink-0 break-all"
-          :style="{ width: props.columnWidths.type + 'px' }"
-        >
-          {{ node.mimeType || '-' }}
-        </div>
-        <div
-          class="px-2 text-sm text-gray-600 flex-shrink-0 break-all text-right"
-          :style="{ width: props.columnWidths.size + 'px' }"
-        >
-          {{ node.sizeFormatted }}
-        </div>
-        <div
-          class="px-2 text-sm text-gray-600 flex-shrink-0 break-all"
-          :style="{ width: props.columnWidths.modified + 'px' }"
-        >
-          {{ node.latestUpdatedAt }}
-        </div>
+              <div class="w-full p-2 overflow-hidden">
+                <Hover
+                  class="min-w-0"
+                  :icon="mimeIcon(node)"
+                  :label="node.label"
+                  severity="link"
+                  :fluid="false"
+                  paddingSize="none"
+                  @click="(e) => emits('nodeClick', node)"
+                />
+              </div>
+            </template>
+            <template v-else>
+              <span class="w-2 flex-shrink-0" />
+              <div class="w-full p-2 overflow-hidden">
+                <Hover
+                  class="min-w-0"
+                  :icon="mimeIcon(node)"
+                  :label="node.label"
+                  severity="link"
+                  :fluid="false"
+                  paddingSize="none"
+                  @click="(e) => emits('nodeClick', node)"
+                />
+              </div>
+            </template>
+          </div>
+
+          <!-- Generic columns -->
+          <div
+            v-else
+            class="px-2 text-sm text-gray-600 flex-shrink-0 truncate"
+            :class="{ 'text-right': col.key === ColumnKeys.sizeBytes }"
+            :style="{ width: props.columnWidths[col.key] + 'px' }"
+          >
+            {{ getCellValue(node, col.key) }}
+          </div>
+        </template>
       </div>
 
       <!-- Nested children -->
@@ -138,6 +143,7 @@ function nodeToggle(node: Entity) {
           :indent="true"
           :tree="node.children"
           :limit="props.limit"
+          :columns="props.columns"
           :column-widths="props.columnWidths"
           @node-click="(node) => emits('nodeClick', node)"
           @node-expand="(node) => emits('nodeExpand', node)"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
-import { MountColumns, ObjectsFilter } from '@site/models';
+import { Columns, ObjectsFilter } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
@@ -19,7 +19,7 @@ const { filter } = storeToRefs(store);
 const router = useRouter();
 const route = useRoute();
 
-const actions = MountColumns;
+const actions = Columns;
 
 const textOptions = [
   { label: 'Contains', value: 'contains' },

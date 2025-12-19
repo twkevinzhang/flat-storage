@@ -18,21 +18,40 @@ export enum ObjectMimeType {
 export enum ColumnKeys {
   name = 'name',
   mimeType = 'mimeType',
+  sizeBytes = 'sizeBytes',
   createdAt = 'createdAt',
   latestUpdatedAt = 'latestUpdatedAt',
 }
 
-export const MountColumns = [
+export const Columns = [
   {
     label: 'Name',
     key: ColumnKeys.name,
-    icon: '',
+    icon: 'pi pi-file',
     type: 'text',
+  },
+  {
+    label: 'Type',
+    key: ColumnKeys.mimeType,
+    icon: 'pi pi-tag',
+    type: 'text',
+  },
+  {
+    label: 'Size',
+    key: ColumnKeys.sizeBytes,
+    icon: 'pi pi-database',
+    type: 'number',
   },
   {
     label: 'Created At',
     key: ColumnKeys.createdAt,
-    icon: '',
+    icon: 'pi pi-calendar',
+    type: 'date',
+  },
+  {
+    label: 'Modified At',
+    key: ColumnKeys.latestUpdatedAt,
+    icon: 'pi pi-clock',
     type: 'date',
   },
 ];

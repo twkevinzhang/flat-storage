@@ -1,29 +1,76 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { ObjectEntity, ObjectsFilter } from '@site/models';
+import { ColumnKeys, Columns, ObjectEntity, ObjectsFilter } from '@site/models';
 
 export const useListViewStore = defineStore('list-view', () => {
   const filter = ref<ObjectsFilter>(ObjectsFilter.empty());
   const sort = ref<string>('');
-  const order = ref('');
+  const columnOrder = ref<ColumnKeys[]>([]);
+  const hiddenColumns = ref<ColumnKeys[]>([]);
   const rawList = ref<ObjectEntity[]>([]);
 
   return {
-    setList: (data: ObjectEntity[]) => {
-      rawList.value = data;
-    },
+
+    // =====
+    // Filter
+    // =====
+
     setFilter(newFilter: ObjectsFilter): void {
       filter.value = newFilter;
     },
-    setSort(): void {},
-    setOrder(): void {},
     filter: computed(() => filter.value),
     filterCount: computed(() => {
       if (filter.value.isEmpty) return undefined;
       return filter.value.count?.toString();
     }),
-    sort: computed(() => sort.value),
-    order: computed(() => order.value),
 
+    
+    // =====
+    // Order & Visibility
+    // =====
+
+    setOrder(newOrder: ColumnKeys[]): void {
+      columnOrder.value = newOrder;
+    },
+    setVisibleColumns(showColumns: ColumnKeys[]): void {
+     hiddenColumns.value = Columns.filter(c => !showColumns.includes(c.key)).map(c => c.key);
+    },
+    hiddenColumns: computed(() => hiddenColumns.value),
+    hiddenColumnsCount: computed(() => hiddenColumns.value.length),
+    visibleColumns: computed(() => {
+      // Use custom order if exists, otherwise default Columns
+      const source = columnOrder.value.length > 0 
+        ? columnOrder.value.map(key => Columns.find(c => c.key === key)).filter(Boolean) as typeof Columns
+        : Columns;
+      
+      return source.map(c => ({
+        ...c,
+        visible: !hiddenColumns.value.includes(c.key)
+      }));
+    }),
+    activeColumns: computed(() => {
+      // Use custom order if exists, otherwise default Columns
+      const source = columnOrder.value.length > 0 
+        ? columnOrder.value.map(key => Columns.find(c => c.key === key)).filter(Boolean) as typeof Columns
+        : Columns;
+      return source.filter((c) => !hiddenColumns.value.includes(c.key));
+    }),
+
+    order: computed(() => columnOrder.value),
+    
+    // =====
+    // Sort
+    // =====
+
+    setSort(): void {},
+    sort: computed(() => sort.value),
+    
+    // =====
+    // Stateful List
+    // =====
+
+    setList(data: ObjectEntity[]): void {
+      rawList.value = data;
+    },
     statefulList: computed(() => {
       let result = filterIt(rawList.value, filter.value);
       return result;
