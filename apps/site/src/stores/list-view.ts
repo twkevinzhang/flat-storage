@@ -93,33 +93,52 @@ if (import.meta.hot) {
 }
 
 function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {
-  if (f.isEmpty) return raw;
-  if (!raw) return [];
-  if (isEmpty(raw)) return [];
-  if (f.isEmpty) return raw;
+  if (!f || f.isEmpty) return raw;
+  if (!raw || raw.length === 0) return [];
+  
   let result = raw;
 
-  const { name, createdAt } = f;
+  for (const rule of f.rules) {
+    const { key, operator, value, start, end } = rule;
+    const col = Columns.find(c => c.key === key);
+    if (!col) continue;
 
-  if (name && name.operator && name.condition) {
-    const condition = name.condition.toLowerCase();
-    if (name.operator === 'contains') {
-      result = result.filter((f) => f.name.toLowerCase().includes(condition));
-    } else if (name.operator === 'notContains') {
-      result = result.filter((f) => !f.name.toLowerCase().includes(condition));
-    }
-  }
-
-  if (createdAt) {
-    if (createdAt.start) {
-      result = result.filter(
-        (f: any) => f.createdAt && f.createdAt >= createdAt.start!
-      );
-    }
-    if (createdAt.end) {
-      result = result.filter(
-        (f: any) => f.createdAt && f.createdAt <= createdAt.end!
-      );
+    if (col.type === 'text') {
+      const condition = (value || '').toLowerCase();
+      if (operator === 'contains') {
+        result = result.filter(obj => (obj as any)[key]?.toLowerCase().includes(condition));
+      } else if (operator === 'notContains') {
+        result = result.filter(obj => !(obj as any)[key]?.toLowerCase().includes(condition));
+      } else if (operator === 'equals') {
+        result = result.filter(obj => (obj as any)[key]?.toLowerCase() === condition);
+      }
+    } else if (col.type === 'date') {
+      if (start) {
+        result = result.filter(obj => {
+          const val = (obj as any)[key];
+          if (!val) return false;
+          const d = val instanceof Date ? val : new Date(val);
+          return d >= start;
+        });
+      }
+      if (end) {
+        result = result.filter(obj => {
+          const val = (obj as any)[key];
+          if (!val) return false;
+          const d = val instanceof Date ? val : new Date(val);
+          return d <= end;
+        });
+      }
+    } else if (col.type === 'number') {
+      const numVal = Number(value);
+      if (isNaN(numVal)) continue;
+      if (operator === 'equals') {
+        result = result.filter(obj => (obj as any)[key] === numVal);
+      } else if (operator === 'gt') {
+        result = result.filter(obj => (obj as any)[key] > numVal);
+      } else if (operator === 'lt') {
+        result = result.filter(obj => (obj as any)[key] < numVal);
+      }
     }
   }
 

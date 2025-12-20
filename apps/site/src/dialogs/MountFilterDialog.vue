@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
-import { Columns, ObjectsFilter } from '@site/models';
+import { Columns, ColumnKeys, ObjectsFilter, FilterRule } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
-import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 
-const { visible } = defineProps<{
+const props = defineProps<{
   visible: boolean;
 }>();
 
@@ -13,131 +11,237 @@ const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void;
 }>();
 
-const formRef = ref<FormInstance | null>(null);
 const store = useListViewStore();
-const { filter } = storeToRefs(store);
 const router = useRouter();
 const route = useRoute();
 
-const actions = Columns;
+const localRules = ref<FilterRule[]>([]);
+
+watch(
+  () => props.visible,
+  (newVal) => {
+    if (newVal) {
+      // Clone rules from store
+      localRules.value = store.filter.rules.map((r) => ({ ...r }));
+    }
+  },
+  { immediate: true }
+);
 
 const textOptions = [
   { label: 'Contains', value: 'contains' },
   { label: 'Does not contain', value: 'notContains' },
+  { label: 'Exactly matches', value: 'equals' },
 ];
 
-const initialValues = computed(() => {
-  return filter.value.toFlattenObj();
-});
+const numberOptions = [
+  { label: 'Equals', value: 'equals' },
+  { label: 'Greater than', value: 'gt' },
+  { label: 'Less than', value: 'lt' },
+];
 
-function clean(...columns: string[]) {
-  if (formRef && formRef.value) {
-    for (const key of columns) {
-      formRef.value.setFieldValue(key, null);
-    }
-  }
-}
+const isFilterEmpty = computed(() => localRules.value.length === 0);
 
-function reset() {
-  if (formRef && formRef.value) {
-    for (const [key, value] of Object.entries(initialValues.value)) {
-      formRef.value.setFieldValue(key, value);
-    }
-  }
-}
-
-function submit({ valid, values }: FormSubmitEvent) {
-  if (valid) {
-    emits('update:visible', false);
-    const newFilter = ObjectsFilter.fromQuery(values);
-    navigate(newFilter);
-  }
-}
-
-function navigate(filter: ObjectsFilter) {
-  router.push({
-    path: route.path,
-    query: filter.toQuery(),
+function handleAddFilterRule() {
+  localRules.value.push({
+    key: ColumnKeys.name,
+    operator: 'contains',
+    value: '',
   });
 }
 
+function handleRemoveFilterRule(index: number) {
+  localRules.value.splice(index, 1);
+}
+
+function handleReset() {
+  localRules.value = [];
+}
+
+function handleSubmit() {
+  const newFilter = new ObjectsFilter(localRules.value);
+  store.setFilter(newFilter);
+
+  router.push({
+    path: route.path,
+    query: newFilter.toQuery(),
+  });
+
+  emits('update:visible', false);
+}
+
+function getColumn(key: ColumnKeys) {
+  return Columns.find((c) => c.key === key);
+}
+
+function onKeyChange(rule: FilterRule) {
+  const col = getColumn(rule.key);
+  if (col?.type === 'text') {
+    rule.operator = 'contains';
+    rule.value = '';
+  } else if (col?.type === 'number') {
+    rule.operator = 'equals';
+    rule.value = null;
+  } else if (col?.type === 'date') {
+    rule.operator = 'range';
+    rule.start = null;
+    rule.end = null;
+  }
+}
 </script>
 
 <template>
-  <Form
-    ref="formRef"
-    v-slot="$form"
-    @submit="submit"
-    :initialValues="initialValues"
+  <Dialog
+    :visible="visible"
+    @update:visible="(val: boolean) => emits('update:visible', val)"
+    header="Filter Rules"
+    modal
+    pt:root:class="w-md h-3/4"
   >
-    <Dialog
-      :visible="visible"
-      @update:visible="(val: boolean) => emits('update:visible', val)"
-      header="Filter"
-      modal
-      pt:root:class="w-md h-3/4"
-    >
-      <Fieldset
-        v-for="{ label, type, key } in actions"
-        :legend="label"
-        :toggleable="true"
-      >
-        <div v-if="type === 'text'" class="flex flex-col gap-4">
-          <Select
-            :name="`${key}.operator`"
-            :options="textOptions"
-            optionLabel="label"
-            optionValue="value"
-            :placeholder="`If ${label}...`"
-            fluid
-          />
-          <InputText
-            v-if="!$form[key]?.operator?.value"
-            :disabled="true"
-            type="text"
-            fluid
-          />
-          <InputText
-            v-else
-            :disabled="false"
-            :name="`${key}.condition`"
-            type="text"
-            fluid
-            :placeholder="`If ${label}...`"
-          />
-          <div class="flex justify-end">
-            <Button
-              severity="secondary"
-              label="Clean"
-              variant="text"
-              @click="(e) => clean(`${key}.operator`, `${key}.condition`)"
-            />
-          </div>
-        </div>
-
-        <div v-if="type === 'date'" class="flex flex-col gap-4">
-          <DatePicker :name="`${key}.start`" placeholder="Range Start" fluid />
-          <DatePicker :name="`${key}.end`" placeholder="Range End" fluid />
-          <div class="flex justify-end">
-            <Button
-              severity="secondary"
-              label="Clean"
-              variant="text"
-              @click="(e) => clean(`${key}.start`, `${key}.end`)"
-            />
-          </div>
-        </div>
-      </Fieldset>
-      <template #footer>
-        <Button
-          severity="secondary"
-          label="Reset"
-          type="reset"
-          variant="text"
-          @click="(e) => reset()"
+    <div class="flex flex-col gap-4 min-h-0 overflow-y-auto">
+      <template v-if="isFilterEmpty">
+        <Hover
+          label="Add Filter Rule..."
+          severity="list-item"
+          icon="pi-plus"
+          @click="handleAddFilterRule"
         />
-        <Button label="Save" variant="text" @click="(e) => formRef?.submit()" />
+        <div class="text-center py-8 text-surface-500 italic">
+          No filters active. All items are visible.
+        </div>
       </template>
-    </Dialog>
-  </Form>
+
+      <template v-else>
+        <Fieldset
+          v-for="(rule, index) in localRules"
+          :key="index"
+          :legend="`Rule ${index + 1}`"
+        >
+          <div class="flex flex-col gap-3">
+            <!-- Column Selector -->
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-surface-500 uppercase"
+                >Column</label
+              >
+              <Select
+                v-model="rule.key"
+                :options="Columns"
+                optionLabel="label"
+                optionValue="key"
+                fluid
+                @change="onKeyChange(rule)"
+              />
+            </div>
+
+            <!-- Operator and Value Inputs -->
+            <div
+              v-if="getColumn(rule.key)?.type === 'text'"
+              class="flex flex-col gap-3"
+            >
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-surface-500 uppercase"
+                  >Comparison</label
+                >
+                <Select
+                  v-model="rule.operator"
+                  :options="textOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  fluid
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-surface-500 uppercase"
+                  >Value</label
+                >
+                <InputText
+                  v-model="rule.value"
+                  placeholder="Type text..."
+                  fluid
+                />
+              </div>
+            </div>
+
+            <div
+              v-else-if="getColumn(rule.key)?.type === 'number'"
+              class="flex flex-col gap-3"
+            >
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-surface-500 uppercase"
+                  >Comparison</label
+                >
+                <Select
+                  v-model="rule.operator"
+                  :options="numberOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  fluid
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-surface-500 uppercase"
+                  >Value</label
+                >
+                <InputNumber
+                  v-model="rule.value"
+                  placeholder="Enter number..."
+                  fluid
+                />
+              </div>
+            </div>
+
+            <div
+              v-else-if="getColumn(rule.key)?.type === 'date'"
+              class="flex flex-col gap-3"
+            >
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-surface-500 uppercase"
+                  >Start Date</label
+                >
+                <DatePicker
+                  v-model="rule.start"
+                  placeholder="Range Start"
+                  fluid
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-surface-500 uppercase"
+                  >End Date</label
+                >
+                <DatePicker v-model="rule.end" placeholder="Range End" fluid />
+              </div>
+            </div>
+
+            <!-- Remove Button -->
+            <div class="flex justify-end pt-2">
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                variant="text"
+                label="Remove Rule"
+                @click="handleRemoveFilterRule(index)"
+              />
+            </div>
+          </div>
+        </Fieldset>
+
+        <Hover
+          label="Add Another Filter Rule..."
+          severity="list-item"
+          icon="pi-plus"
+          @click="handleAddFilterRule"
+        />
+      </template>
+    </div>
+
+    <template #footer>
+      <Button
+        severity="secondary"
+        label="Clear All"
+        variant="text"
+        @click="handleReset"
+      />
+      <Button label="Apply Filters" variant="text" @click="handleSubmit" />
+    </template>
+  </Dialog>
 </template>

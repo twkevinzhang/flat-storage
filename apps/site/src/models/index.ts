@@ -139,42 +139,27 @@ export class ObjectEntity {
   }
 }
 
-class NameFilter {
-  operator: string | null = null;
-  condition: string | null = null;
-
-  get isEmpty(): boolean {
-    return this.operator === null && this.condition === null;
-  }
-}
-
-class DateFilter {
-  start: Date | null = null;
-  end: Date | null = null;
-
-  get isEmpty(): boolean {
-    return this.start === null && this.end === null;
-  }
+export interface FilterRule {
+  key: ColumnKeys;
+  operator: string;
+  value?: any;
+  start?: Date | null;
+  end?: Date | null;
 }
 
 export class ObjectsFilter {
-  name: NameFilter;
-  createdAt: DateFilter;
+  rules: FilterRule[];
 
-  constructor(initialState?: { name?: NameFilter; createdAt?: DateFilter }) {
-    this.name = initialState?.name ||   new NameFilter();
-    this.createdAt = initialState?.createdAt || new DateFilter();
+  constructor(rules?: FilterRule[]) {
+    this.rules = rules || [];
   }
 
   get isEmpty(): boolean {
-    return this.name.isEmpty && this.createdAt.isEmpty;
+    return this.rules.length === 0;
   }
 
   get count(): number {
-    let c = 0;
-    if (!this.name.isEmpty) c++;
-    if (!this.createdAt.isEmpty) c++;
-    return c;
+    return this.rules.length;
   }
 
   static empty(): ObjectsFilter {
@@ -183,42 +168,29 @@ export class ObjectsFilter {
 
   toQuery(): any {
     return {
-      name: {
-        operator: this.name.operator,
-        condition: this.name.condition,
-      },
-      createdAt: {
-        start: this.createdAt.start
-          ? this.createdAt.start.toISOString()
-          : null,
-        end: this.createdAt.end ? this.createdAt.end.toISOString() : null,
-      },
+      rules: this.rules.map(r => ({
+        ...r,
+        start: r.start instanceof Date ? r.start.toISOString() : r.start,
+        end: r.end instanceof Date ? r.end.toISOString() : r.end,
+      }))
     };
   }
 
   toFlattenObj(): any {
-    return {
-      'name.operator': this.name.operator,
-      'name.condition': this.name.condition,
-      'createdAt.start': this.createdAt.start
-        ? this.createdAt.start.toISOString()
-        : null,
-      'createdAt.end': this.createdAt.end ? this.createdAt.end.toISOString() : null,
-    };
+    // This is mainly for PrimeVue Form if used, 
+    // but for the new dynamic UI, we might just use rules directly.
+    return { rules: [...this.rules] };
   }
 
   static fromQuery(obj: any): ObjectsFilter {
     const filter = new ObjectsFilter();
-    if (!obj) return filter;  
+    if (!obj || !Array.isArray(obj.rules)) return filter;
 
-    filter.name.operator = obj.name?.operator || null;
-    filter.name.condition = obj.name?.condition || null;
-    if (obj.createdAt?.start) {
-      filter.createdAt.start = new Date(obj.createdAt.start);
-    }
-    if (obj.createdAt?.end) {
-      filter.createdAt.end = new Date(obj.createdAt.end);
-    }
+    filter.rules = obj.rules.map((r: any) => ({
+      ...r,
+      start: r.start ? new Date(r.start) : null,
+      end: r.end ? new Date(r.end) : null,
+    }));
     return filter;
   }
 }
