@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { Form, FormInstance, FormSubmitEvent } from '@primevue/forms';
-import { ObjectsFilter, SessionEntity, Driver, BucketEntity } from '@site/models';
+import { reactive, inject, ref, computed } from 'vue';
+import { Form } from '@primevue/forms';
+import { SessionEntity, Driver, BucketEntity } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
-import { ObjectService } from '@site/services/object';
 import { SessionService } from '@site/services/session';
-import { useListViewStore } from '@site/stores/list-view';
-import { storeToRefs } from 'pinia';
+import { useSessionStore } from '@site/stores/session';
 import { useRoute, useRouter } from 'vue-router';
 
+
+
+const sessionStore = useSessionStore();
 const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
 
 // 支援 accessKey 的服務稱為 HmacDriver
@@ -46,14 +48,13 @@ const isLoading = ref(false);
 const buckets = ref<BucketEntity[]>([]);
 
 async function handleStep1Next(activateCallback: (step: string) => void) {
-  if (!formRef.value) return;
-
-  if (RemoteDriver.includes(formRef.value.session)) {
+  if (RemoteDriver.includes(initialValues.session)) {
     isLoading.value = true;
     try {
-      sessionApi.listBuckets({ accessKey: formRef.value.accessKey, secretKey: formRef.value.secretKey }).then((r) => {
-        buckets.value = r;
-        activateCallback('2');
+      const result = await sessionApi.listBuckets({ 
+        accessKey: initialValues.accessKey, 
+        secretKey: initialValues.secretKey,
+        projectId: initialValues.projectId 
       });
       buckets.value = result;
       activateCallback('2');

@@ -1,9 +1,9 @@
 {
-  "name": "@flat-storage/api-server",
+  "name": "@flat-storage/gcs-proxy",
   "version": "0.0.1",
   "private": true,
   "nx": {
-    "name": "api-server",
+    "name": "gcs-proxy",
     "targets": {
       "build": {
         "executor": "@nx/esbuild:esbuild",
@@ -87,21 +87,22 @@
           }
         ],
         "options": {
-          "buildTarget": "api-server:build",
+          "buildTarget": "gcs-proxy:build",
           "runBuildTargetDependencies": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "api-server:build:development"
+            "buildTarget": "gcs-proxy:build:development"
           },
           "production": {
-            "buildTarget": "api-server:build:production"
+            "buildTarget": "gcs-proxy:build:production"
           }
         }
       }
     }
   },
   "dependencies": {
+    "@google-cloud/storage": "^7.18.0",
     "express": "^4.21.2"
   }
 }

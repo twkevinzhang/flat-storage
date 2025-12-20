@@ -5,6 +5,7 @@
   "scripts": {},
   "private": true,
   "dependencies": {
+    "@google-cloud/storage": "^7.18.0",
     "@primeuix/themes": "^1.2.5",
     "@primevue/forms": "^4.4.1",
     "@vueuse/core": "^14.0.0",

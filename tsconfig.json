@@ -7,7 +7,7 @@
       "path": "./apps/site"
     },
     {
-      "path": "./apps/api-server"
+      "path": "./apps/gcs-proxy"
     }
   ]
 }

@@ -5,7 +5,10 @@
     "emitDeclarationOnly": true,
     "importHelpers": true,
     "isolatedModules": true,
-    "lib": ["es2022", "dom"],
+    "lib": [
+      "es2022",
+      "dom"
+    ],
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmitOnError": true,
@@ -15,11 +18,17 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["development"],
+    "customConditions": [
+      "development"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@api-server/*": ["apps/api-server/src/*"],
-      "@site/*": ["apps/site/src/*"]
+      "@gcs-proxy/*": [
+        "apps/gcs-proxy/src/*"
+      ],
+      "@site/*": [
+        "apps/site/src/*"
+      ]
     }
   }
 }
