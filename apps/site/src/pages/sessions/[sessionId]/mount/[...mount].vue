@@ -107,7 +107,6 @@ watch(
  * =====
  */
 
-
 /**
  * =====
  * UI State
@@ -168,7 +167,6 @@ function handleUp() {
 
 function handleShowMoreClick() {}
 
-
 /**
  * =====
  * Utilities
@@ -205,6 +203,21 @@ function toLeafNode(v: ObjectEntity): Entity {
     </div>
     <div class="flex flex-row justify-between">
       <div class="flex flex-row gap-2">
+        <SelectButton
+          v-model="viewMode"
+          size="large"
+          :options="[
+            { icon: 'th-large', name: 'Grid', value: 'grid' },
+            { icon: 'list', name: 'List', value: 'list' },
+            { icon: 'map', name: 'Column', value: 'column' },
+          ]"
+          optionLabel="name"
+          optionValue="value"
+        >
+          <template #option="{ option }">
+            <PrimeIcon :name="option.icon" />
+          </template>
+        </SelectButton>
         <ButtonGroup>
           <Button
             icon="pi pi-filter"
@@ -222,13 +235,6 @@ function toLeafNode(v: ObjectEntity): Entity {
             badgeSeverity="contrast"
             @click="(e) => dialogStore.open('sort')"
           />
-          <Button
-            icon="pi pi-sort"
-            severity="secondary"
-            variant="outlined"
-            badgeSeverity="contrast"
-            @click="(e) => dialogStore.open('order')"
-          />
         </ButtonGroup>
       </div>
       <div class="flex flex-row gap-2">
@@ -243,21 +249,13 @@ function toLeafNode(v: ObjectEntity): Entity {
             },
           ]"
         />
-        <SelectButton
-          v-model="viewMode"
-          size="large"
-          :options="[
-            { icon: 'th-large', name: 'Grid', value: 'grid' },
-            { icon: 'list', name: 'List', value: 'list' },
-            { icon: 'map', name: 'Column', value: 'column' },
-          ]"
-          optionLabel="name"
-          optionValue="value"
-        >
-          <template #option="{ option }">
-            <PrimeIcon :name="option.icon" />
-          </template>
-        </SelectButton>
+        <Button
+          icon="pi pi-sort"
+          severity="secondary"
+          variant="outlined"
+          badgeSeverity="contrast"
+          @click="(e) => dialogStore.open('order')"
+        />
       </div>
     </div>
     <div class="my-2 overflow-y-auto">

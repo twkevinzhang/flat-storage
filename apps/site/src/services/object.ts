@@ -250,6 +250,7 @@ export class MockObjectService {
         path: '/root4root4roo t4root4root4r oot4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4',
         md5Hash: 'ID76',
         sizeBytes: 1234,
+        mimeType: ObjectMimeType.folder,
       }),
       ObjectEntity.new({
         path: '/root5',
@@ -422,7 +423,7 @@ export class MockObjectService {
   }: {
     session: SessionEntity;
     path?: string;
-    }): Promise<ObjectEntity[]> {
+  }): Promise<ObjectEntity[]> {
     path = path || '/';
     if (path === '/') {
       return Promise.resolve(this.data.filter((d) => count(d.path, '/') === 1));
