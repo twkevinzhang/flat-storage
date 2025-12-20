@@ -1,21 +1,16 @@
 <script setup lang="ts">
 import { Driver, SessionEntity } from '@site/models';
-import { INJECT_KEYS } from '@site/services';
-import { SessionService } from '@site/services/session';
-import { useAsyncState } from '@vueuse/core';
+import { useSessionStore } from '@site/stores/session';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import { joinPath } from '@site/utilities';
+import { useDialogStore } from '@site/stores/dialog';
 
-const sessionService = inject<SessionService>(INJECT_KEYS.SessionService)!;
+const dialogStore = useDialogStore();
+const sessionStore = useSessionStore();
+const { sessions } = storeToRefs(sessionStore);
 
 const router = useRouter();
-const { state: sessions, isLoading, execute: fetch } = useAsyncState(
-  async () => {
-    return await sessionService.list();
-  },
-  null,
-  { immediate: false }
-);
 
 function image(driver: Driver) {
   return {
@@ -30,9 +25,9 @@ function handleClick(session: SessionEntity) {
   router.push({ path: joinPath('/sessions', session.id)});
 }
 
-onMounted(() => {
-  fetch();
-});
+function handleCreateSession() {
+  dialogStore.open('new-session');
+}
 </script>
 
 <template>
@@ -52,11 +47,11 @@ onMounted(() => {
       <Card
         v-for="session in sessions"
         :key="session.id"
-        class="h-full transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105"
+        class="h-full"
       >
         <template #header>
           <div
-            class="w-full h-36 bg-gray-50 dark:bg-gray-800 cursor-pointer"
+            class="w-full h-36 bg-gray-50 dark:bg-gray-800 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105"
             @click="(e) => handleClick(session)"
           >
             <SvgIcon :name="image(session.driver)" class="w-full" />
@@ -75,12 +70,12 @@ onMounted(() => {
         </template>
       </Card>
       <Card
-        class="h-full transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105"
+        class="h-full transition-all duration-300 ease-in-out cursor-pointer hover:shadow-xl hover:scale-105"
+        @click="(e) => handleCreateSession()"
       >
         <template #header>
           <div
-            class="w-full h-36 cursor-pointer"
-            @click="(e) => handleCreateSession()"
+            class="w-full h-36"
           >
             <PrimeIcon name="plus" size="large" class="size-full" />
           </div>

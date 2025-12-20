@@ -56,6 +56,10 @@ export const Columns = [
   },
 ];
 
+export interface BucketEntity {
+  name: string;
+}
+
 export class ObjectEntity {
   private constructor(
     public readonly path: string,
@@ -206,7 +210,8 @@ export class SessionEntity {
     public readonly latestConnectedISO: string | undefined,
     public readonly metadataPath: string,
     public readonly accessKey: string,
-    public readonly secretKey: string
+    public readonly secretKey: string,
+    public readonly projectId?: string
   ) {}
 
   static new(params: {
@@ -219,6 +224,7 @@ export class SessionEntity {
     metadataPath?: string;
     accessKey: string;
     secretKey: string;
+    projectId?: string;
   }): SessionEntity {
     return new SessionEntity(
       uuidv4(),
@@ -230,7 +236,8 @@ export class SessionEntity {
       params.latestConnectedISO,
       params.metadataPath ?? '/',
       params.accessKey,
-      params.secretKey
+      params.secretKey,
+      params.projectId
     );
   }
 
@@ -245,7 +252,8 @@ export class SessionEntity {
       json.latestConnectedISO,
       json.metadataPath,
       json.accessKey,
-      json.secretKey
+      json.secretKey,
+      json.projectId
     );
   }
 
@@ -269,10 +277,12 @@ export class SessionForm implements Partial<Omit<SessionEntity, 'id'>> {
     public readonly latestConnectedISO: string | undefined,
     public readonly metadataPath: string,
     public readonly accessKey: string,
-    public readonly secretKey: string
+    public readonly secretKey: string,
+    public readonly projectId: string | undefined
   ) {}
 
   check(): void {
     if (!this.name) throw new Error('Name is required');
   }
 }
+

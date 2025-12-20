@@ -1,13 +1,20 @@
-import { ObjectEntity, SessionEntity, ObjectMimeType } from '@site/models';
+import {
+  ObjectEntity,
+  SessionEntity,
+  ObjectMimeType,
+  Driver,
+} from '@site/models';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { GcsProxyClient } from './gcs';
+import { isEmpty } from 'lodash-es';
 
 export class ObjectService {
   private axios: AxiosInstance;
 
   constructor() {
-    const baseUrl = import.meta.env.VITE_API_BASE;
+    const baseUrl = import.meta.env.VITE_GCS_PROXY;
     if (!baseUrl || isEmpty(baseUrl)) {
-      throw new Error('VITE_API_BASE is not defined');
+      throw new Error('VITE_GCS_PROXY is not defined');
     }
     this.axios = axios.create({
       baseURL: baseUrl,
@@ -15,37 +22,120 @@ export class ObjectService {
     });
   }
 
-  get({
+  async get({
     session,
     path,
   }: {
     session: SessionEntity;
     path: string;
-  }): Promise<ObjectEntity> {}
+  }): Promise<ObjectEntity> {
+    if (session.driver === Driver.gcs) {
+      const client = new GcsProxyClient({
+        accessKey: session.accessKey,
+        secretKey: session.secretKey,
+      });
+      const bucket = client.bucket(session.mount);
+      const file = bucket.file(path === '/' ? '' : path.replace(/^\//, ''));
+      const [metadata] = await file.getMetadata();
 
-  getUploadSignedUrl({
+      return ObjectEntity.new({
+        path: path,
+        sizeBytes: parseInt(metadata.size),
+        mimeType:
+          metadata.contentType === ObjectMimeType.folder
+            ? ObjectMimeType.folder
+            : undefined,
+        latestUpdatedAtISO: metadata.updated,
+      });
+    }
+    throw new Error(`Driver ${session.driver} not supported`);
+  }
+
+  async getUploadSignedUrl({
     session,
     path,
   }: {
     session: SessionEntity;
     path: string;
-  }): Promise<string> {}
+  }): Promise<string> {
+    return '';
+  }
 
-  getDownloadSignedUrl({
+  async getDownloadSignedUrl({
     session,
     path,
   }: {
     session: SessionEntity;
     path: string;
-  }): Promise<string> {}
+  }): Promise<string> {
+    return '';
+  }
 
-  listObjects({
+  async listObjects({
     session,
     path,
   }: {
     session: SessionEntity;
     path?: string;
-  }): Promise<ObjectEntity[]> {}
+  }): Promise<ObjectEntity[]> {
+    if (session.driver === Driver.gcs) {
+      const client = new GcsProxyClient({
+        accessKey: session.accessKey,
+        secretKey: session.secretKey,
+      });
+      const bucketName = session.mount;
+      const bucket = client.bucket(bucketName);
+
+      const normalizedPath = path === '/' ? '' : path?.replace(/^\//, '') || '';
+      const prefix =
+        normalizedPath === ''
+          ? ''
+          : normalizedPath.endsWith('/')
+          ? normalizedPath
+          : normalizedPath + '/';
+
+      const [files, , apiResponse] = await bucket.getFiles({
+        prefix,
+        delimiter: '/',
+        autoPaginate: false,
+      });
+
+      const objects: ObjectEntity[] = [];
+
+      // Handle prefixes (folders)
+      if (apiResponse && apiResponse.prefixes) {
+        for (const p of apiResponse.prefixes) {
+          objects.push(
+            ObjectEntity.new({
+              path: '/' + p,
+              mimeType: ObjectMimeType.folder,
+            })
+          );
+        }
+      }
+
+      // Handle files
+      for (const f of files) {
+        // Skip the prefix itself if it appears as a file
+        if (f.name === prefix) continue;
+
+        objects.push(
+          ObjectEntity.new({
+            path: '/' + f.name,
+            sizeBytes: parseInt(f.metadata.size),
+            mimeType:
+              f.metadata.contentType === ObjectMimeType.folder
+                ? ObjectMimeType.folder
+                : undefined,
+            latestUpdatedAtISO: f.metadata.updated,
+          })
+        );
+      }
+
+      return objects;
+    }
+    return [];
+  }
 }
 
 export class MockObjectService {

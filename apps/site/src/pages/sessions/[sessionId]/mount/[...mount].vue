@@ -3,9 +3,9 @@ import { Entity } from '@site/components/ObjectTree';
 import { ObjectEntity, ObjectMimeType, ObjectsFilter } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
 import { ObjectAdapter, ObjectService } from '@site/services/object';
-import { SessionService } from '@site/services/session';
 import { useDialogStore } from '@site/stores/dialog';
 import { useListViewStore } from '@site/stores/list-view';
+import { useSessionStore } from '@site/stores/session';
 import { useUiStore } from '@site/stores/ui';
 import { useAsyncState } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
@@ -17,7 +17,7 @@ import { useRoute, useRouter } from 'vue-router';
  * =====
  */
 
-const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
+const sessionStore = useSessionStore();
 const objectApi = inject<ObjectService>(INJECT_KEYS.ObjectService)!;
 
 const route = useRoute();
@@ -35,7 +35,7 @@ const mount = computed(() => {
 const { state: session, execute: fetchSession } = useAsyncState(
   async () => {
     if (!sessionId.value) return null;
-    return await sessionApi.get(sessionId.value);
+    return sessionStore.get(sessionId.value);
   },
   null,
   { immediate: false }
@@ -185,7 +185,7 @@ function toLeafNode(v: ObjectEntity): Entity {
     mimeType: v.mimeType,
     sizeBytes: v.sizeBytes,
     latestUpdatedAtISO: v.latestUpdatedAtISO,
-  };
+  } as any;
 }
 </script>
 

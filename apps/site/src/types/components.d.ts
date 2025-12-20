@@ -22,7 +22,6 @@ declare module 'vue' {
     Fieldset: typeof import('primevue/fieldset')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
     Hover: typeof import('./../components/Hover.vue')['default']
-    Image: typeof import('primevue/image')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Listbox: typeof import('primevue/listbox')['default']
@@ -36,9 +35,7 @@ declare module 'vue' {
     MountSortDialog: typeof import('./../dialogs/MountSortDialog.vue')['default']
     NewSessionDialog: typeof import('./../dialogs/NewSessionDialog.vue')['default']
     ObjectTree: typeof import('./../components/ObjectTree.vue')['default']
-    OrderList: typeof import('primevue/orderlist')['default']
     Pages: typeof import('./../pages/index.vue')['default']
-    Panel: typeof import('primevue/panel')['default']
     PrimeIcon: typeof import('./../components/PrimeIcon.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -55,6 +52,7 @@ declare module 'vue' {
     StepPanels: typeof import('primevue/steppanels')['default']
     Stepper: typeof import('primevue/stepper')['default']
     SvgIcon: typeof import('./../components/SvgIcon.vue')['default']
+    Textarea: typeof import('primevue/textarea')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']
