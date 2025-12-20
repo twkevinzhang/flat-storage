@@ -34,9 +34,9 @@ const handleClick = (index: number) => {
 </script>
 
 <template>
-  <nav class="px-2 flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
+  <nav class="p-2 flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
     <template v-for="(part, index) in parts" :key="index">
-      <Hover severity="link" :fluid="false" @click="() => handleClick(index)" :label="part" />
+      <Hover severity="link" paddingSize="none" :fluid="false" @click="() => handleClick(index)" :label="part" />
 
       <PrimeIcon name="angle-right" />
     </template>

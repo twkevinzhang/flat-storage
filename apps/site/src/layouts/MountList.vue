@@ -32,18 +32,23 @@ const columnWidths = ref<Record<string, number>>({
   <div class="overflow-x-auto">
     <div class="min-w-max">
       <!-- Column Headers -->
-      <SplitterPx v-model:widths="columnWidths" class="bg-gray-50 border-b border-gray-300 font-semibold text-sm text-gray-700">
-        <SplitterPxPanel 
-          v-for="col in activeColumns" 
+      <SplitterPx
+        v-model:widths="columnWidths"
+        class="bg-gray-50 border-b border-gray-300 font-semibold text-sm text-gray-700"
+      >
+        <SplitterPxPanel
+          v-for="col in activeColumns"
           :key="col.key"
-          :id="col.key" 
-          :size="columnWidths[col.key]" 
-          :min-size="col.key === ColumnKeys.name ? 100 : 60" 
+          :id="col.key"
+          :size="columnWidths[col.key]"
+          :min-size="col.key === ColumnKeys.name ? 100 : 60"
           class="p-2"
         >
           <template #default>{{ col.label }}</template>
           <template #handle>
-            <div class="w-1 h-full opacity-0 hover:opacity-100 bg-blue-400"></div>
+            <div
+              class="w-1 h-full opacity-0 hover:opacity-100 bg-blue-400"
+            ></div>
           </template>
         </SplitterPxPanel>
       </SplitterPx>
@@ -55,9 +60,9 @@ const columnWidths = ref<Record<string, number>>({
             class="flex items-center border-b border-gray-100 hover:bg-gray-50 overflow-hidden"
           >
             <template v-for="col in activeColumns" :key="col.key">
-              <div 
+              <div
                 v-if="col.key === ColumnKeys.name"
-                class="flex items-center flex-shrink-0" 
+                class="flex items-center flex-shrink-0"
                 :style="{ width: columnWidths[ColumnKeys.name] + 'px' }"
               >
                 <span class="w-2 flex-shrink-0" />
@@ -65,7 +70,6 @@ const columnWidths = ref<Record<string, number>>({
                   icon="pi pi-folder"
                   label=".."
                   severity="link"
-                  paddingSize="lg"
                   @click="(e) => emits('up')"
                 />
               </div>

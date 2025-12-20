@@ -6,6 +6,7 @@ import { ObjectAdapter, ObjectService } from '@site/services/object';
 import { SessionService } from '@site/services/session';
 import { useDialogStore } from '@site/stores/dialog';
 import { useListViewStore } from '@site/stores/list-view';
+import { useUiStore } from '@site/stores/ui';
 import { useAsyncState } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
@@ -103,19 +104,19 @@ watch(
 
 /**
  * =====
- * Sort
- * =====
- */
-
-/**
- * =====
  * UI State
  * =====
  */
 
 const dialogStore = useDialogStore();
-const viewMode = ref<'grid' | 'list' | 'column'>('list');
-const name = computed(() => '/' + mount.value?.split('/').pop());
+const uiStore = useUiStore();
+const { viewMode } = storeToRefs(uiStore);
+
+const name = computed(() => {
+  const r = mount.value?.split('/').pop();
+  if (!r) return '/';
+  return r;
+});
 
 /**
  * =====
@@ -189,7 +190,7 @@ function toLeafNode(v: ObjectEntity): Entity {
 </script>
 
 <template>
-  <div class="m-4 flex flex-col gap-2">
+  <div class="flex flex-col gap-2">
     <div>
       <Breadcrumb
         v-if="mount && mount !== '/'"
@@ -201,8 +202,8 @@ function toLeafNode(v: ObjectEntity): Entity {
         <PrimeIcon name="angle-down" />
       </Hover>
     </div>
-    <div class="flex flex-row justify-between">
-      <div class="flex flex-row gap-2">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <SelectButton
           v-model="viewMode"
           size="large"
@@ -237,7 +238,7 @@ function toLeafNode(v: ObjectEntity): Entity {
           />
         </ButtonGroup>
       </div>
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <SplitButton
           label="Upload"
           @click="(e) => handleUpload()"
