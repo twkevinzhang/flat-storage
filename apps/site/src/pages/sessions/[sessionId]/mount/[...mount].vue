@@ -218,7 +218,7 @@ function toLeafNode(v: ObjectEntity): Entity {
             icon="pi pi-sort-alpha-down"
             severity="secondary"
             variant="outlined"
-            badge="2"
+            :badge="listViewStoreRefs.sortRulesCount.value"
             badgeSeverity="contrast"
             @click="(e) => dialogStore.open('sort')"
           />

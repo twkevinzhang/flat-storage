@@ -22,6 +22,7 @@ declare module 'vue' {
     FloatLabel: typeof import('primevue/floatlabel')['default']
     Hover: typeof import('./../components/Hover.vue')['default']
     Image: typeof import('primevue/image')['default']
+    InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Listbox: typeof import('primevue/listbox')['default']
     Menu: typeof import('primevue/menu')['default']

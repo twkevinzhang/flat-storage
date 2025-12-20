@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { MountColumns } from '@site/models';
+import { Columns } from '@site/models';
+import { useListViewStore } from '@site/stores/list-view';
 
-const { visible } = defineProps<{
+const props = defineProps<{
   visible: boolean;
 }>();
 
@@ -9,119 +10,162 @@ const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void;
 }>();
 
-function reset() {}
+const listViewStore = useListViewStore();
 
-function submit() {
-  console.log('submitted');
-}
+const sort = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
 
-const allOptions = computed(() => {
-  return MountColumns;
-});
+watch(
+  () => props.visible,
+  (newVal) => {
+    if (newVal) {
+      sort.value = [...listViewStore.sortRules];
+    }
+  },
+  { immediate: true }
+);
 
-const avaliableOptions = computed(() => {
-  return allOptions.value.filter(
-    (c) => !sort.value.find((s) => s.key === c.key)
+const availableOptions = computed(() => {
+  return Columns.filter(
+    (column) => !sort.value.find((s) => s.key === column.key)
   );
 });
 
-const sort = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
+const isSortEmpty = computed(() => sort.value.length === 0);
+
+function handleAddSortRule() {
+  if (availableOptions.value.length > 0) {
+    sort.value.push({
+      key: availableOptions.value[0].key,
+      order: 'asc',
+    });
+  }
+}
+
+function handleRemoveSortRule(index: number) {
+  sort.value.splice(index, 1);
+}
+
+function handleReset() {
+  sort.value = [];
+}
+
+function handleSubmit() {
+  listViewStore.setSortRules(sort.value);
+  emits('update:visible', false);
+}
+
+function getOptionsForSelection(currentKey: string) {
+  return availableOptions.value
+    .concat(Columns.filter((c) => c.key === currentKey))
+    .sort((a, b) => {
+      // Keep consistent order in selection
+      const idxA = Columns.findIndex((c) => c.key === a.key);
+      const idxB = Columns.findIndex((c) => c.key === b.key);
+      return idxA - idxB;
+    });
+}
 </script>
 
 <template>
   <Dialog
     :visible="visible"
     @update:visible="(val: boolean) => emits('update:visible', val)"
-    header="Sort"
+    header="Sort Rules"
     modal
     pt:root:class="w-md h-3/4"
   >
-    <template v-if="isEmpty(sort)">
-      <Hover
-        v-if="!isEmpty(avaliableOptions)"
-        label="Add Sort..."
-        severity="list-item"
-        icon="pi-plus"
-        @click="
-          (e) => {
-            sort.push({
-              key: avaliableOptions[0].key,
-              order: 'asc',
-            });
-          }
-        "
-      />
-    </template>
-    <template v-else>
-      <div class="flex flex-col gap-4">
-        <Panel v-for="(s, index) in sort" :key="index">
-          <div class="flex flex-col gap-2">
-            <Select
-              :options="
-                avaliableOptions.concat(
-                  allOptions.filter((c) => c.key === s.key)
-                )
-              "
-              optionLabel="label"
-              optionValue="key"
-              v-model="s.key"
-              fluid
-            />
-            <SelectButton
-              :options="[
-                { icon: 'sort-alpha-down', value: 'asc' },
-                { icon: 'sort-alpha-up', value: 'desc' },
-              ]"
-              optionLabel="value"
-              optionValue="value"
-              v-model="s.order"
-              fluid
-            >
-              <template #option="{ option }">
-                <PrimeIcon :name="option.icon" size="large" />
-              </template>
-            </SelectButton>
-            <div class="flex justify-end">
+    <div class="flex flex-col gap-4 min-h-0 overflow-y-auto">
+      <template v-if="isSortEmpty">
+        <template v-if="availableOptions.length > 0">
+          <Hover
+            label="Add Sort Rule..."
+            severity="list-item"
+            icon="pi-plus"
+            @click="handleAddSortRule"
+          />
+          <div class="text-center py-8 text-surface-500 italic">
+            No sort rules active.
+          </div>
+        </template>
+
+        <div v-else class="text-center py-8 text-surface-500 italic">
+          No columns available for sorting.
+        </div>
+      </template>
+
+      <template v-else>
+        <Fieldset
+          :legend="`Priority ${index + 1}`"
+          v-for="(s, index) in sort"
+          :key="index"
+        >
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-surface-500 uppercase"
+                >Column</label
+              >
+              <Select
+                :options="getOptionsForSelection(s.key)"
+                optionLabel="label"
+                optionValue="key"
+                v-model="s.key"
+                fluid
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-surface-500 uppercase"
+                >Direction</label
+              >
+              <SelectButton
+                :options="[
+                  { icon: 'sort-alpha-down', value: 'asc' },
+                  { icon: 'sort-alpha-up', value: 'desc' },
+                ]"
+                optionLabel="label"
+                optionValue="value"
+                v-model="s.order"
+                fluid
+              >
+                <template #option="{ option }">
+                  <div class="flex items-center gap-2">
+                    <PrimeIcon :name="option.icon" />
+                    <span>{{ option.label }}</span>
+                  </div>
+                </template>
+              </SelectButton>
+            </div>
+
+            <div class="flex justify-end pt-2">
               <Button
-                class="!justify-end"
                 icon="pi pi-trash"
-                severity="secondary"
+                severity="danger"
                 variant="text"
-                label="Remove"
-                @click="
-                  (e) => {
-                    sort.splice(index, 1);
-                  }
-                "
+                label="Remove Rule"
+                @click="handleRemoveSortRule(index)"
               />
             </div>
           </div>
-        </Panel>
+        </Fieldset>
+
         <Hover
-          v-if="!isEmpty(avaliableOptions)"
-          label="Add Sort..."
+          v-if="availableOptions.length > 0"
+          label="Add Another Sort Rule..."
           severity="list-item"
           icon="pi-plus"
-          @click="
-            (e) => {
-              sort.push({
-                key: avaliableOptions[0].key,
-                order: 'asc',
-              });
-            }
-          "
+          @click="handleAddSortRule"
         />
-      </div>
-    </template>
+      </template>
+    </div>
+
     <template #footer>
       <Button
         severity="secondary"
-        label="Reset"
-        type="reset"
+        label="Clear All"
         variant="text"
-        @click="(e) => reset()"
+        @click="handleReset"
       />
-      <Button label="Save" type="submit" variant="text" />
+      <Button label="Apply Sort" variant="text" @click="handleSubmit" />
     </template>
   </Dialog>
 </template>
