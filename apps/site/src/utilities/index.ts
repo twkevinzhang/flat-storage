@@ -15,5 +15,17 @@ export function joinPath(...paths: string[]): string {
 }
 
 export function count(a: string, target: string): number {
-  return a.split(target).length -1;
+  return a.split(target).length - 1;
+}
+
+export function removeLeadingSlash(path: string): string {
+  return path.startsWith('/') ? path.slice(1) : path;
+}
+
+export function decodeProxyBuffer(data: any): string {
+  if (typeof data === 'string') return data;
+  if (data?.type === 'Buffer' && Array.isArray(data.data)) {
+    return new TextDecoder().decode(new Uint8Array(data.data));
+  }
+  return data?.toString() || '';
 }

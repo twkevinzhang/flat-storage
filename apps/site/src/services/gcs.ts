@@ -1,38 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
 
-export class GCSService {
-  private axios: AxiosInstance;
-
-  private constructor(
-    public readonly accessKey: string,
-    public readonly secretKey: string,
-    public readonly projectId: string
-  ) {
-    this.axios = axios.create({
-      timeout: 3000,
-      headers: {
-        Authorization: accessKey,
-      },
-    });
-  }
-
-  static new({
-    accessKey,
-    secretKey,
-    projectId,
-  }: {
-    accessKey: string;
-    secretKey: string;
-    projectId: string;
-  }) {
-    return new GCSService(accessKey, secretKey, projectId);
-  }
-
-  async listBuckets(): Promise<string[]> {
-    return [];
-  }
-}
-
 export interface GcsAuth {
   projectId?: string;
   clientEmail?: string;
@@ -45,7 +12,7 @@ export class GcsProxyClient {
   private baseUrl: string;
 
   constructor(private auth: GcsAuth) {
-    this.baseUrl = (import.meta.env.VITE_GCS_PROXY).replace(/\/$/, '');
+    this.baseUrl = import.meta.env.VITE_GCS_PROXY.replace(/\/$/, '');
     if (!this.baseUrl || isEmpty(this.baseUrl)) {
       throw new Error('VITE_GCS_PROXY is not defined');
     }
@@ -59,7 +26,7 @@ export class GcsProxyClient {
     const res = await axios.post(`${this.baseUrl}/gcs/v1/execute`, {
       auth: this.auth,
       method: 'getBuckets',
-      args: []
+      args: [],
     });
     return res.data.data;
   }
@@ -109,7 +76,7 @@ export class ProxyBucket {
       auth: this.auth,
       bucket: this.name,
       method,
-      args
+      args,
     });
     return res.data.data;
   }
@@ -140,7 +107,8 @@ export class ProxyFile {
   }
 
   async move(destination: string | ProxyFile) {
-    const destName = typeof destination === 'string' ? destination : destination.path;
+    const destName =
+      typeof destination === 'string' ? destination : destination.path;
     return this.execute('move', [destName]);
   }
 
@@ -162,9 +130,8 @@ export class ProxyFile {
       bucket: this.bucket,
       file: this.path,
       method,
-      args
+      args,
     });
     return res.data.data;
   }
 }
-

@@ -6,9 +6,10 @@ import {
 } from '@site/models';
 import axios, { AxiosInstance } from 'axios';
 import { GcsProxyClient } from './gcs';
+import { proxyMetadataFile } from '@site/utilities/storage';
+import { decodeProxyBuffer } from '@site/utilities';
 
-export interface ObjectService { 
-
+export interface ObjectService {
   get({
     session,
     path,
@@ -40,9 +41,7 @@ export interface ObjectService {
     session: SessionEntity;
     path?: string;
   }): Promise<ObjectEntity[]>;
-   
 }
-
 
 export class ObjectServiceImpl implements ObjectService {
   private axios: AxiosInstance;
@@ -96,66 +95,46 @@ export class ObjectServiceImpl implements ObjectService {
     path?: string;
   }): Promise<ObjectEntity[]> {
     if (session.driver === Driver.gcs) {
-      const contentStr = await this.downloadMetadataFile(session);
-      
-      // 2. Parse JSONL
-      const allItems = contentStr
-        .split('\n')
-        .filter((line: string) => line.trim().length > 0)
-        .map((line: string) => JSON.parse(line));
+      const [content] = await proxyMetadataFile(session).download();
+      const contentStr = decodeProxyBuffer(content);
 
-      // 3. Convert to entities (normalize path to include leading slash)
-      const entities = allItems.map((item: any) => {
-        const fullPath = item.name.startsWith('/') ? item.name : '/' + item.name;
-        return ObjectEntity.new({
-          path: fullPath,
-          sizeBytes: parseInt(item.size || '0'),
-          mimeType: item.contentType === ObjectMimeType.folder ? ObjectMimeType.folder : undefined,
-          latestUpdatedAtISO: item.updated,
-          md5Hash: item.md5Hash,
-        });
-      });
+      // Convert to entities (normalize path to include leading slash)
+      const entities = ObjectEntity.ArrayfromJson(contentStr);
+      if (!path) return entities;
 
-      // 4. Filter by path level (similar to MockObjectService)
-      const normalizedPath = path || '/';
+      // remove mount
+      let normalized = path || '/';
+      if (!normalized.startsWith('/')) {
+        normalized = '/' + normalized;
+      }
+      const a = normalized.split('/');
+      if (latestIndex(a) === 1) {
+        normalized = '/';
+      } else if (latestIndex(a) > 1) {
+        normalized = '/' + a.slice(1).join('/');
+      } else {
+        throw new Error(`Invalid path ${path}`);
+      }
+
+      // Filter by path level
       const countSlashes = (s: string) => (s.match(/\//g) || []).length;
 
-      if (normalizedPath === '/') {
+      if (normalized === '/') {
         return entities.filter((d: ObjectEntity) => countSlashes(d.path) === 1);
       }
 
       const result = entities.filter((item: ObjectEntity) => {
-        const prefix = normalizedPath.endsWith('/') ? normalizedPath : normalizedPath + '/';
+        const prefix = normalized.endsWith('/') ? normalized : normalized + '/';
         if (!item.path.startsWith(prefix)) return false;
 
         const itemSlashes = countSlashes(item.path);
-        const pathSlashes = countSlashes(normalizedPath);
+        const pathSlashes = countSlashes(normalized);
         return itemSlashes === pathSlashes + 1;
       });
 
       return result;
     }
     return [];
-  }
-
-  private async downloadMetadataFile(session: SessionEntity): Promise<string> {
-    if (session.driver !== Driver.gcs) {
-      throw new Error(`Driver ${session.driver} not supported`);
-    }
-    const client = new GcsProxyClient({
-      accessKey: session.accessKey,
-      secretKey: session.secretKey,
-      projectId: session.projectId,
-    });
-    
-    const bucket = client.bucket(this.removeLeadingSlash(session.mount));
-    const metadataFile = bucket.file(this.removeLeadingSlash(session.metadataPath));
-    const [content] = await metadataFile.download();
-    return typeof content === 'string' ? content : (content as any).toString();
-  }
-
-  private removeLeadingSlash(path: string): string {
-    return path.startsWith('/') ? path.slice(1) : path;
   }
 }
 
@@ -245,11 +224,15 @@ export class MockObjectService implements ObjectService {
     const countSlashes = (s: string) => (s.match(/\//g) || []).length;
 
     if (normalizedPath === '/') {
-      return Promise.resolve(this.data.filter((d: ObjectEntity) => countSlashes(d.path) === 1));
+      return Promise.resolve(
+        this.data.filter((d: ObjectEntity) => countSlashes(d.path) === 1)
+      );
     }
 
     const result = this.data.filter((item: ObjectEntity) => {
-      const prefix = normalizedPath.endsWith('/') ? normalizedPath : normalizedPath + '/';
+      const prefix = normalizedPath.endsWith('/')
+        ? normalizedPath
+        : normalizedPath + '/';
       if (!item.path.startsWith(prefix)) return false;
 
       const itemSlashes = countSlashes(item.path);
@@ -257,51 +240,5 @@ export class MockObjectService implements ObjectService {
       return itemSlashes === pathSlashes + 1;
     });
     return Promise.resolve(result);
-  }
-}
-
-export class ObjectAdapter {
-  static normalizeMime(m: any): any {
-    if (!m) return undefined;
-    if (typeof m === 'string') return m as any;
-    return String(m);
-  }
-
-  static fromBackend(item: any): ObjectEntity {
-    const {
-      path,
-      mimeType,
-      sizeBytes,
-      createdAtISO,
-      latestUpdatedAtISO,
-      md5Hash,
-      deletedAtISO,
-    } = item;
-
-    return ObjectEntity.fromAny({
-      path,
-      mimeType,
-      sizeBytes,
-      createdAtISO,
-      latestUpdatedAtISO,
-      md5Hash,
-      deletedAtISO,
-    });
-  }
-
-  static listFromBackend(items: any[]): ObjectEntity[] {
-    if (!Array.isArray(items)) return [];
-    return items.map((i) => this.fromBackend(i));
-  }
-
-  // Optionally convert frontend ObjectEntity back to backend payload
-  static toBackend(entity: ObjectEntity): any {
-    return {
-      path: entity.path,
-      mimeType: entity.mimeType,
-      sizeBytes: (entity as any)._sizeBytes,
-      createdAtISO: (entity as any)._createdAtISO,
-      latestUpdatedAtISO: (entity as any)._latestUpdatedAtISO,
-    };
   }
 }

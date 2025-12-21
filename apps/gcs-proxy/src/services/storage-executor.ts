@@ -66,6 +66,9 @@ export class GcsExecutor {
     }
 
     if (obj !== null && typeof obj === 'object') {
+      if (Buffer.isBuffer(obj)) {
+        return obj;
+      }
       // If it's a simple object, return it but be careful with circularity
       // For now, let's just return it and see what happens.
       // But we should strip out things that are clearly SDK internal classes.

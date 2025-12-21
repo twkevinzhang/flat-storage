@@ -1,6 +1,6 @@
 import { latestIndex } from '@site/utilities';
 import Column from 'primevue/column';
-import { nanoid } from 'nanoid'
+import { nanoid } from 'nanoid';
 
 export enum Driver {
   'gcs' = 'gcs',
@@ -91,7 +91,7 @@ export class ObjectEntity {
     );
   }
 
-  static fromAny(json: any): ObjectEntity {
+  static fromJson(json: any): ObjectEntity {
     return new ObjectEntity(
       json.path,
       json.mimeType,
@@ -100,6 +100,46 @@ export class ObjectEntity {
       json.latestUpdatedAtISO,
       json.md5Hash,
       json.deletedAtISO
+    );
+  }
+
+  // GCS File response doc: https://github.com/googleapis/nodejs-storage/blob/3dcda1b7153664197215c7316761e408ca870bc4/src/file.ts#L556
+  static fromGCS(f: any): ObjectEntity {
+    const isFolder = f.metadata.name.endsWith('/');
+    let normalizedPath = '/' + f.metadata.name;
+    if (normalizedPath.endsWith('/')) {
+      normalizedPath = normalizedPath.slice(0, -1);
+    }
+    return ObjectEntity.new({
+      ...f,
+      ...f.metadata,
+      path: normalizedPath,
+      mimeType: isFolder ? ObjectMimeType.folder : f.metadata.contentType,
+      sizeBytes: f.metadata.size,
+      createdAtISO: f.metadata.timeFinalized,
+      latestUpdatedAtISO: f.metadata.updated,
+      md5Hash: f.metadata.md5Hash,
+      deletedAtISO: f.metadata.deleted,
+    });
+  }
+
+  toJson(): string {
+    return JSON.stringify({
+      path: this.path,
+      mimeType: this.mimeType,
+      sizeBytes: this.sizeBytes,
+      createdAtISO: this.createdAtISO,
+      latestUpdatedAtISO: this.latestUpdatedAtISO,
+      md5Hash: this.md5Hash,
+      deletedAtISO: this.deletedAtISO,
+    });
+  }
+
+  static ArrayfromJson(json: string): ObjectEntity[] {
+    return JSON.parse(json).map((item: any) =>
+      ObjectEntity.new({
+        ...item,
+      })
     );
   }
 
@@ -172,16 +212,16 @@ export class ObjectsFilter {
 
   toQuery(): any {
     return {
-      rules: this.rules.map(r => ({
+      rules: this.rules.map((r) => ({
         ...r,
         start: r.start instanceof Date ? r.start.toISOString() : r.start,
         end: r.end instanceof Date ? r.end.toISOString() : r.end,
-      }))
+      })),
     };
   }
 
   toFlattenObj(): any {
-    // This is mainly for PrimeVue Form if used, 
+    // This is mainly for PrimeVue Form if used,
     // but for the new dynamic UI, we might just use rules directly.
     return { rules: [...this.rules] };
   }
@@ -241,22 +281,6 @@ export class SessionEntity {
     );
   }
 
-  static fromAny(json: any): SessionEntity {
-    return new SessionEntity(
-      json.id,
-      json.name,
-      json.description,
-      json.driver,
-      json.mount,
-      json.createdAtISO,
-      json.latestConnectedISO,
-      json.metadataPath,
-      json.accessKey,
-      json.secretKey,
-      json.projectId
-    );
-  }
-
   get createdAt() {
     return new Date(this.createdAtISO);
   }
@@ -285,4 +309,3 @@ export class SessionForm implements Partial<Omit<SessionEntity, 'id'>> {
     if (!this.name) throw new Error('Name is required');
   }
 }
-

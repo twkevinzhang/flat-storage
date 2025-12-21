@@ -17,7 +17,7 @@ export const useSessionStore = defineStore('session', () => {
     // Note: useLocalStorage returns an array of plain objects, we might need to re-instantiate
     const found = sessions.value.find((s) => s.id === id);
     if (!found) return null;
-    return SessionEntity.fromAny(found);
+    return found;
   }
 
   function update(id: string, params: Partial<SessionEntity>) {
