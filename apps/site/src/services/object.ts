@@ -4,11 +4,47 @@ import {
   ObjectMimeType,
   Driver,
 } from '@site/models';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { GcsProxyClient } from './gcs';
-import { isEmpty } from 'lodash-es';
 
-export class ObjectService {
+export interface ObjectService { 
+
+  get({
+    session,
+    path,
+  }: {
+    session: SessionEntity;
+    path: string;
+  }): Promise<ObjectEntity>;
+
+  getUploadSignedUrl({
+    session,
+    path,
+  }: {
+    session: SessionEntity;
+    path: string;
+  }): Promise<string>;
+
+  getDownloadSignedUrl({
+    session,
+    path,
+  }: {
+    session: SessionEntity;
+    path: string;
+  }): Promise<string>;
+
+  listObjects({
+    session,
+    path,
+  }: {
+    session: SessionEntity;
+    path?: string;
+  }): Promise<ObjectEntity[]>;
+   
+}
+
+
+export class ObjectServiceImpl implements ObjectService {
   private axios: AxiosInstance;
 
   constructor() {
@@ -29,26 +65,7 @@ export class ObjectService {
     session: SessionEntity;
     path: string;
   }): Promise<ObjectEntity> {
-    if (session.driver === Driver.gcs) {
-      const client = new GcsProxyClient({
-        accessKey: session.accessKey,
-        secretKey: session.secretKey,
-      });
-      const bucket = client.bucket(session.mount);
-      const file = bucket.file(path === '/' ? '' : path.replace(/^\//, ''));
-      const [metadata] = await file.getMetadata();
-
-      return ObjectEntity.new({
-        path: path,
-        sizeBytes: parseInt(metadata.size),
-        mimeType:
-          metadata.contentType === ObjectMimeType.folder
-            ? ObjectMimeType.folder
-            : undefined,
-        latestUpdatedAtISO: metadata.updated,
-      });
-    }
-    throw new Error(`Driver ${session.driver} not supported`);
+    throw new Error('Not implemented');
   }
 
   async getUploadSignedUrl({
@@ -58,7 +75,7 @@ export class ObjectService {
     session: SessionEntity;
     path: string;
   }): Promise<string> {
-    return '';
+    throw new Error('Not implemented');
   }
 
   async getDownloadSignedUrl({
@@ -68,7 +85,7 @@ export class ObjectService {
     session: SessionEntity;
     path: string;
   }): Promise<string> {
-    return '';
+    throw new Error('Not implemented');
   }
 
   async listObjects({
@@ -79,142 +96,109 @@ export class ObjectService {
     path?: string;
   }): Promise<ObjectEntity[]> {
     if (session.driver === Driver.gcs) {
-      const client = new GcsProxyClient({
-        accessKey: session.accessKey,
-        secretKey: session.secretKey,
+      const contentStr = await this.downloadMetadataFile(session);
+      
+      // 2. Parse JSONL
+      const allItems = contentStr
+        .split('\n')
+        .filter((line: string) => line.trim().length > 0)
+        .map((line: string) => JSON.parse(line));
+
+      // 3. Convert to entities (normalize path to include leading slash)
+      const entities = allItems.map((item: any) => {
+        const fullPath = item.name.startsWith('/') ? item.name : '/' + item.name;
+        return ObjectEntity.new({
+          path: fullPath,
+          sizeBytes: parseInt(item.size || '0'),
+          mimeType: item.contentType === ObjectMimeType.folder ? ObjectMimeType.folder : undefined,
+          latestUpdatedAtISO: item.updated,
+          md5Hash: item.md5Hash,
+        });
       });
-      const bucket = client.bucket(session.mount);
 
-      const normalizedPath = path === '/' ? '' : path?.replace(/^\//, '') || '';
-      const prefix =
-        normalizedPath === ''
-          ? ''
-          : normalizedPath.endsWith('/')
-          ? normalizedPath
-          : normalizedPath + '/';
+      // 4. Filter by path level (similar to MockObjectService)
+      const normalizedPath = path || '/';
+      const countSlashes = (s: string) => (s.match(/\//g) || []).length;
 
-      const [files, , apiResponse] = await bucket.getFiles({
-        prefix,
-        delimiter: '/',
-        autoPaginate: false,
-      });
-
-      const objects: ObjectEntity[] = [];
-
-      // Handle prefixes (folders)
-      if (apiResponse && apiResponse.prefixes) {
-        for (const p of apiResponse.prefixes) {
-          objects.push(
-            ObjectEntity.new({
-              path: '/' + p,
-              mimeType: ObjectMimeType.folder,
-            })
-          );
-        }
+      if (normalizedPath === '/') {
+        return entities.filter((d: ObjectEntity) => countSlashes(d.path) === 1);
       }
 
-      // Handle files
-      for (const f of files) {
-        // Skip the prefix itself if it appears as a file
-        if (f.name === prefix) continue;
+      const result = entities.filter((item: ObjectEntity) => {
+        const prefix = normalizedPath.endsWith('/') ? normalizedPath : normalizedPath + '/';
+        if (!item.path.startsWith(prefix)) return false;
 
-        objects.push(
-          ObjectEntity.new({
-            path: '/' + f.name,
-            sizeBytes: parseInt(f.metadata.size),
-            mimeType:
-              f.metadata.contentType === ObjectMimeType.folder
-                ? ObjectMimeType.folder
-                : undefined,
-            latestUpdatedAtISO: f.metadata.updated,
-          })
-        );
-      }
+        const itemSlashes = countSlashes(item.path);
+        const pathSlashes = countSlashes(normalizedPath);
+        return itemSlashes === pathSlashes + 1;
+      });
 
-      return objects;
+      return result;
     }
     return [];
   }
+
+  private async downloadMetadataFile(session: SessionEntity): Promise<string> {
+    if (session.driver !== Driver.gcs) {
+      throw new Error(`Driver ${session.driver} not supported`);
+    }
+    const client = new GcsProxyClient({
+      accessKey: session.accessKey,
+      secretKey: session.secretKey,
+      projectId: session.projectId,
+    });
+    
+    const bucket = client.bucket(this.removeLeadingSlash(session.mount));
+    const metadataFile = bucket.file(this.removeLeadingSlash(session.metadataPath));
+    const [content] = await metadataFile.download();
+    return typeof content === 'string' ? content : (content as any).toString();
+  }
+
+  private removeLeadingSlash(path: string): string {
+    return path.startsWith('/') ? path.slice(1) : path;
+  }
 }
 
-export class MockObjectService {
+export class MockObjectService implements ObjectService {
   private readonly data: ObjectEntity[];
+
   constructor() {
-    this.data = [
-      ObjectEntity.new({
-        path: '/root1',
-        md5Hash: 'ID1',
-        sizeBytes: 1234,
-        mimeType: ObjectMimeType.folder,
-      }),
+    const objects = [];
+    // Standard root items
+    for (let i = 1; i <= 30; i++) {
+      objects.push(
+        ObjectEntity.new({
+          path: `/root${i}`,
+          md5Hash: `ID${2 * i}`,
+          sizeBytes: 1234,
+          mimeType: i % 2 !== 0 ? ObjectMimeType.folder : undefined,
+        })
+      );
+    }
+    // Specific sub-item
+    objects.push(
       ObjectEntity.new({
         path: '/root1/sub1',
-        md5Hash: 'ID2',
+        md5Hash: 'ID4',
         sizeBytes: 1234,
-      }),
-      ...range(1, 201).map((i) => {
-        const segment = 'yyyyyyyyyyyy';
-        const repeatedPath = Array(i).fill(segment).join('/');
-
-        return ObjectEntity.new({
-          path: `/root1/${repeatedPath}`,
-          md5Hash: `ID${i + 3}`,
+      })
+    );
+    // Deep nesting
+    let deepPath = '/root1';
+    for (let i = 1; i <= 100; i++) {
+      deepPath += '/yyyyyyyyyyyy';
+      objects.push(
+        ObjectEntity.new({
+          path: deepPath,
+          md5Hash: `ID${200 + i}`,
           sizeBytes: 1234,
           mimeType: ObjectMimeType.folder,
           createdAtISO: '2025-12-20T23:56:00.000Z',
           latestUpdatedAtISO: '2025-12-20T23:56:00.000Z',
-        });
-      }),
-      ObjectEntity.new({
-        path: '/root2',
-        md5Hash: 'ID300',
-        sizeBytes: 1234,
-      }),
-      ObjectEntity.new({
-        path: '/root3',
-        md5Hash: 'ID301',
-        sizeBytes: 1234,
-
-        mimeType: ObjectMimeType.folder,
-      }),
-      ...range(1, 4).map((i) => {
-        return ObjectEntity.new({
-          path: `/root3/folder${i}`,
-          md5Hash: `ID${i + 302}`,
-          sizeBytes: 1234,
-          mimeType: ObjectMimeType.folder,
-          createdAtISO: '2025-12-20T23:56:00.000Z',
-          latestUpdatedAtISO: '2025-12-20T23:56:00.000Z',
-        });
-      }),
-
-      ...range(1, 36).map((i) => {
-        return ObjectEntity.new({
-          path: `/root3/folder3/sub${i}`,
-          md5Hash: `ID${i + 305}`,
-          sizeBytes: 1234,
-          mimeType: ObjectMimeType.folder,
-          createdAtISO: '2025-12-20T23:56:00.000Z',
-          latestUpdatedAtISO: '2025-12-20T23:56:00.000Z',
-        });
-      }),
-      ObjectEntity.new({
-        path: '/root4root4roo t4root4root4r oot4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4root4',
-        md5Hash: 'ID342',
-        sizeBytes: 1234,
-        mimeType: ObjectMimeType.folder,
-      }),
-      ...range(1, 30).map((i) => {
-        return ObjectEntity.new({
-          path: `/root${i + 4}`,
-          md5Hash: `ID${i + 342}`,
-          sizeBytes: 1234,
-          mimeType: ObjectMimeType.folder,
-          createdAtISO: '2025-12-20T23:56:00.000Z',
-          latestUpdatedAtISO: '2025-12-20T23:56:00.000Z',
-        });
-      }),
-    ];
+        })
+      );
+    }
+    this.data = objects;
   }
 
   get({
@@ -236,7 +220,7 @@ export class MockObjectService {
     session: SessionEntity;
     path: string;
   }): Promise<string> {
-    return Promise.resolve('');
+    throw new Error('Not implemented');
   }
 
   getDownloadSignedUrl({
@@ -246,7 +230,7 @@ export class MockObjectService {
     session: SessionEntity;
     path: string;
   }): Promise<string> {
-    return Promise.resolve('');
+    throw new Error('Not implemented');
   }
 
   listObjects({
@@ -256,16 +240,20 @@ export class MockObjectService {
     session: SessionEntity;
     path?: string;
   }): Promise<ObjectEntity[]> {
-    path = path || '/';
-    if (path === '/') {
-      return Promise.resolve(this.data.filter((d) => count(d.path, '/') === 1));
-    }
-    const result = this.data.filter((item) => {
-      const prefix = path!.endsWith('/') ? path : path + '/';
-      if (!item.path.startsWith(prefix!)) return false;
+    const normalizedPath = path || '/';
+    // Helper to count slashes
+    const countSlashes = (s: string) => (s.match(/\//g) || []).length;
 
-      const itemSlashes = item.path.split('/').length - 1;
-      const pathSlashes = path!.split('/').length - 1;
+    if (normalizedPath === '/') {
+      return Promise.resolve(this.data.filter((d: ObjectEntity) => countSlashes(d.path) === 1));
+    }
+
+    const result = this.data.filter((item: ObjectEntity) => {
+      const prefix = normalizedPath.endsWith('/') ? normalizedPath : normalizedPath + '/';
+      if (!item.path.startsWith(prefix)) return false;
+
+      const itemSlashes = countSlashes(item.path);
+      const pathSlashes = countSlashes(normalizedPath);
       return itemSlashes === pathSlashes + 1;
     });
     return Promise.resolve(result);

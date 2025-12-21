@@ -96,6 +96,14 @@ export class ProxyBucket {
     return this.execute('get', []);
   }
 
+  async download(options?: any) {
+    return this.execute('download', [options]);
+  }
+
+  async save(data: any, options?: any) {
+    return this.execute('save', [data, options]);
+  }
+
   private async execute(method: string, args: any[]) {
     const res = await axios.post(`${this.baseUrl}/gcs/v1/execute`, {
       auth: this.auth,
@@ -138,6 +146,14 @@ export class ProxyFile {
 
   async get() {
     return this.execute('get', []);
+  }
+
+  async download(options?: any) {
+    return this.execute('download', [options]);
+  }
+
+  async save(data: any, options?: any) {
+    return this.execute('save', [data, options]);
   }
 
   private async execute(method: string, args: any[]) {

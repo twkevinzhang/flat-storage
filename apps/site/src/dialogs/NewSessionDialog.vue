@@ -32,13 +32,14 @@ const emits = defineEmits<{
 }>();
 
 const initialValues = reactive({
-  session: Driver.gcs,
-  projectId: '',
-  accessKey: '',
-  secretKey: '',
-  bucket: '',
   name: '',
   description: '',
+  driver: Driver.gcs,
+  mount: '/', // bucket
+  metadataPath: '/metadata.jsonl',
+  accessKey: '',
+  secretKey: '',
+  projectId: '',
 });
 
 const router = useRouter();
@@ -48,7 +49,7 @@ const isLoading = ref(false);
 const buckets = ref<BucketEntity[]>([]);
 
 async function handleStep1Next(activateCallback: (step: string) => void) {
-  if (RemoteDriver.includes(initialValues.session)) {
+  if (RemoteDriver.includes(initialValues.driver)) {
     isLoading.value = true;
     try {
       const result = await sessionApi.listBuckets({ 
@@ -70,11 +71,12 @@ function handleFinish() {
   const session = SessionEntity.new({
     name: initialValues.name,
     description: initialValues.description,
-    driver: initialValues.session,
-    mount: initialValues.bucket,
+    driver: initialValues.driver,
+    mount: initialValues.mount,
     accessKey: initialValues.accessKey,
     secretKey: initialValues.secretKey,
     projectId: initialValues.projectId,
+    metadataPath: initialValues.metadataPath,
   });
 
   sessionStore.add(session);
@@ -107,7 +109,7 @@ function handleFinish() {
             <StepPanel v-slot="{ activateCallback }" value="1">
               <div class="flex flex-col gap-4">
                 <Select
-                  v-model="initialValues.session"
+                  v-model="initialValues.driver"
                   name="session"
                   :options="[
                     { label: 'Google Cloud Storage', value: 'gcs' },
@@ -120,7 +122,7 @@ function handleFinish() {
                   fluid
                 />
 
-                <div class="flex flex-col gap-4" v-if="initialValues.session">
+                <div class="flex flex-col gap-4" v-if="initialValues.driver">
                   <FloatLabel variant="on">
                     <InputText v-model="initialValues.projectId" name="projectId" fluid id="projectId" />
                     <label for="projectId">Project ID (Optional)</label>
@@ -140,7 +142,7 @@ function handleFinish() {
                 <div class="flex pt-2 justify-end">
                   <Button
                     :loading="isLoading"
-                    :disabled="!initialValues.session"
+                    :disabled="!initialValues.driver"
                     label="Next"
                     icon="pi pi-arrow-right"
                     iconPos="right"
@@ -152,7 +154,7 @@ function handleFinish() {
             <StepPanel v-slot="{ activateCallback }" value="2">
               <div class="flex flex-col gap-4">
                 <Listbox
-                  v-model="initialValues.bucket"
+                  v-model="initialValues.mount"
                   name="bucket"
                   :options="buckets"
                   optionLabel="name"
@@ -170,7 +172,7 @@ function handleFinish() {
                 />
                 <Button
                   label="Next"
-                  :disabled="!initialValues.bucket"
+                  :disabled="!initialValues.mount"
                   icon="pi pi-arrow-right"
                   iconPos="right"
                   @click="activateCallback('3')"
@@ -182,6 +184,10 @@ function handleFinish() {
                 <FloatLabel variant="on">
                   <InputText v-model="initialValues.name" name="name" fluid id="sessionName" />
                   <label for="sessionName">Session Name</label>
+                </FloatLabel>
+                <FloatLabel variant="on">
+                  <InputText v-model="initialValues.metadataPath" name="metadataPath" fluid id="metadataPath" />
+                  <label for="metadataPath">Metadata Path</label>
                 </FloatLabel>
                 <FloatLabel variant="on">
                   <Textarea v-model="initialValues.description" name="description" fluid id="sessionDesc" rows="3" />

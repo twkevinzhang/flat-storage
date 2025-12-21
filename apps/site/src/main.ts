@@ -9,8 +9,9 @@ import { routes } from 'vue-router/auto-routes';
 import LZString from 'lz-string';
 import qs from 'qs';
 import 'virtual:svg-icons-register';
-import { MockObjectService } from './services/object';
+import { MockObjectService, ObjectServiceImpl } from './services/object';
 import { SessionServiceImpl } from './services/session';
+import { INJECT_KEYS } from './services';
 
 export async function createApp() {
   const app = createVueApp(App);
@@ -60,8 +61,8 @@ export async function createApp() {
     });
 
   app
-    .provide('sessionService', new SessionServiceImpl())
-    .provide('objectService', new MockObjectService());
+    .provide(INJECT_KEYS.SessionService, new SessionServiceImpl())
+    .provide(INJECT_KEYS.ObjectService, new ObjectServiceImpl());
 
   return { app, context };
 }
