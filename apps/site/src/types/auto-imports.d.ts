@@ -607,7 +607,6 @@ declare module 'vue' {
     readonly next: UnwrapRef<typeof import('lodash-es')['next']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly noop: UnwrapRef<typeof import('lodash-es')['noop']>
-    readonly normalizePath: UnwrapRef<typeof import('@site/utilities')['normalizePath']>
     readonly now: UnwrapRef<typeof import('lodash-es')['now']>
     readonly nth: UnwrapRef<typeof import('lodash-es')['nth']>
     readonly nthArg: UnwrapRef<typeof import('lodash-es')['nthArg']>

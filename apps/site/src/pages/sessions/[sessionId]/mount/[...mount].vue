@@ -25,12 +25,7 @@ const listViewStore = useListViewStore();
 const listViewStoreRefs = storeToRefs(listViewStore);
 
 const sessionId = computed(() => (route.params as any).sessionId as string);
-const mount = computed(() => {
-  const m = (route.params as any).mount as string;
-  if (!m || isEmpty(m)) return '/';
-  if (!m.startsWith('/')) return '/' + m;
-  return m;
-});
+const mount = computed(() => (route.params as any).mount as string);
 
 const { state: session, execute: fetchSession } = useAsyncState(
   async () => {
