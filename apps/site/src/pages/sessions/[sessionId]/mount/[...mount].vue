@@ -229,19 +229,28 @@ function toLeafNode(v: ObjectEntity): Entity {
         :path="mount"
         @navigate="handleNavigate"
       />
-      <Hover severity="list-item" @click="(e) => dialogStore.open('menu')">
-        <span class="text-xl font-bold break-all"> {{ name }} </span>
-        <PrimeIcon name="angle-down" />
-      </Hover>
-    </div>
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex items-center gap-2">
+        <Hover
+          class="flex-1"
+          severity="list-item"
+          :fluid="false"
+          @click="(e) => dialogStore.open('menu')"
+        >
+          <span class="text-xl font-bold break-all">
+            {{ name }}
+          </span>
+          <PrimeIcon name="angle-down" />
+        </Hover>
         <Button
           icon="pi pi-refresh"
           severity="secondary"
           variant="outlined"
           @click="(e) => handleRefresh()"
         />
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <SelectButton
           v-model="viewMode"
           size="large"
