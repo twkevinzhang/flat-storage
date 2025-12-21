@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { reactive, inject, ref, computed } from 'vue';
 import { Form } from '@primevue/forms';
 import { SessionEntity, Driver, BucketEntity } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
 import { SessionService } from '@site/services/session';
 import { useSessionStore } from '@site/stores/session';
-import { useRoute, useRouter } from 'vue-router';
 
 const sessionStore = useSessionStore();
 const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;

@@ -2,7 +2,6 @@
 import { Entity } from '@site/components/ObjectTree';
 import { ColumnKeys } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   mount: {

@@ -1,5 +1,4 @@
 import { acceptHMRUpdate, defineStore } from 'pinia';
-import { useLocalStorage } from '@vueuse/core';
 import { SessionEntity } from '@site/models';
 
 export const useSessionStore = defineStore('session', () => {

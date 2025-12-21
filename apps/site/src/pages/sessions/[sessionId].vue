@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { useUiStore } from '@site/stores/ui';
-import { storeToRefs } from 'pinia';
-import { useBreakpoints, breakpointsTailwind } from '@vueuse/core';
-import { useRoute } from 'vue-router';
 import { useSessionStore } from '@site/stores/session';
 import { INJECT_KEYS } from '@site/services';
 import { SessionService } from '@site/services/session';
+import { breakpointsTailwind } from '@vueuse/core';
 
 /**
  * =====

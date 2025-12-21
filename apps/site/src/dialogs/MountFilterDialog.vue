@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Columns, ColumnKeys, ObjectsFilter, FilterRule } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
-import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps<{
   visible: boolean;

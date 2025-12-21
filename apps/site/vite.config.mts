@@ -10,6 +10,7 @@ import tailwindcss from '@tailwindcss/vite';
 import * as lodash from 'lodash-es';
 import * as utilities from './src/utilities/index';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
+import { VueRouterAutoImports } from 'unplugin-vue-router';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -34,9 +35,14 @@ export default defineConfig(() => ({
       dts: path.resolve(__dirname, 'src', 'types/auto-imports.d.ts'),
       imports: [
         'vue',
+        VueRouterAutoImports,
+        '@vueuse/core',
+        'pinia',
         {
-          'lodash-es': Object.keys(lodash),
-          '@site/utilities': Object.keys(utilities),
+          'lodash-es': Object.keys(lodash).filter((k) => k !== 'default'),
+          '@site/utilities': Object.keys(utilities).filter(
+            (k) => k !== 'default'
+          ),
         },
       ],
       vueTemplate: true,

@@ -1,10 +1,12 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { useLocalStorage } from '@vueuse/core';
 
 export const useUiStore = defineStore('ui', () => {
   const isSidebarPinned = useLocalStorage('isSidebarPinned', false);
   const sidebarWidth = useLocalStorage('sidebarWidth', 256);
-  const viewMode = useLocalStorage<'grid' | 'list' | 'column'>('viewMode', 'list');
+  const viewMode = useLocalStorage<'grid' | 'list' | 'column'>(
+    'viewMode',
+    'list'
+  );
 
   return {
     isSidebarPinned,

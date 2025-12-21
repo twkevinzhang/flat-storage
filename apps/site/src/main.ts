@@ -25,7 +25,7 @@ export async function createApp() {
         const jsonString =
           LZString.decompressFromEncodedURIComponent(compressedString);
         if (jsonString) {
-          console.log('decode querystring', jsonString)
+          console.log('decode querystring', jsonString);
           try {
             return JSON.parse(jsonString);
           } catch (e) {

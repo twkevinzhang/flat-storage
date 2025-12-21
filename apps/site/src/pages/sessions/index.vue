@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Driver, SessionEntity } from '@site/models';
 import { useSessionStore } from '@site/stores/session';
-import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
 import { useDialogStore } from '@site/stores/dialog';
 
 const dialogStore = useDialogStore();
@@ -21,7 +19,7 @@ function image(driver: Driver) {
 }
 
 function handleClick(session: SessionEntity) {
-  router.push({ path: joinPath('/sessions', session.id)});
+  router.push({ path: joinPath('/sessions', session.id) });
 }
 
 function handleCreateSession() {
@@ -43,11 +41,7 @@ function handleCreateSession() {
     <div
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
-      <Card
-        v-for="session in sessions"
-        :key="session.id"
-        class="h-full"
-      >
+      <Card v-for="session in sessions" :key="session.id" class="h-full">
         <template #header>
           <div
             class="w-full h-36 bg-gray-50 dark:bg-gray-800 cursor-pointer transition-all duration-300 ease-in-out hover:shadow-xl hover:scale-105"
@@ -73,9 +67,7 @@ function handleCreateSession() {
         @click="(e) => handleCreateSession()"
       >
         <template #header>
-          <div
-            class="w-full h-36"
-          >
+          <div class="w-full h-36">
             <PrimeIcon name="plus" size="large" class="size-full" />
           </div>
         </template>

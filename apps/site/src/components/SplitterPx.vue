@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { provide, reactive, watch } from 'vue';
-import { useMouse, useMousePressed } from '@vueuse/core';
-
 const props = defineProps<{
   widths: Record<string, number>;
 }>();
@@ -23,7 +20,7 @@ const startResize = (id: string, event: MouseEvent) => {
 
 provide('splitterPx', {
   startResize,
-  resizingPanelId
+  resizingPanelId,
 });
 
 watch(mousePressed, (val) => {
@@ -34,7 +31,10 @@ watch(mouseX, (currentX) => {
   if (resizingPanelId.value !== null) {
     const delta = currentX - startMouseX.value;
     const newWidth = Math.max(20, startPanelWidth.value + delta);
-    emit('update:widths', { ...props.widths, [resizingPanelId.value]: newWidth });
+    emit('update:widths', {
+      ...props.widths,
+      [resizingPanelId.value]: newWidth,
+    });
   }
 });
 </script>
