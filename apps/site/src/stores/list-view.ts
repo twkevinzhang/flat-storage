@@ -1,4 +1,3 @@
-import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ColumnKeys, Columns, ObjectEntity, ObjectsFilter } from '@site/models';
 
 export const useListViewStore = defineStore('list-view', () => {
@@ -9,7 +8,6 @@ export const useListViewStore = defineStore('list-view', () => {
   const rawList = ref<ObjectEntity[]>([]);
 
   return {
-
     // =====
     // Filter
     // =====
@@ -23,7 +21,6 @@ export const useListViewStore = defineStore('list-view', () => {
       return filter.value.count?.toString();
     }),
 
-    
     // =====
     // Order
     // =====
@@ -38,28 +35,35 @@ export const useListViewStore = defineStore('list-view', () => {
     // =====
 
     setVisibleColumns(showColumns: ColumnKeys[]): void {
-     hiddenColumns.value = Columns.filter(c => !showColumns.includes(c.key)).map(c => c.key);
+      hiddenColumns.value = Columns.filter(
+        (c) => !showColumns.includes(c.key)
+      ).map((c) => c.key);
     },
     hiddenColumns: computed(() => hiddenColumns.value),
     hiddenColumnsCount: computed(() => hiddenColumns.value.length),
     visibleColumns: computed(() => {
-      const source = columnOrder.value.length > 0 
-        ? columnOrder.value.map(key => Columns.find(c => c.key === key)).filter(Boolean) as typeof Columns
-        : Columns;
-      
-      return source.map(c => ({
+      const source =
+        columnOrder.value.length > 0
+          ? (columnOrder.value
+              .map((key) => Columns.find((c) => c.key === key))
+              .filter(Boolean) as typeof Columns)
+          : Columns;
+
+      return source.map((c) => ({
         ...c,
-        visible: !hiddenColumns.value.includes(c.key)
+        visible: !hiddenColumns.value.includes(c.key),
       }));
     }),
     activeColumns: computed(() => {
-      const source = columnOrder.value.length > 0 
-        ? columnOrder.value.map(key => Columns.find(c => c.key === key)).filter(Boolean) as typeof Columns
-        : Columns;
+      const source =
+        columnOrder.value.length > 0
+          ? (columnOrder.value
+              .map((key) => Columns.find((c) => c.key === key))
+              .filter(Boolean) as typeof Columns)
+          : Columns;
       return source.filter((c) => !hiddenColumns.value.includes(c.key));
     }),
 
-    
     // =====
     // Sort
     // =====
@@ -72,7 +76,7 @@ export const useListViewStore = defineStore('list-view', () => {
       if (sortRules.value.length === 0) return undefined;
       return sortRules.value.length?.toString();
     }),
-    
+
     // =====
     // Stateful List
     // =====
@@ -95,26 +99,32 @@ if (import.meta.hot) {
 function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {
   if (!f || f.isEmpty) return raw;
   if (!raw || raw.length === 0) return [];
-  
+
   let result = raw;
 
   for (const rule of f.rules) {
     const { key, operator, value, start, end } = rule;
-    const col = Columns.find(c => c.key === key);
+    const col = Columns.find((c) => c.key === key);
     if (!col) continue;
 
     if (col.type === 'text') {
       const condition = (value || '').toLowerCase();
       if (operator === 'contains') {
-        result = result.filter(obj => (obj as any)[key]?.toLowerCase().includes(condition));
+        result = result.filter((obj) =>
+          (obj as any)[key]?.toLowerCase().includes(condition)
+        );
       } else if (operator === 'notContains') {
-        result = result.filter(obj => !(obj as any)[key]?.toLowerCase().includes(condition));
+        result = result.filter(
+          (obj) => !(obj as any)[key]?.toLowerCase().includes(condition)
+        );
       } else if (operator === 'equals') {
-        result = result.filter(obj => (obj as any)[key]?.toLowerCase() === condition);
+        result = result.filter(
+          (obj) => (obj as any)[key]?.toLowerCase() === condition
+        );
       }
     } else if (col.type === 'date') {
       if (start) {
-        result = result.filter(obj => {
+        result = result.filter((obj) => {
           const val = (obj as any)[key];
           if (!val) return false;
           const d = val instanceof Date ? val : new Date(val);
@@ -122,7 +132,7 @@ function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {
         });
       }
       if (end) {
-        result = result.filter(obj => {
+        result = result.filter((obj) => {
           const val = (obj as any)[key];
           if (!val) return false;
           const d = val instanceof Date ? val : new Date(val);
@@ -133,11 +143,11 @@ function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {
       const numVal = Number(value);
       if (isNaN(numVal)) continue;
       if (operator === 'equals') {
-        result = result.filter(obj => (obj as any)[key] === numVal);
+        result = result.filter((obj) => (obj as any)[key] === numVal);
       } else if (operator === 'gt') {
-        result = result.filter(obj => (obj as any)[key] > numVal);
+        result = result.filter((obj) => (obj as any)[key] > numVal);
       } else if (operator === 'lt') {
-        result = result.filter(obj => (obj as any)[key] < numVal);
+        result = result.filter((obj) => (obj as any)[key] < numVal);
       }
     }
   }
@@ -145,7 +155,10 @@ function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {
   return result;
 }
 
-function sortIt(data: ObjectEntity[], sortRules: { key: string; order: 'asc' | 'desc' }[]): ObjectEntity[] {
+function sortIt(
+  data: ObjectEntity[],
+  sortRules: { key: string; order: 'asc' | 'desc' }[]
+): ObjectEntity[] {
   if (!sortRules || sortRules.length === 0) return data;
 
   return [...data].sort((a, b) => {
@@ -155,7 +168,7 @@ function sortIt(data: ObjectEntity[], sortRules: { key: string; order: 'asc' | '
       const valB = (b as any)[key];
 
       if (valA === valB) continue;
-      
+
       // Handle null/undefined
       if (valA === null || valA === undefined) return order === 'asc' ? 1 : -1;
       if (valB === null || valB === undefined) return order === 'asc' ? -1 : 1;

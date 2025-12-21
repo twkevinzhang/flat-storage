@@ -1,5 +1,3 @@
-import { defineStore, acceptHMRUpdate } from 'pinia';
-
 export const useDialogStore = defineStore('dialog', () => {
   type DialogKey =
     | 'filter'

@@ -1,5 +1,3 @@
-import { defineStore, acceptHMRUpdate } from 'pinia';
-
 export const useUiStore = defineStore('ui', () => {
   const isSidebarPinned = useLocalStorage('isSidebarPinned', false);
   const sidebarWidth = useLocalStorage('sidebarWidth', 256);

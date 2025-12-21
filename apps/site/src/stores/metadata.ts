@@ -1,4 +1,3 @@
-import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ObjectEntity, SessionEntity } from '@site/models';
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
 import { proxyMetadataFile } from '@site/utilities/storage';
