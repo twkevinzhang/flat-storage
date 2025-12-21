@@ -16,6 +16,8 @@ export const useListViewStore = defineStore('list-view', () => {
     setPath(newPath: string): void {
       path.value = newPath;
     },
+    path: computed(() => path.value),
+    name: computed(() => path.value.split('/').pop() || ''),
 
     // =====
     // Filter
@@ -108,11 +110,7 @@ if (import.meta.hot) {
 
 export function pathIt(entities: ObjectEntity[], path: string): ObjectEntity[] {
   // remove mount
-  if (!path.startsWith('/')) {
-    path = '/' + path;
-  }
-  const parts = path.split('/');
-  path = '/' + parts.slice(2).join('/');
+  path = removeLeadingPart(path);
 
   // filter by path level
   if (path === '/') {

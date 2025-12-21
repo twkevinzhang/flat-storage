@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useDialogStore } from '@site/stores/dialog';
 
-const { visible, close } = useDialogStore();
+const { visible, close, replaceWith } = useDialogStore();
 </script>
 
 <template>
@@ -13,6 +13,9 @@ const { visible, close } = useDialogStore();
       {
         label: '重新命名',
         icon: 'pi pi-pencil',
+        command: () => {
+          replaceWith('rename');
+        },
       },
       {
         label: '移動到...',
@@ -79,5 +82,10 @@ const { visible, close } = useDialogStore();
   <NewSessionDialog
     :visible="visible('new-session')"
     @update:visible="() => close('new-session')"
+  />
+
+  <RenameDialog
+    :visible="visible('rename')"
+    @update:visible="() => close('rename')"
   />
 </template>

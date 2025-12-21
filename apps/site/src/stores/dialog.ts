@@ -7,6 +7,7 @@ export const useDialogStore = defineStore('dialog', () => {
     | 'add'
     | 'info'
     | 'menu'
+    | 'rename'
     | 'new-session';
   const state = ref<Partial<Record<DialogKey, boolean>>>({});
 
@@ -15,6 +16,9 @@ export const useDialogStore = defineStore('dialog', () => {
     toggle: (key: DialogKey) =>
       (state.value[key] = !(state.value[key] ?? false)),
     open: (key: DialogKey) => (state.value[key] = true),
+    replaceWith: (key: DialogKey) => {
+      state.value = { [key]: true };
+    },
     close: (key: DialogKey) => (state.value[key] = false),
   };
 });

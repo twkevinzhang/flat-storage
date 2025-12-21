@@ -103,8 +103,6 @@ export const useMetadataStore = defineStore('metadata', () => {
     entities.value = [];
   }
 
-  function renameFolder() {}
-
   function moveFolder() {}
 
   function copyFolder() {}
@@ -115,11 +113,79 @@ export const useMetadataStore = defineStore('metadata', () => {
 
   function deleteFolder() {}
 
+  async function renameFolder(
+    session: SessionEntity,
+    oldPath: string,
+    newName: string
+  ) {
+    isLoading.value = true;
+    oldPath = removeLeadingPart(oldPath);
+    try {
+      // 1. Identify all entities to be renamed (including self and descendants)
+      // oldPath might be like '/mount/folder'
+      const prefix = oldPath + '/';
+      const affectedIndices: number[] = [];
+
+      const newEntities = entities.value.map((e, index) => {
+        if (e.path === oldPath || e.path.startsWith(prefix)) {
+          // Calculate new path
+          // If e.path is '/mount/folder/sub', and oldPath is '/mount/folder'
+          // We need to replace '/mount/folder' with parentPath + '/' + newName
+          const parentPath = oldPath.substring(0, oldPath.lastIndexOf('/'));
+          const targetPrefix = joinPath(parentPath, newName);
+
+          let updatedPath: string;
+          if (e.path === oldPath) {
+            updatedPath = targetPrefix;
+          } else {
+            updatedPath = targetPrefix + e.path.substring(oldPath.length);
+          }
+
+          // Return a new instance with updated path
+          return ObjectEntity.new({
+            ...JSON.parse(e.toJson()),
+            path: updatedPath,
+          });
+        }
+        return e;
+      });
+
+      // 2. Save to GCS
+      await sessionApi.saveEntities(session, newEntities);
+
+      // 3. Update local state (IDB & Ref)
+      const updatedAt = new Date().toISOString();
+      cachedData.value = {
+        entities: newEntities.map((e) => JSON.parse(e.toJson())),
+        updatedAt,
+      };
+
+      toast.add({
+        severity: 'success',
+        summary: 'Rename Success',
+        detail: `Renamed to ${newName}`,
+        life: 3000,
+      });
+    } catch (error: any) {
+      console.error('Failed to rename folder:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Rename Failed',
+        detail: error.message || 'Failed to update metadata',
+        life: 3000,
+      });
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     allObjects: entities,
     isLoading,
     lastUpdated,
     loadObjects: load,
+    renameFolder,
     refresh,
     clear,
   };

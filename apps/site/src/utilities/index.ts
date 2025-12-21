@@ -29,3 +29,18 @@ export function decodeProxyBuffer(data: any): string {
   }
   return data?.toString() || '';
 }
+
+export function removeLeadingPart(path: string): string {
+  if (!path.startsWith('/')) {
+    path = '/' + path;
+  }
+  const parts = path.split('/');
+  path = '/' + parts.slice(2).join('/');
+  return path;
+}
+
+export function removeTrailingPart(path: string): string {
+  const parts = path.split('/');
+  path = '/' + parts.slice(0, -1).join('/');
+  return path;
+}

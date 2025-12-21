@@ -36,6 +36,7 @@ declare module 'vue' {
     ObjectTree: typeof import('./../components/ObjectTree.vue')['default']
     Pages: typeof import('./../pages/index.vue')['default']
     PrimeIcon: typeof import('./../components/PrimeIcon.vue')['default']
+    RenameDialog: typeof import('./../dialogs/RenameDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']

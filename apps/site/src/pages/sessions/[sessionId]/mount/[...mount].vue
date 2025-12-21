@@ -87,12 +87,6 @@ const dialogStore = useDialogStore();
 const uiStore = useUiStore();
 const { viewMode } = storeToRefs(uiStore);
 
-const name = computed(() => {
-  const r = mount.value?.split('/').pop();
-  if (!r) return '/';
-  return r;
-});
-
 const mountLevel = computed(
   () => (route.params as any).mount?.split('/').length || 1
 );
@@ -182,7 +176,7 @@ function toLeafNode(v: ObjectEntity): Entity {
           @click="(e) => dialogStore.open('menu')"
         >
           <span class="text-xl font-bold break-all">
-            {{ name }}
+            {{ listViewStoreRefs.name.value }}
           </span>
           <PrimeIcon name="angle-down" />
         </Hover>
