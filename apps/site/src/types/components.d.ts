@@ -15,6 +15,7 @@ declare module 'vue' {
     Breadcrumb: typeof import('./../components/Breadcrumb.vue')['default']
     Button: typeof import('primevue/button')['default']
     ButtonGroup: typeof import('primevue/buttongroup')['default']
+    Card: typeof import('primevue/card')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Drawer: typeof import('primevue/drawer')['default']
@@ -52,6 +53,7 @@ declare module 'vue' {
     Stepper: typeof import('primevue/stepper')['default']
     SvgIcon: typeof import('./../components/SvgIcon.vue')['default']
     Textarea: typeof import('primevue/textarea')['default']
+    Toast: typeof import('primevue/toast')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']

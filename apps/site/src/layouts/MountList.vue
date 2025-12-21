@@ -25,6 +25,8 @@ const columnWidths = ref<Record<string, number>>({
   [ColumnKeys.createdAt]: 150,
   [ColumnKeys.latestUpdatedAt]: 176,
 });
+
+const mountLevel = computed(() => props.mount.split('/').length || 1);
 </script>
 <template>
   <!-- Scrollable container for mobile -->
@@ -54,7 +56,7 @@ const columnWidths = ref<Record<string, number>>({
 
       <ul>
         <!-- Parent directory row -->
-        <li v-if="props.mount !== '/'">
+        <li v-if="mountLevel > 1">
           <div
             class="flex items-center border-b border-gray-100 hover:bg-gray-50 overflow-hidden"
           >

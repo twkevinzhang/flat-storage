@@ -37,9 +37,11 @@ export interface ObjectService {
   listObjects({
     session,
     path,
+    entities,
   }: {
     session: SessionEntity;
     path?: string;
+    entities?: ObjectEntity[];
   }): Promise<ObjectEntity[]>;
 }
 
@@ -48,7 +50,7 @@ export class ObjectServiceImpl implements ObjectService {
 
   constructor() {
     const baseUrl = import.meta.env.VITE_GCS_PROXY;
-    if (!baseUrl || isEmpty(baseUrl)) {
+    if (!baseUrl || (typeof baseUrl === 'string' && baseUrl.length === 0)) {
       throw new Error('VITE_GCS_PROXY is not defined');
     }
     this.axios = axios.create({
@@ -90,16 +92,21 @@ export class ObjectServiceImpl implements ObjectService {
   async listObjects({
     session,
     path,
+    entities: providedEntities,
   }: {
     session: SessionEntity;
     path?: string;
+    entities?: ObjectEntity[];
   }): Promise<ObjectEntity[]> {
     if (session.driver === Driver.gcs) {
-      const [content] = await proxyMetadataFile(session).download();
-      const contentStr = decodeProxyBuffer(content);
+      let entities = providedEntities;
 
-      // Convert to entities (normalize path to include leading slash)
-      const entities = ObjectEntity.ArrayfromJson(contentStr);
+      if (!entities) {
+        const [content] = await proxyMetadataFile(session).download();
+        const contentStr = decodeProxyBuffer(content);
+        entities = ObjectEntity.ArrayfromJson(contentStr);
+      }
+
       if (!path) return entities;
 
       // remove mount

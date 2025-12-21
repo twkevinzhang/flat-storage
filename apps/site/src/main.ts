@@ -2,6 +2,7 @@ import './styles.css';
 import { createApp as createVueApp } from 'vue';
 import { createPinia } from 'pinia';
 import PrimeVue from 'primevue/config';
+import ToastService from 'primevue/toastservice';
 import Aura from '@primeuix/themes/aura';
 import App from './app/App.vue';
 import { createRouter, createWebHistory, LocationQuery } from 'vue-router';
@@ -58,7 +59,8 @@ export async function createApp() {
       theme: {
         preset: Aura,
       },
-    });
+    })
+    .use(ToastService);
 
   app
     .provide(INJECT_KEYS.SessionService, new SessionServiceImpl())

@@ -7,6 +7,10 @@ import { useDialogStore } from '@site/stores/dialog';
 import { useListViewStore } from '@site/stores/list-view';
 import { useSessionStore } from '@site/stores/session';
 import { useUiStore } from '@site/stores/ui';
+import { useMetadataStore } from '@site/stores/metadata';
+import { useToast } from 'primevue/usetoast';
+
+const toast = useToast();
 
 /**
  * =====
@@ -21,6 +25,7 @@ const router = useRouter();
 const route = useRoute();
 const listViewStore = useListViewStore();
 const listViewStoreRefs = storeToRefs(listViewStore);
+const metadataStore = useMetadataStore();
 
 const sessionId = computed(() => (route.params as any).sessionId as string);
 const mount = computed(() => (route.params as any).mount as string);
@@ -28,11 +33,17 @@ const mount = computed(() => (route.params as any).mount as string);
 const { state: session, execute: fetchSession } = useAsyncState(
   async () => {
     if (!sessionId.value) return null;
-    return sessionStore.get(sessionId.value);
+    const s = sessionStore.get(sessionId.value);
+    if (s) {
+      await metadataStore.load(s);
+    }
+    return s;
   },
   null,
   { immediate: false }
 );
+
+const { entities } = storeToRefs(metadataStore);
 
 const { state: objects, execute: fetchObjects } = useAsyncState(
   async () => {
@@ -41,6 +52,7 @@ const { state: objects, execute: fetchObjects } = useAsyncState(
     return await objectApi.listObjects({
       session: session.value,
       path: mount.value,
+      entities: entities.value,
     });
   },
   null,
@@ -48,13 +60,16 @@ const { state: objects, execute: fetchObjects } = useAsyncState(
 );
 
 watch(
-  () => [sessionId.value, mount.value],
-  ([newSessionId, newMount]) => {
+  () => [sessionId.value, mount.value, entities.value] as const,
+  async ([newSessionId, newMount]) => {
     if (newSessionId && isEmpty(newMount)) {
       router.replace({ path: joinPath('/sessions', newSessionId) });
     }
     if (newSessionId && newMount) {
-      fetchSession().then(() => fetchObjects());
+      if (!session.value || session.value.id !== newSessionId) {
+        await fetchSession();
+      }
+      await fetchObjects();
     }
   },
   { immediate: true }
@@ -165,6 +180,26 @@ function handleUp() {
 
 function handleShowMoreClick() {}
 
+async function handleRefresh() {
+  if (!session.value) return;
+  try {
+    await metadataStore.refresh(session.value);
+    toast.add({
+      severity: 'success',
+      summary: 'Refresh Success',
+      detail: 'Metadata has been reloaded from GCS',
+      life: 3000,
+    });
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: 'Refresh Failed',
+      detail: 'Failed to reload metadata',
+      life: 3000,
+    });
+  }
+}
+
 /**
  * =====
  * Utilities
@@ -201,6 +236,12 @@ function toLeafNode(v: ObjectEntity): Entity {
     </div>
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex flex-wrap items-center gap-2">
+        <Button
+          icon="pi pi-refresh"
+          severity="secondary"
+          variant="outlined"
+          @click="(e) => handleRefresh()"
+        />
         <SelectButton
           v-model="viewMode"
           size="large"
