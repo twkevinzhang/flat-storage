@@ -1,6 +1,6 @@
 import { latestIndex } from '@site/utilities';
 import Column from 'primevue/column';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid'
 
 export enum Driver {
   'gcs' = 'gcs',
@@ -227,7 +227,7 @@ export class SessionEntity {
     projectId?: string;
   }): SessionEntity {
     return new SessionEntity(
-      uuidv4(),
+      nanoid(6),
       params.name ?? 'Untitled',
       params.description,
       params.driver,
