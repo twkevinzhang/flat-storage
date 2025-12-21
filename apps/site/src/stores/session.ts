@@ -1,7 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia';
 import { SessionEntity } from '@site/models';
+import { INJECT_KEYS } from '@site/services';
+import { SessionService } from '@site/services/session';
+import { useToast } from 'primevue/usetoast';
 
 export const useSessionStore = defineStore('session', () => {
+  const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
+  const toast = useToast();
   const sessions = useLocalStorage<SessionEntity[]>('sessions', []);
 
   function add(session: SessionEntity) {
@@ -13,7 +18,6 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   function get(id: string) {
-    // Note: useLocalStorage returns an array of plain objects, we might need to re-instantiate
     const found = sessions.value.find((s) => s.id === id);
     if (!found) return null;
     return found;
@@ -23,9 +27,41 @@ export const useSessionStore = defineStore('session', () => {
     const index = sessions.value.findIndex((s) => s.id === id);
     if (index !== -1) {
       const updated = { ...sessions.value[index], ...params };
-      // Explicitly delete instance properties to satisfy plain object storage if needed,
-      // but here we just need to ensure the type matches the storage array.
       sessions.value[index] = updated as SessionEntity;
+    }
+  }
+
+  async function ensureMetadata(session: SessionEntity) {
+    try {
+      await sessionApi.ensureMetadata(session);
+    } catch (error: any) {
+      console.error('Failed to ensure metadata:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Metadata Integration Error',
+        detail: error.message || 'Failed to sync metadata with storage',
+        life: 5000,
+      });
+      throw error;
+    }
+  }
+
+  async function listBuckets(args: {
+    accessKey: string;
+    secretKey: string;
+    projectId?: string;
+  }) {
+    try {
+      return await sessionApi.listBuckets(args);
+    } catch (error: any) {
+      console.error('Failed to list buckets:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Connection Failed',
+        detail: error.message || 'Could not fetch buckets from remote storage',
+        life: 5000,
+      });
+      throw error;
     }
   }
 
@@ -35,6 +71,8 @@ export const useSessionStore = defineStore('session', () => {
     remove,
     get,
     update,
+    ensureMetadata,
+    listBuckets,
   };
 });
 

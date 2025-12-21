@@ -1,6 +1,7 @@
 import { ColumnKeys, Columns, ObjectEntity, ObjectsFilter } from '@site/models';
 
 export const useListViewStore = defineStore('list-view', () => {
+  const path = ref<string>('');
   const filter = ref<ObjectsFilter>(ObjectsFilter.empty());
   const sortRules = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
   const columnOrder = ref<ColumnKeys[]>([]);
@@ -8,6 +9,14 @@ export const useListViewStore = defineStore('list-view', () => {
   const rawList = ref<ObjectEntity[]>([]);
 
   return {
+    // =====
+    // Path
+    // =====
+
+    setPath(newPath: string): void {
+      path.value = newPath;
+    },
+
     // =====
     // Filter
     // =====
@@ -85,7 +94,8 @@ export const useListViewStore = defineStore('list-view', () => {
       rawList.value = data;
     },
     statefulList: computed(() => {
-      let result = filterIt(rawList.value, filter.value);
+      let result = pathIt(rawList.value, path.value);
+      result = filterIt(result, filter.value);
       result = sortIt(result, sortRules.value);
       return result;
     }),
@@ -94,6 +104,30 @@ export const useListViewStore = defineStore('list-view', () => {
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useListViewStore, import.meta.hot));
+}
+
+export function pathIt(entities: ObjectEntity[], path: string): ObjectEntity[] {
+  // remove mount
+  if (!path.startsWith('/')) {
+    path = '/' + path;
+  }
+  const parts = path.split('/');
+  path = '/' + parts.slice(2).join('/');
+
+  // filter by path level
+  if (path === '/') {
+    return entities.filter((d: ObjectEntity) => count(d.path, '/') === 1);
+  }
+
+  const result = entities.filter((item: ObjectEntity) => {
+    if (!item.path.startsWith(path + '/')) return false;
+
+    const itemSlashes = count(item.path, '/');
+    const pathSlashes = count(path, '/');
+    return itemSlashes === pathSlashes + 1;
+  });
+
+  return result;
 }
 
 function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {

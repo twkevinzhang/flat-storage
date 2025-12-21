@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { Form } from '@primevue/forms';
 import { SessionEntity, Driver, BucketEntity } from '@site/models';
-import { INJECT_KEYS } from '@site/services';
-import { SessionService } from '@site/services/session';
 import { useSessionStore } from '@site/stores/session';
 
 const sessionStore = useSessionStore();
-const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
 
 // 支援 accessKey 的服務稱為 HmacDriver
 const HmacDriver = [Driver.gcs, Driver.s3];
@@ -42,7 +39,7 @@ async function handleStep1Next(activateCallback: (step: string) => void) {
   if (RemoteDriver.includes(initialValues.driver)) {
     isLoading.value = true;
     try {
-      const result = await sessionApi.listBuckets({
+      const result = await sessionStore.listBuckets({
         accessKey: initialValues.accessKey,
         secretKey: initialValues.secretKey,
         projectId: initialValues.projectId,
@@ -50,7 +47,7 @@ async function handleStep1Next(activateCallback: (step: string) => void) {
       buckets.value = result;
       activateCallback('2');
     } catch (error) {
-      console.error('Failed to fetch buckets:', error);
+      // Error handled by store toast
     } finally {
       isLoading.value = false;
     }

@@ -2,6 +2,7 @@ import {
   BucketEntity,
   Driver,
   ObjectEntity,
+  ObjectMimeType,
   SessionEntity,
   SessionForm,
 } from '@site/models';
@@ -16,6 +17,11 @@ export interface SessionService {
     projectId?: string;
   }): Promise<BucketEntity[]>;
   ensureMetadata(session: SessionEntity): Promise<void>;
+  saveEntities(
+    session: SessionEntity,
+    newEntities: ObjectEntity[]
+  ): Promise<void>;
+  fetchEntities(session: SessionEntity): Promise<ObjectEntity[]>;
 }
 
 export class SessionServiceImpl implements SessionService {
@@ -58,10 +64,7 @@ export class SessionServiceImpl implements SessionService {
           const content = files
             .map((f: any) => ObjectEntity.fromGCS(f).toJson())
             .join(',\n');
-          await metadataFile.save(`[\n${content}\n]`, {
-            contentType: 'application/json',
-            resumable: false,
-          });
+          await this.saveEntities(session, JSON.parse(content));
         } else {
           // 1.2 如果有，則檢查 bucket 中的數量與 metadata 是否一樣，有則當作正常，沒有則拋出錯誤。
           // const [files] = await bucket.getFiles();
@@ -81,5 +84,83 @@ export class SessionServiceImpl implements SessionService {
 
     this.syncingPromises.set(session.id, syncPromise);
     return syncPromise;
+  }
+
+  async saveEntities(
+    session: SessionEntity,
+    newEntities: ObjectEntity[]
+  ): Promise<void> {
+    const metadataFile = proxyMetadataFile(session);
+    const content = newEntities.map((e) => e.toJson()).join(',\n');
+    await metadataFile.save(`[\n${content}\n]`, {
+      contentType: 'application/json',
+      resumable: false,
+    });
+  }
+
+  async fetchEntities(session: SessionEntity): Promise<ObjectEntity[]> {
+    const [content] = await proxyMetadataFile(session).download();
+    const contentStr = decodeProxyBuffer(content);
+    const entities = ObjectEntity.ArrayfromJson(contentStr);
+    return entities;
+  }
+}
+
+export class MockSessionService implements SessionService {
+  private readonly data: ObjectEntity[];
+
+  constructor() {
+    const objects = [];
+    // Standard root items
+    for (let i = 1; i <= 30; i++) {
+      objects.push(
+        ObjectEntity.new({
+          path: `/root${i}`,
+          md5Hash: `ID${2 * i}`,
+          sizeBytes: 1234,
+          mimeType: i % 2 !== 0 ? ObjectMimeType.folder : undefined,
+        })
+      );
+    }
+    // Specific sub-item
+    objects.push(
+      ObjectEntity.new({
+        path: '/root1/sub1',
+        md5Hash: 'ID4',
+        sizeBytes: 1234,
+      })
+    );
+    // Deep nesting
+    let deepPath = '/root1';
+    for (let i = 1; i <= 100; i++) {
+      deepPath += '/yyyyyyyyyyyy';
+      objects.push(
+        ObjectEntity.new({
+          path: deepPath,
+          md5Hash: `ID${200 + i}`,
+          sizeBytes: 1234,
+          mimeType: ObjectMimeType.folder,
+          createdAtISO: '2025-12-20T23:56:00.000Z',
+          latestUpdatedAtISO: '2025-12-20T23:56:00.000Z',
+        })
+      );
+    }
+    this.data = objects;
+  }
+
+  listBuckets(args: {
+    accessKey: string;
+    secretKey: string;
+    projectId?: string;
+  }): Promise<BucketEntity[]> {
+    return Promise.resolve([]);
+  }
+  ensureMetadata(session: SessionEntity): Promise<void> {}
+  saveEntities(
+    session: SessionEntity,
+    newEntities: ObjectEntity[]
+  ): Promise<void> {}
+  fetchEntities(session: SessionEntity): Promise<ObjectEntity[]> {
+    throw new Error('Method not implemented.');
   }
 }

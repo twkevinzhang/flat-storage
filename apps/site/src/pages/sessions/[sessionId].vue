@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useUiStore } from '@site/stores/ui';
 import { useSessionStore } from '@site/stores/session';
-import { INJECT_KEYS } from '@site/services';
-import { SessionService } from '@site/services/session';
 import { breakpointsTailwind } from '@vueuse/core';
 
 /**
@@ -16,7 +14,7 @@ const sessionStore = useSessionStore();
 const session = computed(() =>
   sessionStore.get((route.params as any).sessionId as string)
 );
-const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
+
 const isLoading = ref(true);
 
 watch(
@@ -24,8 +22,13 @@ watch(
   async (session) => {
     if (!session) return;
     isLoading.value = true;
-    await sessionApi.ensureMetadata(session);
-    isLoading.value = false;
+    try {
+      await sessionStore.ensureMetadata(session);
+    } catch (e) {
+      // Error handled by store toast
+    } finally {
+      isLoading.value = false;
+    }
   },
   { immediate: true }
 );

@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { Entity } from '@site/components/ObjectTree';
 import { ObjectEntity, ObjectMimeType, ObjectsFilter } from '@site/models';
-import { INJECT_KEYS } from '@site/services';
-import { ObjectService } from '@site/services/object';
 import { useDialogStore } from '@site/stores/dialog';
-import { useListViewStore } from '@site/stores/list-view';
+import { pathIt, useListViewStore } from '@site/stores/list-view';
 import { useSessionStore } from '@site/stores/session';
 import { useUiStore } from '@site/stores/ui';
 import { useMetadataStore } from '@site/stores/metadata';
-import { useToast } from 'primevue/usetoast';
-
-const toast = useToast();
 
 /**
  * =====
@@ -19,57 +14,26 @@ const toast = useToast();
  */
 
 const sessionStore = useSessionStore();
-const objectApi = inject<ObjectService>(INJECT_KEYS.ObjectService)!;
-
 const router = useRouter();
 const route = useRoute();
 const listViewStore = useListViewStore();
 const listViewStoreRefs = storeToRefs(listViewStore);
 const metadataStore = useMetadataStore();
+const metadataStoreRefs = storeToRefs(metadataStore);
 
 const sessionId = computed(() => (route.params as any).sessionId as string);
 const mount = computed(() => (route.params as any).mount as string);
-
-const { state: session, execute: fetchSession } = useAsyncState(
-  async () => {
-    if (!sessionId.value) return null;
-    const s = sessionStore.get(sessionId.value);
-    if (s) {
-      await metadataStore.load(s);
-    }
-    return s;
-  },
-  null,
-  { immediate: false }
-);
-
-const { entities } = storeToRefs(metadataStore);
-
-const { state: objects, execute: fetchObjects } = useAsyncState(
-  async () => {
-    if (!session.value) return null;
-    if (!mount.value) return null;
-    return await objectApi.listObjects({
-      session: session.value,
-      path: mount.value,
-      entities: entities.value,
-    });
-  },
-  null,
-  { immediate: false }
-);
+const session = computed(() => sessionStore.get(sessionId.value));
 
 watch(
-  () => [sessionId.value, mount.value, entities.value] as const,
+  () => [sessionId.value, mount.value] as const,
   async ([newSessionId, newMount]) => {
     if (newSessionId && isEmpty(newMount)) {
       router.replace({ path: joinPath('/sessions', newSessionId) });
     }
-    if (newSessionId && newMount) {
-      if (!session.value || session.value.id !== newSessionId) {
-        await fetchSession();
-      }
-      await fetchObjects();
+    if (newSessionId) {
+      await metadataStore.loadObjects(session.value!);
+      listViewStore.setPath(newMount);
     }
   },
   { immediate: true }
@@ -86,7 +50,7 @@ watch(
 );
 
 watch(
-  objects,
+  metadataStoreRefs.allObjects,
   (newObjects) => {
     if (newObjects) {
       listViewStore.setList(newObjects);
@@ -151,17 +115,13 @@ function handleNodeExpand(node: Entity) {
   if (!node.children) {
     node.loading = true;
 
-    objectApi
-      .listObjects({
-        session: session.value!,
-        path: node.path,
-      })
-      .then((children) => {
-        node.children = children.map(toLeafNode);
-      })
-      .finally(() => {
-        node.loading = false;
-      });
+    try {
+      const entities = metadataStoreRefs.allObjects.value;
+      const children = pathIt(entities, joinPath(mount.value, node.path));
+      node.children = children.map(toLeafNode);
+    } finally {
+      node.loading = false;
+    }
   }
 }
 
@@ -182,22 +142,7 @@ function handleShowMoreClick() {}
 
 async function handleRefresh() {
   if (!session.value) return;
-  try {
-    await metadataStore.refresh(session.value);
-    toast.add({
-      severity: 'success',
-      summary: 'Refresh Success',
-      detail: 'Metadata has been reloaded from GCS',
-      life: 3000,
-    });
-  } catch (e) {
-    toast.add({
-      severity: 'error',
-      summary: 'Refresh Failed',
-      detail: 'Failed to reload metadata',
-      life: 3000,
-    });
-  }
+  await metadataStore.refresh(session.value);
 }
 
 /**

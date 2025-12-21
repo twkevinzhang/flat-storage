@@ -1,29 +1,33 @@
+import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ObjectEntity, SessionEntity } from '@site/models';
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
-import { proxyMetadataFile } from '@site/utilities/storage';
-import { decodeProxyBuffer } from '@site/utilities';
+import { INJECT_KEYS } from '@site/services';
+import { useToast } from 'primevue/usetoast';
+import { SessionService } from '@site/services/session';
 
 export const useMetadataStore = defineStore('metadata', () => {
-  const currentSessionId = ref<string | null>(null);
+  /**
+   * =====
+   * Data fetching and listener
+   * =====
+   */
 
-  // Use useIDBKeyval for persistent storage
-  // Note: we store plain objects and re-instantiate ObjectEntity on access/load
+  const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
+  const sessionId = ref<string | null>(null);
+  const entities = ref<ObjectEntity[]>([]);
+  const isLoading = ref(false);
+  const toast = useToast();
+
+  const idbKey = computed(() => `metadata_${sessionId.value || 'none'}`);
   const { data: cachedData, isFinished } = useIDBKeyval<{
     entities: any[];
     updatedAt: string;
-  } | null>(
-    computed(() => `metadata_${currentSessionId.value || 'none'}`).value,
-    null,
-    {
-      deep: true,
-    }
-  );
+  } | null>(idbKey.value, null, {
+    deep: true,
+  });
 
-  const entities = ref<ObjectEntity[]>([]);
-  const isLoading = ref(false);
   const lastUpdated = computed(() => cachedData.value?.updatedAt || null);
 
-  // Sync internal entities ref when cachedData changes (initial load or IDB update)
   watch(
     [cachedData, isFinished],
     ([newData, finished]) => {
@@ -37,8 +41,7 @@ export const useMetadataStore = defineStore('metadata', () => {
   );
 
   async function load(session: SessionEntity, force = false) {
-    if (!session) return;
-    currentSessionId.value = session.id;
+    sessionId.value = session.id;
 
     // Wait for IDB to finish loading if it's the first time
     if (!isFinished.value) {
@@ -59,39 +62,64 @@ export const useMetadataStore = defineStore('metadata', () => {
     isLoading.value = true;
 
     try {
-      console.log('Fetching metadata from GCS...');
-      const [content] = await proxyMetadataFile(session).download();
-      const contentStr = decodeProxyBuffer(content);
-      const newEntitiesList = ObjectEntity.ArrayfromJson(contentStr);
-
+      console.log('Fetching entities from GCS...');
+      const list = await sessionApi.fetchEntities(session);
       const updatedAt = new Date().toISOString();
 
-      // Update IDB directly (which will trigger the watch and update entities.value)
+      // Update IDB directly
       cachedData.value = {
-        entities: newEntitiesList.map((e) => JSON.parse(e.toJson())),
+        entities: list.map((e) => JSON.parse(e.toJson())),
         updatedAt,
       };
-    } catch (error) {
-      console.error('Failed to load metadata:', error);
+    } catch (error: any) {
+      console.error('Failed to load entities:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Load Failed',
+        detail: error.message || 'Failed to fetch entities file',
+        life: 3000,
+      });
     } finally {
       isLoading.value = false;
     }
   }
 
   async function refresh(session: SessionEntity) {
-    await load(session, true);
+    try {
+      await load(session, true);
+      toast.add({
+        severity: 'success',
+        summary: 'Refresh Success',
+        detail: 'Metadata has been reloaded from GCS',
+        life: 3000,
+      });
+    } catch (error: any) {
+      // Error already handled in load()
+    }
   }
 
   function clear() {
-    currentSessionId.value = null;
+    sessionId.value = null;
     entities.value = [];
   }
 
+  function renameFolder() {}
+
+  function moveFolder() {}
+
+  function copyFolder() {}
+
+  function lockFolder() {}
+
+  function starFolder() {}
+
+  function deleteFolder() {}
+
   return {
-    entities,
+    allObjects: entities,
     isLoading,
     lastUpdated,
-    load,
+    loadObjects: load,
     refresh,
     clear,
   };
