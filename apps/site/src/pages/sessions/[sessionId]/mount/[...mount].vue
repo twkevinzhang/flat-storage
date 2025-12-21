@@ -2,7 +2,7 @@
 import { Entity } from '@site/components/ObjectTree';
 import { ObjectEntity, ObjectMimeType, ObjectsFilter } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
-import { ObjectAdapter, ObjectService } from '@site/services/object';
+import { ObjectService } from '@site/services/object';
 import { useDialogStore } from '@site/stores/dialog';
 import { useListViewStore } from '@site/stores/list-view';
 import { useSessionStore } from '@site/stores/session';
@@ -20,6 +20,7 @@ import { useRoute, useRouter } from 'vue-router';
 const sessionStore = useSessionStore();
 const objectApi = inject<ObjectService>(INJECT_KEYS.ObjectService)!;
 
+const router = useRouter();
 const route = useRoute();
 const listViewStore = useListViewStore();
 const listViewStoreRefs = storeToRefs(listViewStore);
@@ -52,6 +53,9 @@ const { state: objects, execute: fetchObjects } = useAsyncState(
 watch(
   () => [sessionId.value, mount.value],
   ([newSessionId, newMount]) => {
+    if (newSessionId && isEmpty(newMount)) {
+      router.replace({ path: joinPath('/sessions', newSessionId) });
+    }
     if (newSessionId && newMount) {
       fetchSession().then(() => fetchObjects());
     }
@@ -113,19 +117,21 @@ const name = computed(() => {
   return r;
 });
 
+const mountLevel = computed(
+  () => (route.params as any).mount?.split('/').length || 1
+);
+
 /**
  * =====
  * Handlers
  * =====
  */
 
-const router = useRouter();
-
 function handleUpload() {}
 
-function handleNavigate(newPath: string): void {
+function handleNavigate(...newPath: string[]): void {
   router.push({
-    path: joinPath('/sessions', sessionId.value!, 'mount', newPath),
+    path: joinPath('/sessions', sessionId.value!, 'mount', ...newPath),
   });
 }
 
@@ -138,8 +144,7 @@ function handleNodeExpand(node: Entity) {
         session: session.value!,
         path: node.path,
       })
-      .then((res) => {
-        const children = ObjectAdapter.listFromBackend(res);
+      .then((children) => {
         node.children = children.map(toLeafNode);
       })
       .finally(() => {
@@ -150,7 +155,7 @@ function handleNodeExpand(node: Entity) {
 
 function handleNodeClick(node: Entity): void {
   if (node.leaf) {
-    handleNavigate(node.path);
+    handleNavigate(mount.value!, node.path);
   }
 }
 
@@ -188,7 +193,7 @@ function toLeafNode(v: ObjectEntity): Entity {
   <div class="flex flex-col gap-2">
     <div>
       <Breadcrumb
-        v-if="mount && mount !== '/'"
+        v-if="mountLevel > 1"
         :path="mount"
         @navigate="handleNavigate"
       />

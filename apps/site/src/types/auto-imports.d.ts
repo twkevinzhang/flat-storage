@@ -48,6 +48,7 @@ declare global {
   const customRef: typeof import('vue')['customRef']
   const debounce: typeof import('lodash-es')['debounce']
   const deburr: typeof import('lodash-es')['deburr']
+  const decodeProxyBuffer: typeof import('@site/utilities')['decodeProxyBuffer']
   const default: typeof import('lodash-es')['default']
   const defaultTo: typeof import('lodash-es')['defaultTo']
   const defaults: typeof import('lodash-es')['defaults']
@@ -209,7 +210,6 @@ declare global {
   const next: typeof import('lodash-es')['next']
   const nextTick: typeof import('vue')['nextTick']
   const noop: typeof import('lodash-es')['noop']
-  const normalizePath: typeof import('@site/utilities')['normalizePath']
   const now: typeof import('lodash-es')['now']
   const nth: typeof import('lodash-es')['nth']
   const nthArg: typeof import('lodash-es')['nthArg']
@@ -264,6 +264,7 @@ declare global {
   const ref: typeof import('vue')['ref']
   const reject: typeof import('lodash-es')['reject']
   const remove: typeof import('lodash-es')['remove']
+  const removeLeadingSlash: typeof import('@site/utilities')['removeLeadingSlash']
   const repeat: typeof import('lodash-es')['repeat']
   const replace: typeof import('lodash-es')['replace']
   const resolveComponent: typeof import('vue')['resolveComponent']
@@ -446,6 +447,7 @@ declare module 'vue' {
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
     readonly debounce: UnwrapRef<typeof import('lodash-es')['debounce']>
     readonly deburr: UnwrapRef<typeof import('lodash-es')['deburr']>
+    readonly decodeProxyBuffer: UnwrapRef<typeof import('@site/utilities')['decodeProxyBuffer']>
     readonly default: UnwrapRef<typeof import('lodash-es')['default']>
     readonly defaultTo: UnwrapRef<typeof import('lodash-es')['defaultTo']>
     readonly defaults: UnwrapRef<typeof import('lodash-es')['defaults']>
@@ -661,6 +663,7 @@ declare module 'vue' {
     readonly ref: UnwrapRef<typeof import('vue')['ref']>
     readonly reject: UnwrapRef<typeof import('lodash-es')['reject']>
     readonly remove: UnwrapRef<typeof import('lodash-es')['remove']>
+    readonly removeLeadingSlash: UnwrapRef<typeof import('@site/utilities')['removeLeadingSlash']>
     readonly repeat: UnwrapRef<typeof import('lodash-es')['repeat']>
     readonly replace: UnwrapRef<typeof import('lodash-es')['replace']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>

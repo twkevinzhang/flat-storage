@@ -107,14 +107,8 @@ export class ObjectServiceImpl implements ObjectService {
       if (!normalized.startsWith('/')) {
         normalized = '/' + normalized;
       }
-      const a = normalized.split('/');
-      if (latestIndex(a) === 1) {
-        normalized = '/';
-      } else if (latestIndex(a) > 1) {
-        normalized = '/' + a.slice(1).join('/');
-      } else {
-        throw new Error(`Invalid path ${path}`);
-      }
+      const parts = normalized.split('/');
+      normalized = '/' + parts.slice(2).join('/');
 
       // Filter by path level
       const countSlashes = (s: string) => (s.match(/\//g) || []).length;
@@ -124,8 +118,7 @@ export class ObjectServiceImpl implements ObjectService {
       }
 
       const result = entities.filter((item: ObjectEntity) => {
-        const prefix = normalized.endsWith('/') ? normalized : normalized + '/';
-        if (!item.path.startsWith(prefix)) return false;
+        if (!item.path.startsWith(normalized + '/')) return false;
 
         const itemSlashes = countSlashes(item.path);
         const pathSlashes = countSlashes(normalized);

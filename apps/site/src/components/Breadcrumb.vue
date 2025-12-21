@@ -8,24 +8,17 @@ const emit = defineEmits<{
 }>();
 
 const path = computed(() => {
-  let r = props.path
-  if (isEmpty(r)) {
-    r = '/';
-  }
-  if (!r.startsWith('/')) {
-    r = '/' + r
+  let r = props.path;
+  if (r.startsWith('/')) {
+    r = r.slice(1);
   }
   if (r.endsWith('/')) {
     r = r.slice(0, -1);
   }
   return r;
-})
-
-const parts = computed(() => {
-  const a = path.value.split('/').slice(1, -1); // 最後一個 part 不顯示
-  a.unshift('/');
-  return a;
 });
+
+const parts = computed(() => path.value.split('/').slice(0, -1)); // 最後一個 part 不顯示
 
 const handleClick = (index: number) => {
   const newPath = take(parts.value, index + 1).join('/');
@@ -34,9 +27,17 @@ const handleClick = (index: number) => {
 </script>
 
 <template>
-  <nav class="p-2 flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
+  <nav
+    class="p-2 flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal"
+  >
     <template v-for="(part, index) in parts" :key="index">
-      <Hover severity="link" paddingSize="none" :fluid="false" @click="() => handleClick(index)" :label="part" />
+      <Hover
+        severity="link"
+        paddingSize="none"
+        :fluid="false"
+        @click="() => handleClick(index)"
+        :label="part"
+      />
 
       <PrimeIcon name="angle-right" />
     </template>

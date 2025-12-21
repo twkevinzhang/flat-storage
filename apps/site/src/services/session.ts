@@ -50,12 +50,6 @@ export class SessionServiceImpl implements SessionService {
         const bucket = proxyBucket(session);
         const metadataFile = proxyMetadataFile(session);
 
-        // delete me:
-        const [files] = await bucket.getFiles();
-        files.forEach((file) => {
-          console.log('from GCS file', file);
-        });
-
         const [exists] = await metadataFile.exists();
 
         if (!exists) {

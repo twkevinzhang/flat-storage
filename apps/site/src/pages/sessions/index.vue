@@ -3,7 +3,6 @@ import { Driver, SessionEntity } from '@site/models';
 import { useSessionStore } from '@site/stores/session';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
-import { joinPath } from '@site/utilities';
 import { useDialogStore } from '@site/stores/dialog';
 
 const dialogStore = useDialogStore();

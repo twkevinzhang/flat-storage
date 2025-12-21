@@ -2,6 +2,41 @@
 import { useUiStore } from '@site/stores/ui';
 import { storeToRefs } from 'pinia';
 import { useBreakpoints, breakpointsTailwind } from '@vueuse/core';
+import { useRoute } from 'vue-router';
+import { useSessionStore } from '@site/stores/session';
+import { INJECT_KEYS } from '@site/services';
+import { SessionService } from '@site/services/session';
+
+/**
+ * =====
+ * Data fetching and listeners
+ * =====
+ */
+
+const route = useRoute();
+const sessionStore = useSessionStore();
+const session = computed(() =>
+  sessionStore.get((route.params as any).sessionId as string)
+);
+const sessionApi = inject<SessionService>(INJECT_KEYS.SessionService)!;
+const isLoading = ref(true);
+
+watch(
+  session,
+  async (session) => {
+    if (!session) return;
+    isLoading.value = true;
+    await sessionApi.ensureMetadata(session);
+    isLoading.value = false;
+  },
+  { immediate: true }
+);
+
+/**
+ * =====
+ * UI State
+ * =====
+ */
 
 const uiStore = useUiStore();
 const { isSidebarPinned, sidebarWidth } = storeToRefs(uiStore);
@@ -13,7 +48,9 @@ const MIN_WIDTH = 100;
 
 const isDrawerVisible = ref(false);
 
-const showPinnedSidebar = computed(() => isSidebarPinned.value && !isMobile.value);
+const showPinnedSidebar = computed(
+  () => isSidebarPinned.value && !isMobile.value
+);
 
 const sidebarWidths = computed({
   get: () => ({ sidebar: sidebarWidth.value }),
@@ -63,7 +100,7 @@ const sidebarWidths = computed({
           <div
             class="flex flex-col h-screen bg-white shadow-sm border-r border-surface"
           >
-            <div class="p-4 flex items-center justify-between">
+            <div class="p-4 flex items-center justify-between w-full">
               <span class="text-xl font-semibold">
                 FLAT <span class="text-primary">STORAGE</span>
               </span>
@@ -73,7 +110,6 @@ const sidebarWidths = computed({
                 severity="secondary"
                 rounded
                 @click="uiStore.toggleSidebarPin()"
-                v-tooltip.bottom="'Unpin Sidebar'"
               />
             </div>
             <div class="flex-1 overflow-y-auto">
@@ -83,14 +119,19 @@ const sidebarWidths = computed({
         </SplitterPxPanel>
 
         <div class="w-full m-4 overflow-y-hidden">
-          <RouterView />
+          <div v-if="isLoading">
+            Check Metadata file in {{ session?.metadataPath }}
+          </div>
+          <RouterView v-else />
         </div>
       </SplitterPx>
     </template>
 
     <!-- if sidebar is not pinned (or on mobile) -->
     <template v-else>
-      <div class="w-full md:px-16 m-4 flex flex-col md:flex-row gap-2 overflow-hidden overflow-y-auto">
+      <div
+        class="w-full md:px-16 m-4 flex flex-col md:flex-row gap-2 overflow-hidden overflow-y-auto"
+      >
         <div class="flex-shrink-0">
           <Button
             icon="pi pi-bars"
@@ -100,7 +141,10 @@ const sidebarWidths = computed({
           />
         </div>
         <div class="flex-1">
-          <RouterView />
+          <div v-if="isLoading">
+            Check Metadata file in {{ session?.metadataPath }}
+          </div>
+          <RouterView v-else />
         </div>
       </div>
     </template>
