@@ -20,6 +20,9 @@ const { visible, close, replaceWith } = useDialogStore();
       {
         label: '移動到...',
         icon: 'pi pi-directions',
+        command: () => {
+          replaceWith('move');
+        },
       },
       {
         label: '上鎖',
@@ -87,5 +90,10 @@ const { visible, close, replaceWith } = useDialogStore();
   <RenameDialog
     :visible="visible('rename')"
     @update:visible="() => close('rename')"
+  />
+
+  <MoveDialog
+    :visible="visible('move')"
+    @update:visible="() => close('move')"
   />
 </template>
