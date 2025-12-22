@@ -1,5 +1,5 @@
 export function latestIndex<T>(array: Array<T>): number {
-  return size(array) - 1;
+  return array.length - 1;
 }
 
 export function findOrThrow<T>(array: Array<T>, f: (arg: T) => {}): T {
@@ -22,25 +22,14 @@ export function removeLeadingSlash(path: string): string {
   return path.startsWith('/') ? path.slice(1) : path;
 }
 
+export function removeTrailingSlash(path: string): string {
+  return path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
 export function decodeProxyBuffer(data: any): string {
   if (typeof data === 'string') return data;
   if (data?.type === 'Buffer' && Array.isArray(data.data)) {
     return new TextDecoder().decode(new Uint8Array(data.data));
   }
   return data?.toString() || '';
-}
-
-export function removeLeadingPart(path: string): string {
-  if (!path.startsWith('/')) {
-    path = '/' + path;
-  }
-  const parts = path.split('/');
-  path = '/' + parts.slice(2).join('/');
-  return path;
-}
-
-export function removeTrailingPart(path: string): string {
-  const parts = path.split('/');
-  path = '/' + parts.slice(0, -1).join('/');
-  return path;
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Columns } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
-import { latestIndex } from '@site/utilities';
 
 const props = defineProps<{
   visible: boolean;

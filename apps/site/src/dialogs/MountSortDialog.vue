@@ -30,10 +30,10 @@ const availableOptions = computed(() => {
   );
 });
 
-const isSortEmpty = computed(() => sort.value.length === 0);
+const isSortEmpty = computed(() => isEmpty(sort.value));
 
 function handleAddSortRule() {
-  if (availableOptions.value.length > 0) {
+  if (!isEmpty(availableOptions.value)) {
     sort.value.push({
       key: availableOptions.value[0].key,
       order: 'asc',
@@ -76,7 +76,7 @@ function getOptionsForSelection(currentKey: string) {
   >
     <div class="flex flex-col gap-4 min-h-0 overflow-y-auto">
       <template v-if="isSortEmpty">
-        <template v-if="availableOptions.length > 0">
+        <template v-if="!isEmpty(availableOptions)">
           <Hover
             label="Add Sort Rule..."
             severity="list-item"
@@ -149,7 +149,7 @@ function getOptionsForSelection(currentKey: string) {
         </Fieldset>
 
         <Hover
-          v-if="availableOptions.length > 0"
+          v-if="!isEmpty(availableOptions)"
           label="Add Another Sort Rule..."
           severity="list-item"
           icon="pi-plus"

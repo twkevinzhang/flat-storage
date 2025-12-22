@@ -7,7 +7,7 @@ import {
 } from '@site/models';
 
 export const useListViewStore = defineStore('list-view', () => {
-  const path = ref<EntityPath>(EntityPath.root());
+  const path = ref<EntityPath>(EntityPath.empty());
   const filter = ref<ObjectsFilter>(ObjectsFilter.empty());
   const sortRules = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
   const columnOrder = ref<ColumnKeys[]>([]);
@@ -60,7 +60,7 @@ export const useListViewStore = defineStore('list-view', () => {
     hiddenColumnsCount: computed(() => hiddenColumns.value.length),
     visibleColumns: computed(() => {
       const source =
-        columnOrder.value.length > 0
+        !isEmpty(columnOrder.value)
           ? (columnOrder.value
               .map((key) => Columns.find((c) => c.key === key))
               .filter(Boolean) as typeof Columns)
@@ -73,7 +73,7 @@ export const useListViewStore = defineStore('list-view', () => {
     }),
     activeColumns: computed(() => {
       const source =
-        columnOrder.value.length > 0
+         !isEmpty(columnOrder.value)
           ? (columnOrder.value
               .map((key) => Columns.find((c) => c.key === key))
               .filter(Boolean) as typeof Columns)
@@ -90,7 +90,7 @@ export const useListViewStore = defineStore('list-view', () => {
     },
     sortRules: computed(() => sortRules.value),
     sortRulesCount: computed(() => {
-      if (sortRules.value.length === 0) return undefined;
+      if (isEmpty(sortRules.value)) return undefined;
       return sortRules.value.length?.toString();
     }),
 
@@ -135,7 +135,7 @@ export function pathIt(
 
 function filterIt(raw: ObjectEntity[], f: ObjectsFilter): ObjectEntity[] {
   if (!f || f.isEmpty) return raw;
-  if (!raw || raw.length === 0) return [];
+  if (!raw || isEmpty(raw)) return [];
 
   let result = raw;
 
@@ -196,7 +196,7 @@ function sortIt(
   data: ObjectEntity[],
   sortRules: { key: string; order: 'asc' | 'desc' }[]
 ): ObjectEntity[] {
-  if (!sortRules || sortRules.length === 0) return data;
+  if (!sortRules || isEmpty(sortRules)) return data;
 
   return [...data].sort((a, b) => {
     for (const rule of sortRules) {

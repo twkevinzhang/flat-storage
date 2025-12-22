@@ -57,7 +57,7 @@ export const useMetadataStore = defineStore('metadata', () => {
       });
     }
 
-    if (!force && entities.value.length > 0) {
+    if (!force && isEmpty(entities.value)) {
       return;
     }
 

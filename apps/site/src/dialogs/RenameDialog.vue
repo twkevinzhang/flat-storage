@@ -44,7 +44,7 @@ async function handleConfirm() {
       listViewStoreRefs.path.value,
       newName.value
     );
-    navigate();
+    navigateToNewPage();
     emits('update:visible', false);
   } catch (e) {
     // Error handled by store
@@ -53,9 +53,10 @@ async function handleConfirm() {
   }
 }
 
-function navigate() {
+function navigateToNewPage() {
+  const newPath = listViewStore.path.renameTo(newName.value);
   router.replace({
-    path: joinPath(removeTrailingPart(route.path), newName.value),
+    path: newPath.toRoute(),
   });
 }
 

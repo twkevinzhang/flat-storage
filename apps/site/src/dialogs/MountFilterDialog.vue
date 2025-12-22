@@ -39,7 +39,7 @@ const numberOptions = [
   { label: 'Less than', value: 'lt' },
 ];
 
-const isFilterEmpty = computed(() => localRules.value.length === 0);
+const isFilterEmpty = computed(() => isEmpty(localRules.value));
 
 function handleAddFilterRule() {
   localRules.value.push({

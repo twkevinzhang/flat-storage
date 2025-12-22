@@ -110,15 +110,9 @@ export class ObjectEntity {
 
   // GCS File response doc: https://github.com/googleapis/nodejs-storage/blob/3dcda1b7153664197215c7316761e408ca870bc4/src/file.ts#L556
   static fromGCS(f: any, sessionId: string): ObjectEntity {
-    let isFolder = false;
-    let normalizedPath = f.metadata.name;
-    if (normalizedPath.startsWith('/')) {
-      normalizedPath = normalizedPath.slice(1);
-    }
-    if (normalizedPath.endsWith('/')) {
-      normalizedPath = normalizedPath.slice(0, -1);
-      isFolder = true;
-    }
+    const isFolder = f.metadata.name.endsWith('/');
+    let normalizedPath = removeLeadingSlash(f.metadata.name);
+    normalizedPath = removeTrailingSlash(normalizedPath);
     return ObjectEntity.new({
       ...f,
       ...f.metadata,
@@ -174,7 +168,7 @@ export class ObjectEntity {
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = this.sizeBytes;
     let i = 0;
-    while (size >= 1024 && i < units.length - 1) {
+    while (size >= 1024 && i < latestIndex(units)) {
       size /= 1024;
       i++;
     }
@@ -207,7 +201,7 @@ export class ObjectsFilter {
   }
 
   get isEmpty(): boolean {
-    return this.rules.length === 0;
+    return isEmpty(this.rules);
   }
 
   get count(): number {

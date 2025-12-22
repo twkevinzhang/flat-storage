@@ -39,7 +39,7 @@ export class ObjectServiceImpl implements ObjectService {
 
   constructor() {
     const baseUrl = import.meta.env.VITE_GCS_PROXY;
-    if (!baseUrl || (typeof baseUrl === 'string' && baseUrl.length === 0)) {
+    if (!baseUrl || (typeof baseUrl === 'string' && isEmpty(baseUrl))) {
       throw new Error('VITE_GCS_PROXY is not defined');
     }
     this.axios = axios.create({

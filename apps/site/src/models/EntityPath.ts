@@ -7,6 +7,10 @@ export class EntityPath {
     this.segments = segments.filter(Boolean).filter((s) => !isEmpty(s.trim()));
   }
 
+  static empty(): EntityPath {
+    return new EntityPath('', []);
+  }
+
   static root(sessionId: string): EntityPath {
     return new EntityPath(sessionId, []);
   }

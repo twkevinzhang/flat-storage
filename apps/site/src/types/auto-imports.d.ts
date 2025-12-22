@@ -249,6 +249,7 @@ declare global {
   const now: typeof import('lodash-es')['now']
   const nth: typeof import('lodash-es')['nth']
   const nthArg: typeof import('lodash-es')['nthArg']
+  const objectName: typeof import('@site/utilities')['objectName']
   const omit: typeof import('lodash-es')['omit']
   const omitBy: typeof import('lodash-es')['omitBy']
   const onActivated: typeof import('vue')['onActivated']
@@ -325,6 +326,7 @@ declare global {
   const removeLeadingSlash: typeof import('@site/utilities')['removeLeadingSlash']
   const removeMount: typeof import('@site/utilities')['removeMount']
   const removeTrailingPart: typeof import('@site/utilities')['removeTrailingPart']
+  const removeTrailingSlash: typeof import('@site/utilities')['removeTrailingSlash']
   const repeat: typeof import('lodash-es')['repeat']
   const replace: typeof import('lodash-es')['replace']
   const resolveComponent: typeof import('vue')['resolveComponent']
@@ -966,9 +968,8 @@ declare module 'vue' {
     readonly refWithControl: UnwrapRef<typeof import('@vueuse/core')['refWithControl']>
     readonly reject: UnwrapRef<typeof import('lodash-es')['reject']>
     readonly remove: UnwrapRef<typeof import('lodash-es')['remove']>
-    readonly removeLeadingPart: UnwrapRef<typeof import('@site/utilities')['removeLeadingPart']>
     readonly removeLeadingSlash: UnwrapRef<typeof import('@site/utilities')['removeLeadingSlash']>
-    readonly removeTrailingPart: UnwrapRef<typeof import('@site/utilities')['removeTrailingPart']>
+    readonly removeTrailingSlash: UnwrapRef<typeof import('@site/utilities')['removeTrailingSlash']>
     readonly repeat: UnwrapRef<typeof import('lodash-es')['repeat']>
     readonly replace: UnwrapRef<typeof import('lodash-es')['replace']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
