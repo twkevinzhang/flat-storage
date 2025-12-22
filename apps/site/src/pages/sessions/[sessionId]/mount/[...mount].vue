@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Entity } from '@site/components/ObjectTree';
-import { ObjectEntity, ObjectMimeType, ObjectsFilter } from '@site/models';
+import {
+  ObjectEntity,
+  ObjectMimeType,
+  ObjectsFilter,
+  EntityPath,
+} from '@site/models';
 import { useDialogStore } from '@site/stores/dialog';
 import { pathIt, useListViewStore } from '@site/stores/list-view';
 import { useSessionStore } from '@site/stores/session';
@@ -21,20 +26,21 @@ const listViewStoreRefs = storeToRefs(listViewStore);
 const metadataStore = useMetadataStore();
 const metadataStoreRefs = storeToRefs(metadataStore);
 
-const sessionId = computed(() => (route.params as any).sessionId as string);
-const mount = computed(() => (route.params as any).mount as string);
-const session = computed(() => sessionStore.get(sessionId.value));
+const path = computed(() => {
+  const sessionId = (route.params as any).sessionId as string;
+  const mount = (route.params as any).mount as string;
+  return EntityPath.fromRoute({ sessionId, mount });
+});
+const session = computed(() => {
+  const sessionId = (route.params as any).sessionId as string;
+  return sessionStore.get(sessionId);
+});
 
 watch(
-  () => [sessionId.value, mount.value] as const,
-  async ([newSessionId, newMount]) => {
-    if (newSessionId && isEmpty(newMount)) {
-      router.replace({ path: joinPath('/sessions', newSessionId) });
-    }
-    if (newSessionId) {
-      await metadataStore.loadObjects(session.value!);
-      listViewStore.setPath(newMount);
-    }
+  path,
+  async (newPath) => {
+    await metadataStore.loadObjects(session.value!);
+    listViewStore.setPath(newPath);
   },
   { immediate: true }
 );
@@ -87,10 +93,6 @@ const dialogStore = useDialogStore();
 const uiStore = useUiStore();
 const { viewMode } = storeToRefs(uiStore);
 
-const mountLevel = computed(
-  () => (route.params as any).mount?.split('/').length || 1
-);
-
 /**
  * =====
  * Handlers
@@ -99,10 +101,8 @@ const mountLevel = computed(
 
 function handleUpload() {}
 
-function handleNavigate(...newPath: string[]): void {
-  router.push({
-    path: joinPath('/sessions', sessionId.value!, 'mount', ...newPath),
-  });
+function handleNavigate(p: EntityPath): void {
+  router.push({ path: p.toRoute() });
 }
 
 function handleNodeExpand(node: Entity) {
@@ -111,7 +111,7 @@ function handleNodeExpand(node: Entity) {
 
     try {
       const entities = metadataStoreRefs.allObjects.value;
-      const children = pathIt(entities, joinPath(mount.value, node.path));
+      const children = pathIt(entities, node.path);
       node.children = children.map(toLeafNode);
     } finally {
       node.loading = false;
@@ -121,14 +121,14 @@ function handleNodeExpand(node: Entity) {
 
 function handleNodeClick(node: Entity): void {
   if (node.leaf) {
-    handleNavigate(mount.value!, node.path);
+    handleNavigate(node.path);
   }
 }
 
 function handleUp() {
-  const p = mount.value;
-  if (p === '/') return;
-  const parent = p.substring(0, p.lastIndexOf('/')) || '/';
+  const currentPath = listViewStore.path;
+  if (currentPath.isRootLevel) return;
+  const parent = currentPath.parent;
   handleNavigate(parent);
 }
 
@@ -148,14 +148,10 @@ async function handleRefresh() {
 function toLeafNode(v: ObjectEntity): Entity {
   return {
     ...v,
-    key: v.path,
+    key: v.path.toString(),
     label: v.name,
     leaf: v.mimeType === ObjectMimeType.folder,
     loading: false,
-    path: v.path,
-    mimeType: v.mimeType,
-    sizeBytes: v.sizeBytes,
-    latestUpdatedAtISO: v.latestUpdatedAtISO,
   } as any;
 }
 </script>
@@ -164,9 +160,9 @@ function toLeafNode(v: ObjectEntity): Entity {
   <div class="flex flex-col gap-2">
     <div>
       <Breadcrumb
-        v-if="mountLevel > 1"
-        :path="mount"
-        @navigate="handleNavigate"
+        v-if="!path.isRootLevel"
+        :path="path"
+        @navigate="(e: EntityPath) => handleNavigate(e)"
       />
       <div class="flex items-center gap-2">
         <Hover
@@ -248,7 +244,7 @@ function toLeafNode(v: ObjectEntity): Entity {
     <div class="my-2 overflow-y-auto">
       <MountList
         v-if="viewMode === 'list'"
-        :mount="mount"
+        :is-root="path.isRootLevel"
         :tree="tree"
         @node-click="handleNodeClick"
         @node-expand="handleNodeExpand"

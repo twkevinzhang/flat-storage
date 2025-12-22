@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { ObjectEntity, SessionEntity } from '@site/models';
+import { ObjectEntity, SessionEntity, EntityPath } from '@site/models';
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
 import { INJECT_KEYS } from '@site/services';
 import { useToast } from 'primevue/usetoast';
@@ -29,11 +29,13 @@ export const useMetadataStore = defineStore('metadata', () => {
   const lastUpdated = computed(() => cachedData.value?.updatedAt || null);
 
   watch(
-    [cachedData, isFinished],
-    ([newData, finished]) => {
-      if (finished && newData) {
-        entities.value = newData.entities.map((e) => ObjectEntity.fromJson(e));
-      } else if (finished && !newData) {
+    [sessionId, cachedData, isFinished],
+    ([sessionId, newData, finished]) => {
+      if (sessionId && finished && newData) {
+        entities.value = newData.entities.map((e) =>
+          ObjectEntity.fromJson(e, sessionId)
+        );
+      } else if (finished && !newData && !sessionId) {
         entities.value = [];
       }
     },
@@ -103,7 +105,71 @@ export const useMetadataStore = defineStore('metadata', () => {
     entities.value = [];
   }
 
-  function moveFolder() {}
+  async function moveFolder(
+    session: SessionEntity,
+    source: EntityPath,
+    targetParent: EntityPath
+  ) {
+    isLoading.value = true;
+    const targetPrefix = source.moveTo(targetParent);
+
+    try {
+      const newEntities = entities.value.map((e) => {
+        const isSelf = e.path.equals(source);
+        const isDescendant = e.path.isDescendantOf(source);
+
+        if (!isSelf && !isDescendant) return e;
+
+        let updatedPath: EntityPath;
+        if (isSelf) {
+          updatedPath = targetPrefix;
+        } else {
+          const itemSegments = e.path.segments;
+          const remainingSegments = itemSegments.slice(source.depth);
+          updatedPath = EntityPath.fromString(
+            joinPath(
+              'sessions',
+              session.id,
+              'mount',
+              ...targetPrefix.segments,
+              ...remainingSegments
+            )
+          );
+        }
+
+        return ObjectEntity.new({
+          ...JSON.parse(e.toJson()),
+          path: updatedPath,
+        });
+      });
+
+      await sessionApi.saveEntities(session, newEntities);
+
+      const updatedAt = new Date().toISOString();
+      cachedData.value = {
+        entities: newEntities.map((e) => JSON.parse(e.toJson())),
+        updatedAt,
+      };
+
+      toast.add({
+        severity: 'success',
+        summary: 'Move Success',
+        detail: `Moved to ${targetPrefix.toString()}`,
+        life: 3000,
+      });
+    } catch (error: any) {
+      console.error('Failed to move folder:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Move Failed',
+        detail: error.message || 'Failed to move folder',
+        life: 3000,
+      });
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   function copyFolder() {}
 
@@ -115,45 +181,43 @@ export const useMetadataStore = defineStore('metadata', () => {
 
   async function renameFolder(
     session: SessionEntity,
-    oldPath: string,
+    oldEntityPath: EntityPath,
     newName: string
   ) {
     isLoading.value = true;
-    oldPath = removeLeadingPart(oldPath);
+    const targetPrefix = oldEntityPath.renameTo(newName);
+
     try {
-      // 1. Identify all entities to be renamed (including self and descendants)
-      // oldPath might be like '/mount/folder'
-      const prefix = oldPath + '/';
-      const affectedIndices: number[] = [];
+      const newEntities = entities.value.map((e) => {
+        const isSelf = e.path.equals(oldEntityPath);
+        const isDescendant = e.path.isDescendantOf(oldEntityPath);
+        if (!isSelf && !isDescendant) return e;
 
-      const newEntities = entities.value.map((e, index) => {
-        if (e.path === oldPath || e.path.startsWith(prefix)) {
-          // Calculate new path
-          // If e.path is '/mount/folder/sub', and oldPath is '/mount/folder'
-          // We need to replace '/mount/folder' with parentPath + '/' + newName
-          const parentPath = oldPath.substring(0, oldPath.lastIndexOf('/'));
-          const targetPrefix = joinPath(parentPath, newName);
-
-          let updatedPath: string;
-          if (e.path === oldPath) {
-            updatedPath = targetPrefix;
-          } else {
-            updatedPath = targetPrefix + e.path.substring(oldPath.length);
-          }
-
-          // Return a new instance with updated path
-          return ObjectEntity.new({
-            ...JSON.parse(e.toJson()),
-            path: updatedPath,
-          });
+        let updatedPath: EntityPath;
+        if (isSelf) {
+          updatedPath = targetPrefix;
+        } else {
+          const itemSegments = e.path.segments;
+          const remainingSegments = itemSegments.slice(oldEntityPath.depth);
+          updatedPath = EntityPath.fromString(
+            joinPath(
+              'sessions',
+              session.id,
+              'mount',
+              ...targetPrefix.segments,
+              ...remainingSegments
+            )
+          );
         }
-        return e;
+
+        return ObjectEntity.new({
+          ...JSON.parse(e.toJson()),
+          path: updatedPath,
+        });
       });
 
-      // 2. Save to GCS
       await sessionApi.saveEntities(session, newEntities);
 
-      // 3. Update local state (IDB & Ref)
       const updatedAt = new Date().toISOString();
       cachedData.value = {
         entities: newEntities.map((e) => JSON.parse(e.toJson())),
@@ -186,6 +250,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     lastUpdated,
     loadObjects: load,
     renameFolder,
+    moveFolder,
     refresh,
     clear,
   };

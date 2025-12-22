@@ -4,8 +4,8 @@ import { ColumnKeys } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
 
 const props = defineProps({
-  mount: {
-    type: String,
+  isRoot: {
+    type: Boolean,
     required: true,
   },
   tree: {
@@ -25,8 +25,6 @@ const columnWidths = ref<Record<string, number>>({
   [ColumnKeys.createdAt]: 150,
   [ColumnKeys.latestUpdatedAt]: 176,
 });
-
-const mountLevel = computed(() => props.mount.split('/').length || 1);
 </script>
 <template>
   <!-- Scrollable container for mobile -->
@@ -56,7 +54,7 @@ const mountLevel = computed(() => props.mount.split('/').length || 1);
 
       <ul>
         <!-- Parent directory row -->
-        <li v-if="mountLevel > 1">
+        <li v-if="!isRoot">
           <div
             class="flex items-center border-b border-gray-100 hover:bg-gray-50 overflow-hidden"
           >

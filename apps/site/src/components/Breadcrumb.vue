@@ -1,29 +1,25 @@
 <script setup lang="ts">
-const props = defineProps<{
-  path: string;
+import { EntityPath } from '@site/models';
+
+const { path } = defineProps<{
+  path: EntityPath;
 }>();
 
 const emit = defineEmits<{
-  (e: 'navigate', newPath: string): void;
+  (e: 'navigate', newPath: EntityPath): void;
 }>();
 
-const path = computed(() => {
-  let r = props.path;
-  if (r.startsWith('/')) {
-    r = r.slice(1);
-  }
-  if (r.endsWith('/')) {
-    r = r.slice(0, -1);
-  }
-  return r;
-});
-
-const parts = computed(() => path.value.split('/').slice(0, -1)); // 最後一個 part 不顯示
-
-const handleClick = (index: number) => {
-  const newPath = take(parts.value, index + 1).join('/');
-  emit('navigate', newPath);
-};
+const parts = computed(() => [
+  EntityPath.root(path.sessionId!),
+  ...path.segments
+    .slice(0, -1) // 最後一個 part 不顯示
+    .map((s, index) =>
+      EntityPath.fromRoute({
+        sessionId: path.sessionId!,
+        mount: path.segments.slice(0, index + 1).join('/'),
+      })
+    ),
+]);
 </script>
 
 <template>
@@ -35,8 +31,8 @@ const handleClick = (index: number) => {
         severity="link"
         paddingSize="none"
         :fluid="false"
-        @click="() => handleClick(index)"
-        :label="part"
+        @click="() => emit('navigate', part)"
+        :label="part.name"
       />
 
       <PrimeIcon name="angle-right" />

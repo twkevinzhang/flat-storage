@@ -1,6 +1,7 @@
-import { latestIndex } from '@site/utilities';
-import Column from 'primevue/column';
 import { nanoid } from 'nanoid';
+import { EntityPath } from './EntityPath';
+
+export { EntityPath } from './EntityPath';
 
 export enum Driver {
   'gcs' = 'gcs',
@@ -62,7 +63,7 @@ export interface BucketEntity {
 
 export class ObjectEntity {
   private constructor(
-    public readonly path: string,
+    public readonly path: EntityPath,
     public readonly mimeType?: ObjectMimeType,
     public readonly sizeBytes?: number,
     public readonly createdAtISO?: string,
@@ -72,7 +73,7 @@ export class ObjectEntity {
   ) {}
 
   static new(params: {
-    path: string;
+    path: EntityPath;
     mimeType?: ObjectMimeType;
     sizeBytes?: number;
     createdAtISO?: string;
@@ -91,29 +92,40 @@ export class ObjectEntity {
     );
   }
 
-  static fromJson(json: any): ObjectEntity {
-    return new ObjectEntity(
-      json.path,
-      json.mimeType,
-      json.sizeBytes,
-      json.createdAtISO,
-      json.latestUpdatedAtISO,
-      json.md5Hash,
-      json.deletedAtISO
-    );
+  static fromJson(json: any, sessionId: string): ObjectEntity {
+    return ObjectEntity.new({
+      ...json,
+      path: EntityPath.fromRoute({
+        sessionId: sessionId,
+        mount: json.path,
+      }),
+      mimeType: json.mimeType,
+      sizeBytes: json.sizeBytes,
+      createdAtISO: json.createdAtISO,
+      latestUpdatedAtISO: json.latestUpdatedAtISO,
+      md5Hash: json.md5Hash,
+      deletedAtISO: json.deletedAtISO,
+    });
   }
 
   // GCS File response doc: https://github.com/googleapis/nodejs-storage/blob/3dcda1b7153664197215c7316761e408ca870bc4/src/file.ts#L556
-  static fromGCS(f: any): ObjectEntity {
-    const isFolder = f.metadata.name.endsWith('/');
-    let normalizedPath = '/' + f.metadata.name;
+  static fromGCS(f: any, sessionId: string): ObjectEntity {
+    let isFolder = false;
+    let normalizedPath = f.metadata.name;
+    if (normalizedPath.startsWith('/')) {
+      normalizedPath = normalizedPath.slice(1);
+    }
     if (normalizedPath.endsWith('/')) {
       normalizedPath = normalizedPath.slice(0, -1);
+      isFolder = true;
     }
     return ObjectEntity.new({
       ...f,
       ...f.metadata,
-      path: normalizedPath,
+      path: EntityPath.fromRoute({
+        sessionId,
+        mount: normalizedPath,
+      }),
       mimeType: isFolder ? ObjectMimeType.folder : f.metadata.contentType,
       sizeBytes: f.metadata.size,
       createdAtISO: f.metadata.timeFinalized,
@@ -125,7 +137,7 @@ export class ObjectEntity {
 
   toJson(): string {
     return JSON.stringify({
-      path: this.path,
+      path: this.path.toSegmentsString(),
       mimeType: this.mimeType,
       sizeBytes: this.sizeBytes,
       createdAtISO: this.createdAtISO,
@@ -135,16 +147,12 @@ export class ObjectEntity {
     });
   }
 
-  static ArrayfromJson(json: string): ObjectEntity[] {
-    return JSON.parse(json).map((item: any) =>
-      ObjectEntity.new({
-        ...item,
-      })
-    );
+  static ArrayfromJson(json: string, sessionId: string): ObjectEntity[] {
+    return JSON.parse(json).map((item: any) => this.fromJson(item, sessionId));
   }
 
   get name(): string {
-    return this.path.split('/').pop() || '';
+    return this.path.name;
   }
 
   get isFolder(): boolean {

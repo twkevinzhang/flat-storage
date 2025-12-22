@@ -1,7 +1,13 @@
-import { ColumnKeys, Columns, ObjectEntity, ObjectsFilter } from '@site/models';
+import {
+  ColumnKeys,
+  Columns,
+  ObjectEntity,
+  ObjectsFilter,
+  EntityPath,
+} from '@site/models';
 
 export const useListViewStore = defineStore('list-view', () => {
-  const path = ref<string>('');
+  const path = ref<EntityPath>(EntityPath.root());
   const filter = ref<ObjectsFilter>(ObjectsFilter.empty());
   const sortRules = ref<{ key: string; order: 'asc' | 'desc' }[]>([]);
   const columnOrder = ref<ColumnKeys[]>([]);
@@ -13,11 +19,11 @@ export const useListViewStore = defineStore('list-view', () => {
     // Path
     // =====
 
-    setPath(newPath: string): void {
+    setPath(newPath: EntityPath): void {
       path.value = newPath;
     },
     path: computed(() => path.value),
-    name: computed(() => path.value.split('/').pop() || ''),
+    name: computed(() => path.value.name),
 
     // =====
     // Filter
@@ -108,21 +114,20 @@ if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useListViewStore, import.meta.hot));
 }
 
-export function pathIt(entities: ObjectEntity[], path: string): ObjectEntity[] {
-  // remove mount
-  path = removeLeadingPart(path);
-
-  // filter by path level
-  if (path === '/') {
-    return entities.filter((d: ObjectEntity) => count(d.path, '/') === 1);
+export function pathIt(
+  entities: ObjectEntity[],
+  path: EntityPath
+): ObjectEntity[] {
+  if (path.isRootLevel) {
+    return entities.filter((d: ObjectEntity) => d.path.depth === 1);
   }
 
   const result = entities.filter((item: ObjectEntity) => {
-    if (!item.path.startsWith(path + '/')) return false;
+    if (!item.path.isDescendantOf(path)) return false;
 
-    const itemSlashes = count(item.path, '/');
-    const pathSlashes = count(path, '/');
-    return itemSlashes === pathSlashes + 1;
+    const itemDepth = item.path.depth;
+    const pathDepth = path.depth;
+    return itemDepth === pathDepth + 1;
   });
 
   return result;

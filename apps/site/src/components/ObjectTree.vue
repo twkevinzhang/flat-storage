@@ -8,13 +8,16 @@ const props = withDefaults(
     limit?: number;
     indent?: boolean;
     columns?: { label: string; key: ColumnKeys }[];
-    columnWidths: Record<string, number>;
+    columnWidths?: Record<string, number>;
+    selectedKey?: string;
+    expandedKeys?: string[];
   }>(),
   {
     tree: () => [],
     limit: 10,
     indent: false,
     columns: () => [],
+    columnWidths: () => ({}),
   }
 );
 
@@ -22,25 +25,39 @@ const emits = defineEmits<{
   (e: 'nodeExpand', node: Entity): void;
   (e: 'nodeClick', node: Entity): void;
   (e: 'showMoreClick'): void;
+  (e: 'update:expandedKeys', keys: string[]): void;
 }>();
 
-const expandedKeys = ref<Array<string>>([]);
+const internalExpandedKeys = ref<Array<string>>([]);
 
-function expanded(node: Entity) {
-  return expandedKeys.value.includes(node.key);
+const actualExpandedKeys = computed({
+  get: () => props.expandedKeys ?? internalExpandedKeys.value,
+  set: (val) => {
+    internalExpandedKeys.value = val;
+    emits('update:expandedKeys', val);
+  },
+});
+
+function isExpanded(node: Entity) {
+  return actualExpandedKeys.value.includes(node.key);
 }
+
+function isSelected(node: Entity) {
+  return props.selectedKey === node.key;
+}
+
 function angleIcon(node: Entity) {
   if (node.loading) {
     return 'pi-spin pi-spinner';
   }
-  if (expanded(node)) {
+  if (isExpanded(node)) {
     return 'pi-angle-down';
   }
   return 'pi-angle-right';
 }
 function mimeIcon(node: Entity) {
   if (node.leaf) {
-    if (expanded(node)) {
+    if (isExpanded(node)) {
       return 'pi-folder-open';
     } else {
       return 'pi-folder';
@@ -51,10 +68,12 @@ function mimeIcon(node: Entity) {
 }
 
 function nodeToggle(node: Entity) {
-  if (expanded(node)) {
-    expandedKeys.value = expandedKeys.value.filter((key) => key !== node.key);
+  if (isExpanded(node)) {
+    actualExpandedKeys.value = actualExpandedKeys.value.filter(
+      (key) => key !== node.key
+    );
   } else {
-    expandedKeys.value.push(node.key);
+    actualExpandedKeys.value = [...actualExpandedKeys.value, node.key];
     emits('nodeExpand', node);
   }
 }
@@ -81,7 +100,13 @@ function getCellValue(node: Entity, key: ColumnKeys) {
   <ul :class="indent ? 'pl-6' : ''">
     <li v-for="node in take(props.tree, props.limit)" :key="node.key">
       <!-- Row with dynamic columns -->
-      <div class="flex items-center border-b border-gray-100 hover:bg-gray-50">
+      <div
+        class="flex items-center border-b border-gray-100 hover:bg-gray-50 transition-colors"
+        :class="{
+          '!bg-primary-50': isSelected(node),
+          'bg-white': !isSelected(node),
+        }"
+      >
         <template v-for="col in props.columns" :key="col.key">
           <!-- Special handling for Name column with toggle/icons -->
           <div
@@ -138,24 +163,26 @@ function getCellValue(node: Entity, key: ColumnKeys) {
       </div>
 
       <!-- Nested children -->
-      <template v-if="node.leaf && expanded(node) && node.children">
+      <template v-if="node.leaf && isExpanded(node) && node.children">
         <ObjectTree
           :indent="true"
           :tree="node.children"
           :limit="props.limit"
           :columns="props.columns"
           :column-widths="props.columnWidths"
+          :selected-key="props.selectedKey"
+          v-model:expanded-keys="actualExpandedKeys"
           @node-click="(node) => emits('nodeClick', node)"
           @node-expand="(node) => emits('nodeExpand', node)"
         />
       </template>
     </li>
     <li
-      v-if="size(props.tree) > props.limit"
+      v-if="props.tree.length > props.limit"
       class="pl-2 text-gray-500 italic border-b border-gray-100"
     >
       <Hover
-        :label="`... and ${size(props.tree) - props.limit} more`"
+        :label="`... and ${props.tree.length - props.limit} more`"
         severity="link"
         :fluid="false"
         @click="(e) => emits('showMoreClick')"

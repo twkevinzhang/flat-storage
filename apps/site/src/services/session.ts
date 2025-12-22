@@ -1,6 +1,7 @@
 import {
   BucketEntity,
   Driver,
+  EntityPath,
   ObjectEntity,
   ObjectMimeType,
   SessionEntity,
@@ -61,10 +62,10 @@ export class SessionServiceImpl implements SessionService {
         if (!exists) {
           // 1.1 如果沒有，則枚舉所有檔案，並建立並寫入 metadata.tmp.json 檔案，然後上傳到 session.metadataPath
           const [files] = await bucket.getFiles();
-          const content = files
-            .map((f: any) => ObjectEntity.fromGCS(f).toJson())
-            .join(',\n');
-          await this.saveEntities(session, JSON.parse(content));
+          const content = files.map((f: any) =>
+            ObjectEntity.fromGCS(f, session.id)
+          );
+          await this.saveEntities(session, content);
         } else {
           // 1.2 如果有，則檢查 bucket 中的數量與 metadata 是否一樣，有則當作正常，沒有則拋出錯誤。
           // const [files] = await bucket.getFiles();
@@ -101,7 +102,7 @@ export class SessionServiceImpl implements SessionService {
   async fetchEntities(session: SessionEntity): Promise<ObjectEntity[]> {
     const [content] = await proxyMetadataFile(session).download();
     const contentStr = decodeProxyBuffer(content);
-    const entities = ObjectEntity.ArrayfromJson(contentStr);
+    const entities = ObjectEntity.ArrayfromJson(contentStr, session.id);
     return entities;
   }
 }
@@ -115,7 +116,7 @@ export class MockSessionService implements SessionService {
     for (let i = 1; i <= 30; i++) {
       objects.push(
         ObjectEntity.new({
-          path: `/root${i}`,
+          path: EntityPath.fromString(`sessions/mock/mount/root${i}`),
           md5Hash: `ID${2 * i}`,
           sizeBytes: 1234,
           mimeType: i % 2 !== 0 ? ObjectMimeType.folder : undefined,
@@ -125,18 +126,18 @@ export class MockSessionService implements SessionService {
     // Specific sub-item
     objects.push(
       ObjectEntity.new({
-        path: '/root1/sub1',
+        path: EntityPath.fromString(`sessions/mock/mount/root1/sub1`),
         md5Hash: 'ID4',
         sizeBytes: 1234,
       })
     );
     // Deep nesting
-    let deepPath = '/root1';
+    let deepPath = 'sessions/mock/mount/root1';
     for (let i = 1; i <= 100; i++) {
       deepPath += '/yyyyyyyyyyyy';
       objects.push(
         ObjectEntity.new({
-          path: deepPath,
+          path: EntityPath.fromString(deepPath),
           md5Hash: `ID${200 + i}`,
           sizeBytes: 1234,
           mimeType: ObjectMimeType.folder,
@@ -155,11 +156,15 @@ export class MockSessionService implements SessionService {
   }): Promise<BucketEntity[]> {
     return Promise.resolve([]);
   }
-  ensureMetadata(session: SessionEntity): Promise<void> {}
+  ensureMetadata(session: SessionEntity): Promise<void> {
+    return Promise.resolve();
+  }
   saveEntities(
     session: SessionEntity,
     newEntities: ObjectEntity[]
-  ): Promise<void> {}
+  ): Promise<void> {
+    return Promise.resolve();
+  }
   fetchEntities(session: SessionEntity): Promise<ObjectEntity[]> {
     throw new Error('Method not implemented.');
   }
