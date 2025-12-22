@@ -1,4 +1,3 @@
-import { acceptHMRUpdate, defineStore } from 'pinia';
 import { SessionEntity } from '@site/models';
 import { INJECT_KEYS } from '@site/services';
 import { SessionService } from '@site/services/session';

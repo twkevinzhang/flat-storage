@@ -32,6 +32,7 @@ declare module 'vue' {
     MountList: typeof import('./../layouts/MountList.vue')['default']
     MountOrderDialog: typeof import('./../dialogs/MountOrderDialog.vue')['default']
     MountSortDialog: typeof import('./../dialogs/MountSortDialog.vue')['default']
+    MoveDialog: typeof import('./../dialogs/MoveDialog.vue')['default']
     NewSessionDialog: typeof import('./../dialogs/NewSessionDialog.vue')['default']
     ObjectTree: typeof import('./../components/ObjectTree.vue')['default']
     Pages: typeof import('./../pages/index.vue')['default']

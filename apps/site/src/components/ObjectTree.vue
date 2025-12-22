@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ColumnKeys } from '@site/models';
-import { Entity } from './ObjectTree';
+import { Entity } from '@site/components/ObjectTree';
 
 const props = withDefaults(
   defineProps<{

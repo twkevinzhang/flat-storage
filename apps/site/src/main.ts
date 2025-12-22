@@ -10,7 +10,7 @@ import { routes } from 'vue-router/auto-routes';
 import LZString from 'lz-string';
 import qs from 'qs';
 import 'virtual:svg-icons-register';
-import { MockObjectService, ObjectServiceImpl } from './services/object';
+import { ObjectServiceImpl } from './services/object';
 import { SessionServiceImpl } from './services/session';
 import { INJECT_KEYS } from './services';
 

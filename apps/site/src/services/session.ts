@@ -7,7 +7,7 @@ import {
   SessionEntity,
   SessionForm,
 } from '@site/models';
-import { GcsProxyClient } from './gcs';
+import { GcsProxyClient } from '@site/services/gcs';
 import { proxyBucket, proxyMetadataFile } from '@site/utilities/storage';
 import { decodeProxyBuffer } from '@site/utilities';
 
