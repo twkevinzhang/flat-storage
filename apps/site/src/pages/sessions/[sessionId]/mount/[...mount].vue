@@ -99,7 +99,9 @@ const { viewMode } = storeToRefs(uiStore);
  * =====
  */
 
-function handleUpload() {}
+function handleUpload() {
+  dialogStore.open('upload');
+}
 
 function handleNavigate(p: EntityPath): void {
   router.push({ path: p.toRoute() });

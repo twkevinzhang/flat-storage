@@ -96,4 +96,9 @@ const { visible, close, replaceWith } = useDialogStore();
     :visible="visible('move')"
     @update:visible="() => close('move')"
   />
+
+  <UploadDialog
+    :visible="visible('upload')"
+    @update:visible="() => close('upload')"
+  />
 </template>

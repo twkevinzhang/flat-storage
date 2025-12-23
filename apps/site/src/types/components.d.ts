@@ -20,6 +20,7 @@ declare module 'vue' {
     Dialog: typeof import('primevue/dialog')['default']
     Drawer: typeof import('primevue/drawer')['default']
     Fieldset: typeof import('primevue/fieldset')['default']
+    FileUpload: typeof import('primevue/fileupload')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
     Hover: typeof import('./../components/Hover.vue')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
@@ -54,8 +55,10 @@ declare module 'vue' {
     StepPanels: typeof import('primevue/steppanels')['default']
     Stepper: typeof import('primevue/stepper')['default']
     SvgIcon: typeof import('./../components/SvgIcon.vue')['default']
+    Tag: typeof import('primevue/tag')['default']
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
+    UploadDialog: typeof import('./../dialogs/UploadDialog.vue')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']
