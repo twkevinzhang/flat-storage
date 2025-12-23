@@ -3,7 +3,10 @@ import { useListViewStore } from '@site/stores/list-view';
 import { useMetadataStore } from '@site/stores/metadata';
 import { useSessionStore } from '@site/stores/session';
 import { useUploadStore } from '@site/stores/upload';
-import type { FileUploadSelectEvent, FileUploadRemoveEvent } from 'primevue/fileupload';
+import type {
+  FileUploadSelectEvent,
+  FileUploadRemoveEvent,
+} from 'primevue/fileupload';
 
 const props = defineProps<{
   visible: boolean;
@@ -26,7 +29,9 @@ const route = useRoute();
 const sessionId = computed(() => (route.params as any).sessionId as string);
 const session = computed(() => sessionStore.get(sessionId.value));
 const currentPath = computed(() => listViewStore.path);
-const currentPathSegments = computed(() => currentPath.value.toSegmentsString());
+const currentPathSegments = computed(() =>
+  currentPath.value.toSegmentsString()
+);
 
 /**
  * State
@@ -64,9 +69,13 @@ const filesWithConflicts = computed<FileWithConflict[]>(() => {
   });
 });
 
-function generateUniqueName(originalName: string, existingNames: Set<string>): string {
+function generateUniqueName(
+  originalName: string,
+  existingNames: Set<string>
+): string {
   const lastDotIndex = originalName.lastIndexOf('.');
-  const baseName = lastDotIndex > 0 ? originalName.slice(0, lastDotIndex) : originalName;
+  const baseName =
+    lastDotIndex > 0 ? originalName.slice(0, lastDotIndex) : originalName;
   const extension = lastDotIndex > 0 ? originalName.slice(lastDotIndex) : '';
 
   let counter = 1;
@@ -106,7 +115,8 @@ function getFileIcon(file: File): string {
   if (type.startsWith('video/')) return 'pi pi-video';
   if (type.startsWith('audio/')) return 'pi pi-volume-up';
   if (type.includes('pdf')) return 'pi pi-file-pdf';
-  if (type.includes('zip') || type.includes('compressed')) return 'pi pi-file-export';
+  if (type.includes('zip') || type.includes('compressed'))
+    return 'pi pi-file-export';
   if (type.includes('text')) return 'pi pi-file-edit';
   return 'pi pi-file';
 }
@@ -182,9 +192,13 @@ watch(
   >
     <div class="flex flex-col gap-4 pt-2">
       <!-- Current Path Display -->
-      <div class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
+      <div
+        class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400"
+      >
         <i class="pi pi-folder"></i>
-        <span>Upload to: <strong>{{ currentPathSegments || '/' }}</strong></span>
+        <span
+          >Upload to: <strong>{{ currentPathSegments || '/' }}</strong></span
+        >
       </div>
 
       <!-- FileUpload Component -->
@@ -203,9 +217,7 @@ watch(
           <div class="flex flex-col items-center gap-3 py-8">
             <i class="pi pi-cloud-upload text-4xl text-surface-400"></i>
             <div class="text-center">
-              <p class="text-lg font-semibold mb-1">
-                Drag & drop files here
-              </p>
+              <p class="text-lg font-semibold mb-1">Drag & drop files here</p>
               <p class="text-sm text-surface-500">
                 or click "Choose Files" button above
               </p>
@@ -216,7 +228,9 @@ watch(
         <template #content>
           <div v-if="selectedFiles.length > 0" class="flex flex-col gap-2">
             <div class="flex items-center justify-between mb-2">
-              <label class="font-semibold text-surface-600 dark:text-surface-400">
+              <label
+                class="font-semibold text-surface-600 dark:text-surface-400"
+              >
                 Selected Files ({{ selectedFiles.length }})
               </label>
               <Button
@@ -234,11 +248,16 @@ watch(
                 :key="index"
                 class="flex items-center gap-3 p-3 hover:bg-surface-50 border-b border-surface-200 last:border-b-0"
               >
-                <i :class="getFileIcon(item.file)" class="text-xl text-surface-500"></i>
+                <i
+                  :class="getFileIcon(item.file)"
+                  class="text-xl text-surface-500"
+                ></i>
 
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
-                    <p class="text-sm font-medium truncate">{{ item.finalName }}</p>
+                    <p class="text-sm font-medium truncate">
+                      {{ item.finalName }}
+                    </p>
                     <Tag
                       v-if="item.hasConflict"
                       severity="warn"
@@ -249,7 +268,10 @@ watch(
                   <p class="text-xs text-surface-500">
                     {{ formatFileSize(item.file.size) }}
                   </p>
-                  <p v-if="item.hasConflict" class="text-xs text-orange-600 mt-1">
+                  <p
+                    v-if="item.hasConflict"
+                    class="text-xs text-orange-600 mt-1"
+                  >
                     Original: {{ item.file.name }}
                   </p>
                 </div>
@@ -259,10 +281,12 @@ watch(
                   severity="secondary"
                   variant="text"
                   size="small"
-                  @click="() => {
-                    const files = selectedFiles.filter((_, i) => i !== index);
-                    selectedFiles = files;
-                  }"
+                  @click="
+                    () => {
+                      const files = selectedFiles.filter((_, i) => i !== index);
+                      selectedFiles = files;
+                    }
+                  "
                 />
               </div>
             </div>

@@ -300,7 +300,6 @@ export const useUploadStore = defineStore('upload', () => {
       tracker.update(nextOffset);
       updateTask(task.id, { uploadedBytes: nextOffset });
     }
-    console.log('finished', 'res', res.data);
   }
 
   /**
@@ -403,7 +402,6 @@ export const useUploadStore = defineStore('upload', () => {
       });
       tasks.value = [...tasks.value, task];
       files.value[task.id] = params.file;
-      console.log('task', task);
       return task;
     },
     pauseTask: (id: string) => {

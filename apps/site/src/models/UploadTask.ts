@@ -73,7 +73,6 @@ export class UploadTask {
   }
 
   static merge(source: UploadTask, updates: Partial<UploadTask>): UploadTask {
-    console.log('source', source, 'updates', updates);
     return UploadTask.from({
       id: updates.id ?? source.id,
       sessionId: updates.sessionId ?? source.sessionId,
