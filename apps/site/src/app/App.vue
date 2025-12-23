@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { UploadManager } from '@site/services/upload-manager';
-
-// 初始化 UploadManager
-onMounted(() => {
-  UploadManager.getInstance();
-});
+// UploadManager 已整合到 useUploadStore
+// 佇列處理由 store 內部的 useIntervalFn 自動啟動
 </script>
 
 <template>

@@ -23,10 +23,10 @@ export interface UploadTask {
   sessionId: string;
   file: UploadTaskFile;
   targetPath: string;
-  readableName: string;
   crc32c?: string;
   xxHash64?: string;
-  gcsFileName?: string;
+  objectNameOnGcs?: string;
+  objectName: string;
   uploadUri?: string;
   uploadedBytes: number;
   status: UploadStatus;

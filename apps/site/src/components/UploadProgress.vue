@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { useUploadStore } from '@site/stores/upload';
 import { UploadStatus } from '@site/models';
-import { UploadManager } from '@site/services/upload-manager';
 
 const uploadStore = useUploadStore();
-const uploadManager = UploadManager.getInstance();
 
 /**
  * State
@@ -134,15 +132,15 @@ function getProgress(taskId: string): number {
  * Actions
  */
 function handlePause(taskId: string) {
-  uploadManager.pauseUpload(taskId);
+  uploadStore.pauseUpload(taskId);
 }
 
 function handleResume(taskId: string) {
-  uploadManager.resumeUpload(taskId);
+  uploadStore.resumeUpload(taskId);
 }
 
 function handleCancel(taskId: string) {
-  uploadManager.cancelUpload(taskId);
+  uploadStore.cancelUpload(taskId);
 }
 
 function handleRemove(taskId: string) {
@@ -250,7 +248,7 @@ function handleToggleCollapse() {
                 <div class="flex items-start justify-between gap-2 mb-2">
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-surface-900 dark:text-surface-0 truncate">
-                      {{ task.readableName }}
+                      {{ task.objectName }}
                     </p>
                     <p class="text-xs text-surface-500">
                       {{ formatFileSize(task.file.size) }}
@@ -322,8 +320,15 @@ function handleToggleCollapse() {
                     v-if="task.status === UploadStatus.UPLOADING"
                     class="text-surface-500"
                   >
-                    <!-- TODO: 從 UploadManager 獲取速度和預估時間 -->
-                    上傳中...
+                    <template v-if="uploadStore.getProgress(task.id)">
+                      {{ formatSpeed(uploadStore.getProgress(task.id)!.speed) }}
+                      <template v-if="uploadStore.getProgress(task.id)!.estimatedTimeRemaining > 0">
+                        · 剩餘 {{ formatTime(uploadStore.getProgress(task.id)!.estimatedTimeRemaining) }}
+                      </template>
+                    </template>
+                    <template v-else>
+                      上傳中...
+                    </template>
                   </span>
 
                   <!-- Error Message -->
