@@ -124,6 +124,10 @@ export class ProxyFile {
     return this.execute('save', [data, options]);
   }
 
+  async createResumableUpload(options?: any) {
+    return this.execute('createResumableUpload', [options]);
+  }
+
   private async execute(method: string, args: any[]) {
     const res = await axios.post(`${this.baseUrl}/gcs/v1/execute`, {
       auth: this.auth,

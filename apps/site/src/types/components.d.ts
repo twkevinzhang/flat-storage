@@ -39,6 +39,7 @@ declare module 'vue' {
     ObjectTree: typeof import('./../components/ObjectTree.vue')['default']
     Pages: typeof import('./../pages/index.vue')['default']
     PrimeIcon: typeof import('./../components/PrimeIcon.vue')['default']
+    ProgressBar: typeof import('primevue/progressbar')['default']
     RenameDialog: typeof import('./../dialogs/RenameDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -59,6 +60,7 @@ declare module 'vue' {
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
     UploadDialog: typeof import('./../dialogs/UploadDialog.vue')['default']
+    UploadProgress: typeof import('./../components/UploadProgress.vue')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']

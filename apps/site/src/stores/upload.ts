@@ -8,15 +8,26 @@ export const useUploadStore = defineStore('upload', () => {
   const isCollapsed = ref(true);
   const MAX_CONCURRENT_UPLOADS = 3;
 
+  // 存儲任務元數據
   const { data: persistedTasks, isFinished } = useIDBKeyval<UploadTask[]>(
     'upload_tasks',
     [],
     { deep: true }
   );
 
+  // 存儲 File 物件
+  const { data: persistedFiles } = useIDBKeyval<Record<string, File>>(
+    'upload_files',
+    {},
+    { deep: true }
+  );
+
+  const filesMap = ref<Record<string, File>>({});
+
+  // 恢復任務時，同時恢復 File 物件
   watch(
-    [persistedTasks, isFinished],
-    ([newTasks, finished]) => {
+    [persistedTasks, persistedFiles, isFinished],
+    ([newTasks, newFiles, finished]) => {
       if (finished && newTasks && newTasks.length > 0) {
         tasks.value = newTasks.map((task) => ({
           ...task,
@@ -25,15 +36,29 @@ export const useUploadStore = defineStore('upload', () => {
               ? UploadStatus.PAUSED
               : task.status,
         }));
+
+        if (newFiles) {
+          filesMap.value = newFiles;
+        }
       }
     },
     { immediate: true }
   );
 
+  // 持久化任務元數據
   watch(
     tasks,
     (newTasks) => {
       persistedTasks.value = newTasks;
+    },
+    { deep: true }
+  );
+
+  // 持久化 File 物件
+  watch(
+    filesMap,
+    (newFiles) => {
+      persistedFiles.value = newFiles;
     },
     { deep: true }
   );
@@ -81,8 +106,9 @@ export const useUploadStore = defineStore('upload', () => {
     readableName: string;
   }): UploadTask {
     const now = new Date().toISOString();
+    const taskId = nanoid();
     const task: UploadTask = {
-      id: nanoid(),
+      id: taskId,
       sessionId: params.sessionId,
       file: {
         name: params.file.name,
@@ -98,6 +124,9 @@ export const useUploadStore = defineStore('upload', () => {
       createdAt: now,
       updatedAt: now,
     };
+
+    // 存儲 File 物件
+    filesMap.value[taskId] = params.file;
 
     tasks.value.push(task);
     return task;
@@ -118,6 +147,8 @@ export const useUploadStore = defineStore('upload', () => {
     const index = tasks.value.findIndex((t) => t.id === taskId);
     if (index !== -1) {
       tasks.value.splice(index, 1);
+      // 刪除對應的 File 物件
+      delete filesMap.value[taskId];
     }
   }
 
@@ -134,9 +165,18 @@ export const useUploadStore = defineStore('upload', () => {
   }
 
   function clearCompletedTasks(): void {
+    const completedTaskIds = tasks.value
+      .filter((t) => t.status === UploadStatus.COMPLETED)
+      .map((t) => t.id);
+
     tasks.value = tasks.value.filter(
       (t) => t.status !== UploadStatus.COMPLETED
     );
+
+    // 刪除對應的 File 物件
+    completedTaskIds.forEach((id) => {
+      delete filesMap.value[id];
+    });
   }
 
   function increasePriority(taskId: string): void {
@@ -173,6 +213,10 @@ export const useUploadStore = defineStore('upload', () => {
     isCollapsed.value = !isCollapsed.value;
   }
 
+  function getFile(taskId: string): File | undefined {
+    return filesMap.value[taskId];
+  }
+
   return {
     tasks: computed(() => tasks.value),
     activeTasks,
@@ -191,6 +235,7 @@ export const useUploadStore = defineStore('upload', () => {
     increasePriority,
     decreasePriority,
     toggleCollapse,
+    getFile,
   };
 });
 
