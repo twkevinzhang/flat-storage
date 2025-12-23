@@ -3,12 +3,15 @@ import {
   UploadStatus,
   UploadProgress,
   SessionEntity,
+  ObjectEntity,
+  EntityPath,
 } from '@site/models';
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
 import { nanoid } from 'nanoid';
 import { calculateHashes } from '@site/utilities';
 import { proxyBucket } from '@site/utilities/storage';
 import axios from 'axios';
+import { useMetadataStore } from '@site/stores/metadata';
 
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_CONCURRENT = 3;
@@ -65,6 +68,7 @@ export const useUploadStore = defineStore('upload', () => {
   const session = ref<SessionEntity | null>(null);
   const activeControllers = new Map<string, AbortController>();
   const trackers = new Map<string, ProgressTracker>();
+  const metadataStore = useMetadataStore();
 
   const { data: persistentTasks } = useIDBKeyval<string[]>('upload_tasks', [], {
     deep: true,
@@ -197,7 +201,10 @@ export const useUploadStore = defineStore('upload', () => {
       await runUploadPhase(task.id, controller.signal);
 
       // 4. 驗證
-      await runVerifyPhase(task.id, session);
+      const metadata = await runVerifyPhase(task.id, session);
+
+      // 5. 更新 metadata store
+      await runUpdateMetadata(task.id, controller.signal);
 
       updateTask(task.id, { status: UploadStatus.COMPLETED });
 
@@ -321,6 +328,36 @@ export const useUploadStore = defineStore('upload', () => {
     if (hexToB64(task.crc32c!) !== metadata.crc32c) {
       throw new Error('Verification failed: CRC32C mismatch');
     }
+
+    return metadata;
+  }
+
+  /**
+   * 階段 5: 更新 Metadata
+   */
+  async function runUpdateMetadata(taskId: string, session: SessionEntity) {
+    const bucket = proxyBucket(session);
+    const task = getTask(taskId);
+    const [gcsMetadata] = await bucket.file(task.gcsPath()).getMetadata();
+
+    const appMetadata = {
+      path: EntityPath.fromRoute({
+        sessionId: session.id,
+        mount: task.gcsPath(),
+      }),
+      mimeType: gcsMetadata.contentType,
+      sizeBytes: Number(gcsMetadata.size),
+      uploadedAtISO: gcsMetadata.timeCreated,
+      latestUpdatedAtISO: gcsMetadata.updated,
+      md5Hash: gcsMetadata.md5Hash,
+      crc32c: gcsMetadata.crc32c,
+      xxHash64: task.xxHash64,
+    };
+    const entity = ObjectEntity.new(appMetadata);
+
+    await bucket.file(task.gcsPath()).setMetadata(appMetadata);
+
+    await metadataStore.addEntity(session, entity);
   }
 
   /**

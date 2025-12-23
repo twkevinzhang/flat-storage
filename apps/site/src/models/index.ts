@@ -68,6 +68,8 @@ export class ObjectEntity {
     public readonly uploadedAtISO?: string,
     public readonly latestUpdatedAtISO?: string,
     public readonly md5Hash?: string,
+    public readonly crc32c?: string,
+    public readonly xxHash64?: string,
     public readonly deletedAtISO?: string
   ) {}
 
@@ -78,6 +80,8 @@ export class ObjectEntity {
     uploadedAtISO?: string;
     latestUpdatedAtISO?: string;
     md5Hash?: string;
+    crc32c?: string;
+    xxHash64?: string;
     deletedAtISO?: string;
   }): ObjectEntity {
     return new ObjectEntity(
@@ -87,6 +91,8 @@ export class ObjectEntity {
       params.uploadedAtISO,
       params.latestUpdatedAtISO,
       params.md5Hash,
+      params.crc32c,
+      params.xxHash64,
       params.deletedAtISO
     );
   }
@@ -103,6 +109,8 @@ export class ObjectEntity {
       uploadedAtISO: json.uploadedAtISO,
       latestUpdatedAtISO: json.latestUpdatedAtISO,
       md5Hash: json.md5Hash,
+      crc32c: json.crc32c,
+      xxHash64: json.xxHash64,
       deletedAtISO: json.deletedAtISO,
     });
   }
@@ -124,6 +132,8 @@ export class ObjectEntity {
       uploadedAtISO: f.metadata.timeCreated,
       latestUpdatedAtISO: f.metadata.updated,
       md5Hash: f.metadata.md5Hash,
+      crc32c: f.metadata.crc32c,
+      xxHash64: f.metadata.metadata?.xxHash64,
       // deletedAtISO: f.metadata.timeDeleted,
     });
   }
@@ -136,6 +146,8 @@ export class ObjectEntity {
       uploadedAtISO: this.uploadedAtISO,
       latestUpdatedAtISO: this.latestUpdatedAtISO,
       md5Hash: this.md5Hash,
+      crc32c: this.crc32c,
+      xxHash64: this.xxHash64,
       deletedAtISO: this.deletedAtISO,
     });
   }

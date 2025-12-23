@@ -24,7 +24,6 @@ declare module 'vue' {
     Hover: typeof import('./../components/Hover.vue')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
-    Knob: typeof import('primevue/knob')['default']
     Listbox: typeof import('primevue/listbox')['default']
     Menu: typeof import('primevue/menu')['default']
     MenuDialog: typeof import('./../components/MenuDialog.vue')['default']

@@ -243,6 +243,39 @@ export const useMetadataStore = defineStore('metadata', () => {
     }
   }
 
+  async function addEntity(session: SessionEntity, entity: ObjectEntity) {
+    isLoading.value = true;
+
+    try {
+      const newEntities = [...entities.value, entity];
+
+      await sessionApi.saveEntities(session, newEntities);
+
+      cachedData.value = {
+        entities: newEntities.map((e) => JSON.parse(e.toJson())),
+        updatedAt: new Date().toISOString(),
+      };
+
+      toast.add({
+        severity: 'success',
+        summary: 'Upload Success',
+        detail: `${entity.name} added to metadata`,
+        life: 3000,
+      });
+    } catch (error: any) {
+      console.error('Failed to add entity:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Metadata Update Failed',
+        detail: error.message || 'Failed to update metadata',
+        life: 3000,
+      });
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     allObjects: entities,
     isLoading,
@@ -250,6 +283,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     loadObjects: load,
     renameFolder,
     moveFolder,
+    addEntity,
     refresh,
     clear,
   };
