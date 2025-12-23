@@ -131,13 +131,16 @@ async function handleConfirm() {
 
   isProcessing.value = true;
   try {
+    // Set session for upload store
+    uploadStore.setSession(session.value);
+
     // Create upload tasks for each file
     filesWithConflicts.value.forEach(({ file, finalName }) => {
       uploadStore.createTask({
         sessionId: sessionId.value,
         file: file,
         targetPath: currentPathSegments.value,
-        readableName: finalName,
+        name: finalName,
       });
     });
 

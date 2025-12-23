@@ -75,6 +75,57 @@ export const useUploadStore = defineStore('upload', () => {
     { deep: true }
   );
 
+  // 通知權限狀態
+  const notificationPermission = ref<NotificationPermission>('default');
+
+  // 檢查通知權限
+  if ('Notification' in window) {
+    notificationPermission.value = Notification.permission;
+  }
+
+  /**
+   * 請求通知權限
+   */
+  async function requestNotificationPermission(): Promise<boolean> {
+    if (!('Notification' in window)) {
+      return false;
+    }
+
+    if (Notification.permission === 'granted') {
+      return true;
+    }
+
+    if (Notification.permission !== 'denied') {
+      const permission = await Notification.requestPermission();
+      notificationPermission.value = permission;
+      return permission === 'granted';
+    }
+
+    return false;
+  }
+
+  /**
+   * 發送通知
+   */
+  function sendNotification(
+    title: string,
+    body: string,
+    _type: 'success' | 'error' | 'info' = 'info'
+  ) {
+    // 如果頁面在前景，不發送通知
+    if (document.visibilityState === 'visible') {
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: `/favicon.ico`,
+        tag: 'upload-notification',
+      });
+    }
+  }
+
   const uploadingTasks = computed(() =>
     tasks.value.filter((t) => t.status === UploadStatus.UPLOADING)
   );
@@ -133,9 +184,35 @@ export const useUploadStore = defineStore('upload', () => {
       await runVerifyPhase(task, session);
 
       updateTask(task.id, { status: UploadStatus.COMPLETED });
+
+      // 發送完成通知
+      sendNotification(
+        '上傳完成',
+        `${task.objectName} 已成功上傳`,
+        'success'
+      );
     } catch (err: any) {
       if (err.name === 'AbortError') return;
-      updateTask(task.id, { status: UploadStatus.FAILED, error: err.message });
+
+      // 檢查是否為認證過期錯誤 (401, 403, expired token 等)
+      const isAuthError =
+        err.response?.status === 401 ||
+        err.response?.status === 403 ||
+        err.message?.toLowerCase().includes('expired') ||
+        err.message?.toLowerCase().includes('unauthorized') ||
+        err.message?.toLowerCase().includes('forbidden');
+
+      if (isAuthError) {
+        updateTask(task.id, {
+          status: UploadStatus.EXPIRED,
+          error: 'Session 或憑證已過期，請重新創建 session',
+        });
+      } else {
+        updateTask(task.id, { status: UploadStatus.FAILED, error: err.message });
+      }
+
+      // 發送失敗通知
+      sendNotification('上傳失敗', `${task.objectName} 上傳失敗`, 'error');
     } finally {
       activeControllers.delete(task.id);
       trackers.delete(task.id);
@@ -288,7 +365,9 @@ export const useUploadStore = defineStore('upload', () => {
     isCollapsed,
     activeTasks,
     completedTasks,
+    notificationPermission,
     hasActiveUploads: computed(() => uploadingTasks.value.length > 0),
+    requestNotificationPermission,
     createTask: (params: {
       sessionId: string;
       file: File;
