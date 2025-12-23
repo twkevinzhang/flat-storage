@@ -33,3 +33,5 @@ export function decodeProxyBuffer(data: any): string {
   }
   return data?.toString() || '';
 }
+
+export * from './hash';

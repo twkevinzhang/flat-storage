@@ -23,6 +23,8 @@ declare global {
   const bind: typeof import('lodash-es')['bind']
   const bindAll: typeof import('lodash-es')['bindAll']
   const bindKey: typeof import('lodash-es')['bindKey']
+  const calculateCRC32C: typeof import('@site/utilities')['calculateCRC32C']
+  const calculateHashes: typeof import('@site/utilities')['calculateHashes']
   const camelCase: typeof import('lodash-es')['camelCase']
   const capitalize: typeof import('lodash-es')['capitalize']
   const castArray: typeof import('lodash-es')['castArray']
@@ -673,6 +675,8 @@ declare module 'vue' {
     readonly bind: UnwrapRef<typeof import('lodash-es')['bind']>
     readonly bindAll: UnwrapRef<typeof import('lodash-es')['bindAll']>
     readonly bindKey: UnwrapRef<typeof import('lodash-es')['bindKey']>
+    readonly calculateCRC32C: UnwrapRef<typeof import('@site/utilities')['calculateCRC32C']>
+    readonly calculateHashes: UnwrapRef<typeof import('@site/utilities')['calculateHashes']>
     readonly camelCase: UnwrapRef<typeof import('lodash-es')['camelCase']>
     readonly capitalize: UnwrapRef<typeof import('lodash-es')['capitalize']>
     readonly castArray: UnwrapRef<typeof import('lodash-es')['castArray']>

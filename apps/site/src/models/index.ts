@@ -1,5 +1,7 @@
 import { nanoid } from 'nanoid';
 
+export * from './UploadTask';
+
 export enum Driver {
   'gcs' = 'gcs',
   's3' = 's3',
@@ -63,7 +65,7 @@ export class ObjectEntity {
     public readonly path: EntityPath,
     public readonly mimeType?: ObjectMimeType,
     public readonly sizeBytes?: number,
-    public readonly createdAtISO?: string,
+    public readonly uploadedAtISO?: string,
     public readonly latestUpdatedAtISO?: string,
     public readonly md5Hash?: string,
     public readonly deletedAtISO?: string
@@ -73,7 +75,7 @@ export class ObjectEntity {
     path: EntityPath;
     mimeType?: ObjectMimeType;
     sizeBytes?: number;
-    createdAtISO?: string;
+    uploadedAtISO?: string;
     latestUpdatedAtISO?: string;
     md5Hash?: string;
     deletedAtISO?: string;
@@ -82,7 +84,7 @@ export class ObjectEntity {
       params.path,
       params.mimeType,
       params.sizeBytes,
-      params.createdAtISO,
+      params.uploadedAtISO,
       params.latestUpdatedAtISO,
       params.md5Hash,
       params.deletedAtISO
@@ -98,7 +100,7 @@ export class ObjectEntity {
       }),
       mimeType: json.mimeType,
       sizeBytes: json.sizeBytes,
-      createdAtISO: json.createdAtISO,
+      uploadedAtISO: json.uploadedAtISO,
       latestUpdatedAtISO: json.latestUpdatedAtISO,
       md5Hash: json.md5Hash,
       deletedAtISO: json.deletedAtISO,
@@ -119,10 +121,10 @@ export class ObjectEntity {
       }),
       mimeType: isFolder ? ObjectMimeType.folder : f.metadata.contentType,
       sizeBytes: f.metadata.size,
-      createdAtISO: f.metadata.timeFinalized,
+      uploadedAtISO: f.metadata.timeCreated,
       latestUpdatedAtISO: f.metadata.updated,
       md5Hash: f.metadata.md5Hash,
-      deletedAtISO: f.metadata.deleted,
+      // deletedAtISO: f.metadata.timeDeleted,
     });
   }
 
@@ -131,7 +133,7 @@ export class ObjectEntity {
       path: this.path.toSegmentsString(),
       mimeType: this.mimeType,
       sizeBytes: this.sizeBytes,
-      createdAtISO: this.createdAtISO,
+      uploadedAtISO: this.uploadedAtISO,
       latestUpdatedAtISO: this.latestUpdatedAtISO,
       md5Hash: this.md5Hash,
       deletedAtISO: this.deletedAtISO,
@@ -151,7 +153,7 @@ export class ObjectEntity {
   }
 
   get createdAt(): Date | undefined {
-    return this.createdAtISO ? new Date(this.createdAtISO) : undefined;
+    return this.uploadedAtISO ? new Date(this.uploadedAtISO) : undefined;
   }
 
   get latestUpdatedAt(): Date | undefined {
@@ -245,7 +247,7 @@ export class SessionEntity {
     public readonly description: string | undefined,
     public readonly driver: Driver,
     public readonly mount: string,
-    public readonly createdAtISO: string,
+    public readonly uploadedAtISO: string,
     public readonly latestConnectedISO: string | undefined,
     public readonly metadataPath: string,
     public readonly accessKey: string,
@@ -258,7 +260,7 @@ export class SessionEntity {
     description?: string;
     driver: Driver;
     mount: string;
-    createdAtISO?: string;
+    uploadedAtISO?: string;
     latestConnectedISO?: string;
     metadataPath?: string;
     accessKey: string;
@@ -271,7 +273,7 @@ export class SessionEntity {
       params.description,
       params.driver,
       params.mount,
-      params.createdAtISO ?? new Date().toISOString(),
+      params.uploadedAtISO ?? new Date().toISOString(),
       params.latestConnectedISO,
       params.metadataPath ?? '/',
       params.accessKey,
@@ -281,7 +283,7 @@ export class SessionEntity {
   }
 
   get createdAt() {
-    return new Date(this.createdAtISO);
+    return new Date(this.uploadedAtISO);
   }
   get latestConnectedAt() {
     return this.latestConnectedISO
@@ -296,7 +298,7 @@ export class SessionForm implements Partial<Omit<SessionEntity, 'id'>> {
     public readonly description: string | undefined,
     public readonly driver: Driver,
     public readonly mount: string,
-    public readonly createdAtISO: string,
+    public readonly uploadedAtISO: string,
     public readonly latestConnectedISO: string | undefined,
     public readonly metadataPath: string,
     public readonly accessKey: string,

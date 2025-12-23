@@ -141,7 +141,7 @@ export class MockSessionService implements SessionService {
           md5Hash: `ID${200 + i}`,
           sizeBytes: 1234,
           mimeType: ObjectMimeType.folder,
-          createdAtISO: '2025-12-20T23:56:00.000Z',
+          uploadedAtISO: '2025-12-20T23:56:00.000Z',
           latestUpdatedAtISO: '2025-12-20T23:56:00.000Z',
         })
       );
