@@ -66,14 +66,27 @@ export const useUploadStore = defineStore('upload', () => {
   const activeControllers = new Map<string, AbortController>();
   const trackers = new Map<string, ProgressTracker>();
 
-  const { data: tasks } = useIDBKeyval<UploadTask[]>('upload_tasks', [], {
+  const { data: persistentTasks } = useIDBKeyval<string[]>('upload_tasks', [], {
     deep: true,
   });
-  const { data: files } = useIDBKeyval<Record<string, File>>(
+  const { data: persistentFiles } = useIDBKeyval<Record<string, File>>(
     'upload_files',
     {},
     { deep: true }
   );
+  const tasks = computed({
+    get: () => persistentTasks.value.map((json) => UploadTask.fromJson(json)),
+    set: (value: UploadTask[]) => {
+      persistentTasks.value = value.map((t) => t.toJson());
+    },
+  });
+
+  const files = computed({
+    get: () => persistentFiles.value,
+    set: (value: Record<string, File>) => {
+      persistentFiles.value = value;
+    },
+  });
 
   // 通知權限狀態
   const notificationPermission = ref<NotificationPermission>('default');
@@ -137,12 +150,15 @@ export const useUploadStore = defineStore('upload', () => {
   const completedTasks = computed(() =>
     tasks.value.filter((t) => t.status === UploadStatus.COMPLETED)
   );
-
-  const totalProgress = computed(() => {
-    const active = tasks.value.filter(
+  const activeTasks = computed(() =>
+    tasks.value.filter(
       (t) =>
         ![UploadStatus.COMPLETED, UploadStatus.CANCELLED].includes(t.status)
-    );
+    )
+  );
+
+  const totalProgress = computed(() => {
+    const active = activeTasks.value;
     if (!active.length) return 0;
     const total = active.reduce((s, t) => s + t.file.size, 0);
     const uploaded = active.reduce((s, t) => s + t.uploadedBytes, 0);
@@ -172,26 +188,23 @@ export const useUploadStore = defineStore('upload', () => {
 
     try {
       // 1. 雜湊計算
-      if (!task.xxHash64) await runHashPhase(task);
+      if (!task.xxHash64) await runHashPhase(task.id);
 
       // 2. 取得會話路徑
-      if (!task.uploadUri) await runSessionPhase(task, session);
+      if (!task.uploadUri) await runSessionPhase(task.id, session);
 
       // 3. 執行分塊上傳 (核心 Reactive 部分)
-      await runUploadPhase(task, controller.signal);
+      await runUploadPhase(task.id, controller.signal);
 
       // 4. 驗證
-      await runVerifyPhase(task, session);
+      await runVerifyPhase(task.id, session);
 
       updateTask(task.id, { status: UploadStatus.COMPLETED });
 
       // 發送完成通知
-      sendNotification(
-        '上傳完成',
-        `${task.objectName} 已成功上傳`,
-        'success'
-      );
+      sendNotification('上傳完成', `${task.objectName} 已成功上傳`, 'success');
     } catch (err: any) {
+      console.error('上傳失敗:', err);
       if (err.name === 'AbortError') return;
 
       // 檢查是否為認證過期錯誤 (401, 403, expired token 等)
@@ -208,7 +221,10 @@ export const useUploadStore = defineStore('upload', () => {
           error: 'Session 或憑證已過期，請重新創建 session',
         });
       } else {
-        updateTask(task.id, { status: UploadStatus.FAILED, error: err.message });
+        updateTask(task.id, {
+          status: UploadStatus.FAILED,
+          error: err.message,
+        });
       }
 
       // 發送失敗通知
@@ -222,41 +238,42 @@ export const useUploadStore = defineStore('upload', () => {
   /**
    * 階段 1: 雜湊計算 (xxHash64 & CRC32C)
    */
-  async function runHashPhase(task: UploadTask) {
-    updateTask(task.id, { status: UploadStatus.CALCULATING });
-    const file = getFile(task.id);
+  async function runHashPhase(taskId: string) {
+    updateTask(taskId, { status: UploadStatus.CALCULATING });
+    const file = getFile(taskId);
     const { xxHash64, crc32c } = await calculateHashes(file);
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    updateTask(task.id, {
+    const createdAt = new Date().toISOString().replace(/[:.]/g, '-');
+    updateTask(taskId, {
       xxHash64,
       crc32c,
-      objectNameOnGcs: `${timestamp}-${xxHash64}`,
+      createdAt,
     });
   }
 
   /**
    * 階段 2: 建立可恢復上傳會話 (GCS Resumable)
    */
-  async function runSessionPhase(task: UploadTask, session: SessionEntity) {
+  async function runSessionPhase(taskId: string, session: SessionEntity) {
     const bucket = proxyBucket(session);
-    const path = task.targetPath
-      ? `${task.targetPath}/${task.objectNameOnGcs}`
-      : task.objectNameOnGcs!;
-    const [uploadUri] = await bucket.file(path).createResumableUpload({
-      metadata: {
-        contentType: task.file.type,
-        metadata: { xxHash64: task.xxHash64, crc32c: task.crc32c },
-      },
-    });
+    const task = getTask(taskId);
+    const [uploadUri] = await bucket
+      .file(task.gcsPath())
+      .createResumableUpload({
+        metadata: {
+          contentType: task.file.type,
+          metadata: { xxHash64: task.xxHash64, crc32c: task.crc32c },
+        },
+      });
     updateTask(task.id, { uploadUri, status: UploadStatus.UPLOADING });
   }
 
   /**
    * 階段 3: 分塊上傳 (使用 Async Generator)
    */
-  async function runUploadPhase(task: UploadTask, signal: AbortSignal) {
-    const file = getFile(task.id);
+  async function runUploadPhase(taskId: string, signal: AbortSignal) {
+    const file = getFile(taskId);
+    const task = getTask(taskId);
     const tracker = new ProgressTracker(task.id, file.size);
     trackers.set(task.id, tracker);
 
@@ -270,8 +287,9 @@ export const useUploadStore = defineStore('upload', () => {
       }
     }
 
+    let res;
     for await (const chunk of getChunks()) {
-      await axios.put(task.uploadUri!, chunk.blob, {
+      res = await axios.put(task.uploadUri!, chunk.blob, {
         signal,
         headers: {
           'Content-Range': `bytes ${chunk.start}-${chunk.end}/${file.size}`,
@@ -282,17 +300,16 @@ export const useUploadStore = defineStore('upload', () => {
       tracker.update(nextOffset);
       updateTask(task.id, { uploadedBytes: nextOffset });
     }
+    console.log('finished', 'res', res.data);
   }
 
   /**
    * 階段 4: CRC32C 校驗
    */
-  async function runVerifyPhase(task: UploadTask, session: SessionEntity) {
+  async function runVerifyPhase(taskId: string, session: SessionEntity) {
     const bucket = proxyBucket(session);
-    const path = task.targetPath
-      ? `${task.targetPath}/${task.objectNameOnGcs}`
-      : task.objectNameOnGcs!;
-    const [metadata] = await bucket.file(path).getMetadata();
+    const task = getTask(taskId);
+    const [metadata] = await bucket.file(task.gcsPath()).getMetadata();
 
     // 將 Hex 轉為 Base64 比對
     const hexToB64 = (hex: string) =>
@@ -316,14 +333,16 @@ export const useUploadStore = defineStore('upload', () => {
     return file;
   }
 
-  function updateTask(id: string, updates: Partial<UploadTask>) {
-    const i = tasks.value.findIndex((t) => t.id === id);
-    if (i !== -1)
-      tasks.value[i] = {
-        ...tasks.value[i],
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
+  function getTask(taskId: string): UploadTask {
+    const task = tasks.value.find((t) => t.id === taskId);
+    if (!task) throw new Error('File lost in browser memory');
+    return task;
+  }
+
+  function updateTask(taskId: string, updates: Partial<UploadTask>) {
+    tasks.value = tasks.value.map((t) =>
+      t.id === taskId ? UploadTask.merge(t, updates) : t
+    );
   }
 
   function moveTask(taskId: string, direction: -1 | 1): void {
@@ -351,14 +370,6 @@ export const useUploadStore = defineStore('upload', () => {
   // UI 狀態
   const isCollapsed = ref(false);
 
-  // 計算屬性
-  const activeTasks = computed(() =>
-    tasks.value.filter(
-      (t) =>
-        ![UploadStatus.COMPLETED, UploadStatus.CANCELLED].includes(t.status)
-    )
-  );
-
   return {
     tasks,
     totalProgress,
@@ -374,9 +385,7 @@ export const useUploadStore = defineStore('upload', () => {
       targetPath: string;
       name: string;
     }) => {
-      const id = nanoid();
-      const task: UploadTask = {
-        id,
+      const task = UploadTask.new({
         sessionId: params.sessionId,
         file: {
           name: params.file.name,
@@ -391,9 +400,10 @@ export const useUploadStore = defineStore('upload', () => {
         priority: tasks.value.length,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      };
-      tasks.value.push(task);
-      files.value[id] = params.file;
+      });
+      tasks.value = [...tasks.value, task];
+      files.value[task.id] = params.file;
+      console.log('task', task);
       return task;
     },
     pauseTask: (id: string) => {
@@ -419,11 +429,7 @@ export const useUploadStore = defineStore('upload', () => {
       });
     },
     removeTask: (taskId: string) => {
-      const index = tasks.value.findIndex((t) => t.id === taskId);
-      if (index !== -1) {
-        tasks.value.splice(index, 1);
-        delete files.value[taskId];
-      }
+      tasks.value = tasks.value.filter((t) => t.id !== taskId);
     },
     clearCompletedTasks: () => {
       const completed = tasks.value.filter(

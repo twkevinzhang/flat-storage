@@ -1,4 +1,4 @@
-import { xxhash64, crc32 } from 'hash-wasm';
+import { createXXHash64, createCRC32 } from 'hash-wasm';
 
 export interface HashResult {
   xxHash64: string;
@@ -11,8 +11,8 @@ export async function calculateHashes(
   file: File,
   onProgress?: (progress: number) => void
 ): Promise<HashResult> {
-  const xxHasher = await xxhash64();
-  const crcHasher = await crc32();
+  const xxHasher = await createXXHash64();
+  const crcHasher = await createCRC32();
 
   const totalBytes = file.size;
   let processedBytes = 0;
@@ -47,7 +47,7 @@ export async function calculateCRC32C(
   file: File,
   onProgress?: (progress: number) => void
 ): Promise<string> {
-  const hasher = await crc32();
+  const hasher = await createCRC32();
 
   const totalBytes = file.size;
   let processedBytes = 0;

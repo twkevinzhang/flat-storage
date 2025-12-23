@@ -38,3 +38,4 @@ z. 如果有，但不合法，請使用者修正或刪除，並退出應用
 ## before deploy
 1. create GCP project and storage bucket, set IAM permission
 2. login gCloud cli
+3. 確認 storage bucket is opened CORS
