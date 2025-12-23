@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useUploadStore } from '@site/stores/upload';
 import { UploadStatus } from '@site/models';
+import { breakpointsTailwind } from '@vueuse/core';
 
 const uploadStore = useUploadStore();
+const breakpoints = useBreakpoints(breakpointsTailwind);
+const isMobile = breakpoints.smaller('md');
 
 /**
  * State
@@ -132,15 +135,19 @@ function getProgress(taskId: string): number {
  * Actions
  */
 function handlePause(taskId: string) {
-  uploadStore.pauseUpload(taskId);
+  uploadStore.pauseTask(taskId);
 }
 
 function handleResume(taskId: string) {
-  uploadStore.resumeUpload(taskId);
+  uploadStore.resumeTask(taskId);
 }
 
 function handleCancel(taskId: string) {
-  uploadStore.cancelUpload(taskId);
+  uploadStore.cancelTask(taskId);
+}
+
+function handleRetry(taskId: string) {
+  uploadStore.retryTask(taskId);
 }
 
 function handleRemove(taskId: string) {
@@ -167,20 +174,43 @@ function handleToggleCollapse() {
   >
     <div
       v-if="isVisible"
-      class="fixed right-4 bottom-4 w-[600px] max-w-[calc(100vw-2rem)] bg-white dark:bg-surface-900 shadow-2xl rounded-lg border border-surface-200 dark:border-surface-700 z-50"
+      :class="[
+        'fixed bg-white dark:bg-surface-900 shadow-2xl rounded-lg border border-surface-200 dark:border-surface-700 z-50',
+        isMobile
+          ? 'right-2 bottom-2 w-full max-w-[calc(100vw-1rem)]'
+          : 'right-4 bottom-4 w-[600px] max-w-[calc(100vw-2rem)]',
+      ]"
     >
       <!-- Header -->
       <div
-        class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800"
+        :class="[
+          'flex items-center justify-between border-b border-surface-200 dark:border-surface-700 cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800',
+          isMobile ? 'p-3' : 'p-4',
+        ]"
         @click="handleToggleCollapse"
       >
-        <div class="flex items-center gap-3">
-          <i class="pi pi-cloud-upload text-xl text-primary-500"></i>
-          <div>
-            <h3 class="font-semibold text-surface-900 dark:text-surface-0">
+        <div
+          :class="[
+            'flex items-center min-w-0 flex-1',
+            isMobile ? 'gap-2' : 'gap-3',
+          ]"
+        >
+          <i
+            :class="[
+              'pi pi-cloud-upload text-primary-500 flex-shrink-0',
+              isMobile ? 'text-lg' : 'text-xl',
+            ]"
+          />
+          <div class="min-w-0 flex-1">
+            <h3
+              :class="[
+                'font-semibold text-surface-900 dark:text-surface-0',
+                isMobile ? 'text-sm' : 'text-base',
+              ]"
+            >
               上傳任務
             </h3>
-            <p class="text-xs text-surface-500">
+            <p class="text-xs text-surface-500 truncate">
               {{ uploadStoreRefs.activeTasks.value.length }} 個進行中
               <span v-if="uploadStoreRefs.completedTasks.value.length > 0">
                 · {{ uploadStoreRefs.completedTasks.value.length }} 個已完成
@@ -189,19 +219,30 @@ function handleToggleCollapse() {
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div
+          :class="[
+            'flex items-center flex-shrink-0',
+            isMobile ? 'gap-1' : 'gap-2',
+          ]"
+        >
           <!-- Overall Progress -->
-          <div class="text-sm font-medium text-primary-600 dark:text-primary-400">
+          <div
+            :class="[
+              'font-medium text-primary-600 dark:text-primary-400',
+              isMobile ? 'text-xs' : 'text-sm',
+            ]"
+          >
             {{ uploadStoreRefs.totalProgress.value }}%
           </div>
 
           <!-- Clear Completed Button -->
           <Button
-            v-if="uploadStoreRefs.completedTasks.value.length > 0"
+            v-if="!isMobile && uploadStoreRefs.completedTasks.value.length > 0"
             icon="pi pi-trash"
             severity="secondary"
             variant="text"
             size="small"
+            title="清除已完成"
             @click.stop="handleClearCompleted"
           />
 
@@ -209,9 +250,12 @@ function handleToggleCollapse() {
           <i
             :class="[
               'pi transition-transform',
-              uploadStoreRefs.isCollapsed.value ? 'pi-chevron-up' : 'pi-chevron-down',
+              isMobile ? 'text-base' : 'text-lg',
+              uploadStoreRefs.isCollapsed.value
+                ? 'pi-chevron-up'
+                : 'pi-chevron-down',
             ]"
-          ></i>
+          />
         </div>
       </div>
 
@@ -226,120 +270,201 @@ function handleToggleCollapse() {
       >
         <div
           v-if="!uploadStoreRefs.isCollapsed.value"
-          class="max-h-96 overflow-y-auto"
+          :class="['overflow-y-auto', isMobile ? 'max-h-[70vh]' : 'max-h-96']"
         >
           <div
             v-for="task in uploadStoreRefs.tasks.value"
             :key="task.id"
-            class="p-4 border-b border-surface-200 dark:border-surface-700 last:border-b-0"
+            :class="[
+              'border-b border-surface-200 dark:border-surface-700 last:border-b-0 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors',
+              isMobile ? 'px-3 py-2' : 'px-4 py-2.5',
+            ]"
           >
-            <div class="flex items-start gap-3">
+            <div
+              :class="['flex items-center', isMobile ? 'gap-2' : 'gap-3']"
+            >
               <!-- Status Icon -->
               <i
                 :class="[
                   getStatusIcon(task.status),
                   getStatusColor(task.status),
-                  'text-xl mt-1',
+                  'flex-shrink-0',
+                  isMobile ? 'text-base' : 'text-lg',
                 ]"
-              ></i>
+              />
 
-              <!-- File Info -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2 mb-2">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-surface-900 dark:text-surface-0 truncate">
-                      {{ task.objectName }}
-                    </p>
-                    <p class="text-xs text-surface-500">
-                      {{ formatFileSize(task.file.size) }}
-                      <span v-if="task.status === UploadStatus.UPLOADING">
-                        · {{ formatFileSize(task.uploadedBytes) }}
-                      </span>
-                    </p>
-                  </div>
-
-                  <!-- Actions -->
-                  <div class="flex items-center gap-1">
-                    <!-- Pause/Resume -->
-                    <Button
-                      v-if="task.status === UploadStatus.UPLOADING"
-                      icon="pi pi-pause"
-                      severity="secondary"
-                      variant="text"
-                      size="small"
-                      @click="handlePause(task.id)"
-                    />
-                    <Button
-                      v-else-if="task.status === UploadStatus.PAUSED || task.status === UploadStatus.PENDING"
-                      icon="pi pi-play"
-                      severity="secondary"
-                      variant="text"
-                      size="small"
-                      @click="handleResume(task.id)"
-                    />
-
-                    <!-- Cancel -->
-                    <Button
-                      v-if="task.status !== UploadStatus.COMPLETED && task.status !== UploadStatus.CANCELLED"
-                      icon="pi pi-times"
-                      severity="secondary"
-                      variant="text"
-                      size="small"
-                      @click="handleCancel(task.id)"
-                    />
-
-                    <!-- Remove -->
-                    <Button
-                      v-if="task.status === UploadStatus.COMPLETED || task.status === UploadStatus.CANCELLED"
-                      icon="pi pi-trash"
-                      severity="secondary"
-                      variant="text"
-                      size="small"
-                      @click="handleRemove(task.id)"
-                    />
+              <!-- File Info & Progress -->
+              <div class="flex-1 min-w-0 flex items-center gap-2">
+                <!-- File Name & Size -->
+                <div class="min-w-0 flex-shrink">
+                  <p
+                    :class="[
+                      'font-medium text-surface-900 dark:text-surface-0 truncate leading-tight',
+                      isMobile ? 'text-xs' : 'text-sm',
+                    ]"
+                  >
+                    {{ task.objectName }}
+                  </p>
+                  <div
+                    class="flex items-center gap-2 text-xs text-surface-500 mt-0.5"
+                  >
+                    <span :class="getStatusColor(task.status)">
+                      {{ getStatusLabel(task.status) }}
+                    </span>
+                    <span>{{ formatFileSize(task.file.size) }}</span>
+                    <!-- Speed & ETA (only for uploading tasks on desktop) -->
+                    <template
+                      v-if="!isMobile && task.status === UploadStatus.UPLOADING"
+                    >
+                      <template v-if="uploadStore.getProgress(task.id)">
+                        <span>
+                          ·
+                          {{
+                            formatSpeed(uploadStore.getProgress(task.id)?.speed ?? 0)
+                          }}
+                        </span>
+                        <span
+                          v-if="(uploadStore.getProgress(task.id)?.estimatedTimeRemaining ?? 0) > 0"
+                        >
+                          ·
+                          {{
+                            formatTime(
+                              uploadStore.getProgress(task.id)?.estimatedTimeRemaining ?? 0
+                            )
+                          }}
+                        </span>
+                      </template>
+                    </template>
+                    <!-- Error Message -->
+                    <span
+                      v-if="task.error"
+                      class="text-red-500 truncate"
+                      :title="task.error"
+                    >
+                      · {{ task.error }}
+                    </span>
                   </div>
                 </div>
 
-                <!-- Progress Bar -->
-                <div v-if="task.status !== UploadStatus.COMPLETED && task.status !== UploadStatus.CANCELLED" class="mb-2">
+                <!-- Progress Bar (inline, flexible width on desktop) -->
+                <div
+                  v-if="
+                    !isMobile &&
+                      task.status !== UploadStatus.COMPLETED &&
+                      task.status !== UploadStatus.CANCELLED
+                  "
+                  class="flex-1"
+                >
                   <ProgressBar
                     :value="getProgress(task.id)"
                     :show-value="false"
-                    class="h-2"
+                    class="h-1.5"
                   />
                 </div>
 
-                <!-- Status & Speed Info -->
-                <div class="flex items-center justify-between text-xs">
-                  <span :class="getStatusColor(task.status)">
-                    {{ getStatusLabel(task.status) }}
-                  </span>
-
-                  <!-- Speed & ETA (only for uploading tasks) -->
-                  <span
-                    v-if="task.status === UploadStatus.UPLOADING"
-                    class="text-surface-500"
-                  >
-                    <template v-if="uploadStore.getProgress(task.id)">
-                      {{ formatSpeed(uploadStore.getProgress(task.id)!.speed) }}
-                      <template v-if="uploadStore.getProgress(task.id)!.estimatedTimeRemaining > 0">
-                        · 剩餘 {{ formatTime(uploadStore.getProgress(task.id)!.estimatedTimeRemaining) }}
-                      </template>
-                    </template>
-                    <template v-else>
-                      上傳中...
-                    </template>
-                  </span>
-
-                  <!-- Error Message -->
-                  <span
-                    v-if="task.error"
-                    class="text-red-500 truncate max-w-xs"
-                    :title="task.error"
-                  >
-                    {{ task.error }}
-                  </span>
+                <!-- Progress Percentage -->
+                <div
+                  v-if="
+                    task.status !== UploadStatus.COMPLETED &&
+                      task.status !== UploadStatus.CANCELLED
+                  "
+                  class="text-xs font-medium text-surface-600 dark:text-surface-400 flex-shrink-0 w-10 text-right"
+                >
+                  {{ getProgress(task.id) }}%
                 </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-0.5 flex-shrink-0">
+                <!-- Priority Controls (only for pending tasks, hidden on mobile) -->
+                <template v-if="!isMobile && task.status === UploadStatus.PENDING">
+                  <Button
+                    icon="pi pi-angle-up"
+                    severity="secondary"
+                    variant="text"
+                    size="small"
+                    :disabled="uploadStoreRefs.tasks.value.indexOf(task) === 0"
+                    title="提高優先序"
+                    @click="uploadStore.increasePriority(task.id)"
+                  />
+                  <Button
+                    icon="pi pi-angle-down"
+                    severity="secondary"
+                    variant="text"
+                    size="small"
+                    :disabled="
+                      uploadStoreRefs.tasks.value.indexOf(task) ===
+                        uploadStoreRefs.tasks.value.length - 1
+                    "
+                    title="降低優先序"
+                    @click="uploadStore.decreasePriority(task.id)"
+                  />
+                </template>
+
+                <!-- Pause/Resume -->
+                <Button
+                  v-if="task.status === UploadStatus.UPLOADING"
+                  icon="pi pi-pause"
+                  severity="secondary"
+                  variant="text"
+                  size="small"
+                  title="暫停"
+                  @click="handlePause(task.id)"
+                />
+                <Button
+                  v-else-if="task.status === UploadStatus.PAUSED"
+                  icon="pi pi-play"
+                  severity="secondary"
+                  variant="text"
+                  size="small"
+                  title="繼續"
+                  @click="handleResume(task.id)"
+                />
+
+                <!-- Retry -->
+                <Button
+                  v-if="
+                    task.status === UploadStatus.FAILED ||
+                      task.status === UploadStatus.EXPIRED ||
+                      task.status === UploadStatus.VERIFICATION_FAILED
+                  "
+                  icon="pi pi-refresh"
+                  severity="secondary"
+                  variant="text"
+                  size="small"
+                  title="重試"
+                  @click="handleRetry(task.id)"
+                />
+
+                <!-- Cancel -->
+                <Button
+                  v-if="
+                    task.status !== UploadStatus.COMPLETED &&
+                      task.status !== UploadStatus.CANCELLED &&
+                      task.status !== UploadStatus.FAILED
+                  "
+                  icon="pi pi-times"
+                  severity="secondary"
+                  variant="text"
+                  size="small"
+                  title="取消"
+                  @click="handleCancel(task.id)"
+                />
+
+                <!-- Remove -->
+                <Button
+                  v-if="
+                    task.status === UploadStatus.COMPLETED ||
+                      task.status === UploadStatus.CANCELLED ||
+                      task.status === UploadStatus.FAILED
+                  "
+                  icon="pi pi-trash"
+                  severity="secondary"
+                  variant="text"
+                  size="small"
+                  title="移除"
+                  @click="handleRemove(task.id)"
+                />
               </div>
             </div>
           </div>
@@ -347,10 +472,17 @@ function handleToggleCollapse() {
           <!-- Empty State -->
           <div
             v-if="uploadStoreRefs.tasks.value.length === 0"
-            class="p-8 text-center text-surface-500"
+            :class="[
+              'text-center text-surface-500',
+              isMobile ? 'p-6' : 'p-8',
+            ]"
           >
-            <i class="pi pi-inbox text-4xl mb-2"></i>
-            <p>目前沒有上傳任務</p>
+            <i
+              :class="['pi pi-inbox mb-2', isMobile ? 'text-3xl' : 'text-4xl']"
+            />
+            <p class="text-sm">
+              目前沒有上傳任務
+            </p>
           </div>
         </div>
       </Transition>

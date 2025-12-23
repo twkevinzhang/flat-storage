@@ -271,9 +271,23 @@ export const useUploadStore = defineStore('upload', () => {
     ];
   }
 
+  // UI 狀態
+  const isCollapsed = ref(false);
+
+  // 計算屬性
+  const activeTasks = computed(() =>
+    tasks.value.filter(
+      (t) =>
+        ![UploadStatus.COMPLETED, UploadStatus.CANCELLED].includes(t.status)
+    )
+  );
+
   return {
     tasks,
     totalProgress,
+    isCollapsed,
+    activeTasks,
+    completedTasks,
     hasActiveUploads: computed(() => uploadingTasks.value.length > 0),
     createTask: (params: {
       sessionId: string;
@@ -313,6 +327,18 @@ export const useUploadStore = defineStore('upload', () => {
       activeControllers.get(id)?.abort();
       updateTask(id, { status: UploadStatus.CANCELLED });
     },
+    retryTask: (id: string) => {
+      const task = tasks.value.find((t) => t.id === id);
+      if (!task) return;
+
+      // 重置任務狀態
+      updateTask(id, {
+        status: UploadStatus.PENDING,
+        uploadedBytes: 0,
+        error: undefined,
+        uploadUri: undefined,
+      });
+    },
     removeTask: (taskId: string) => {
       const index = tasks.value.findIndex((t) => t.id === taskId);
       if (index !== -1) {
@@ -321,12 +347,18 @@ export const useUploadStore = defineStore('upload', () => {
       }
     },
     clearCompletedTasks: () => {
+      const completed = tasks.value.filter(
+        (t) => t.status === UploadStatus.COMPLETED
+      );
       tasks.value = tasks.value.filter(
         (t) => t.status !== UploadStatus.COMPLETED
       );
-      completedTasks.value.forEach((task) => {
+      completed.forEach((task) => {
         delete files.value[task.id];
       });
+    },
+    toggleCollapse: () => {
+      isCollapsed.value = !isCollapsed.value;
     },
     setSession: (s: SessionEntity) => {
       session.value = s;
