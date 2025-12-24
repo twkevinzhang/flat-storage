@@ -72,7 +72,6 @@ declare global {
   const debouncedWatch: typeof import('@vueuse/core')['debouncedWatch']
   const deburr: typeof import('lodash-es')['deburr']
   const decodeProxyBuffer: typeof import('@site/utilities')['decodeProxyBuffer']
-  const default: typeof import('lodash-es')['default']
   const defaultTo: typeof import('lodash-es')['defaultTo']
   const defaults: typeof import('lodash-es')['defaults']
   const defaultsDeep: typeof import('lodash-es')['defaultsDeep']
@@ -247,11 +246,9 @@ declare global {
   const next: typeof import('lodash-es')['next']
   const nextTick: typeof import('vue')['nextTick']
   const noop: typeof import('lodash-es')['noop']
-  const normalizePath: typeof import('@site/utilities')['normalizePath']
   const now: typeof import('lodash-es')['now']
   const nth: typeof import('lodash-es')['nth']
   const nthArg: typeof import('lodash-es')['nthArg']
-  const objectName: typeof import('@site/utilities')['objectName']
   const omit: typeof import('lodash-es')['omit']
   const omitBy: typeof import('lodash-es')['omitBy']
   const onActivated: typeof import('vue')['onActivated']
@@ -323,10 +320,7 @@ declare global {
   const refWithControl: typeof import('@vueuse/core')['refWithControl']
   const reject: typeof import('lodash-es')['reject']
   const remove: typeof import('lodash-es')['remove']
-  const removeLeadingPart: typeof import('@site/utilities')['removeLeadingPart']
-  const removeLeadingPath: typeof import('@site/utilities')['removeLeadingPath']
   const removeLeadingSlash: typeof import('@site/utilities')['removeLeadingSlash']
-  const removeMount: typeof import('@site/utilities')['removeMount']
   const removeTrailingPart: typeof import('@site/utilities')['removeTrailingPart']
   const removeTrailingSlash: typeof import('@site/utilities')['removeTrailingSlash']
   const repeat: typeof import('lodash-es')['repeat']
@@ -973,6 +967,7 @@ declare module 'vue' {
     readonly reject: UnwrapRef<typeof import('lodash-es')['reject']>
     readonly remove: UnwrapRef<typeof import('lodash-es')['remove']>
     readonly removeLeadingSlash: UnwrapRef<typeof import('@site/utilities')['removeLeadingSlash']>
+    readonly removeTrailingPart: UnwrapRef<typeof import('@site/utilities')['removeTrailingPart']>
     readonly removeTrailingSlash: UnwrapRef<typeof import('@site/utilities')['removeTrailingSlash']>
     readonly repeat: UnwrapRef<typeof import('lodash-es')['repeat']>
     readonly replace: UnwrapRef<typeof import('lodash-es')['replace']>

@@ -9,10 +9,12 @@ export const useUiStore = defineStore('ui', () => {
     'progressTable',
     'collapsed'
   );
+
   return {
     isSidebarPinned,
     sidebarWidth,
     viewMode,
+    progressTable,
 
     toggleSidebarPin() {
       isSidebarPinned.value = !isSidebarPinned.value;
@@ -25,7 +27,7 @@ export const useUiStore = defineStore('ui', () => {
     },
     setProgressTable(mode: 'collapsed' | 'expanded') {
       progressTable.value = mode;
-    }
+    },
   };
 });
 

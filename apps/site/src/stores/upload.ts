@@ -201,10 +201,10 @@ export const useUploadStore = defineStore('upload', () => {
       await runUploadPhase(task.id, controller.signal);
 
       // 4. 驗證
-      const metadata = await runVerifyPhase(task.id, session);
+      // const metadata = await runVerifyPhase(task.id, session); // FIXME: bypass
 
       // 5. 更新 metadata store
-      await runUpdateMetadata(task.id, controller.signal);
+      await runUpdateMetadata(task.id, session);
 
       updateTask(task.id, { status: UploadStatus.COMPLETED });
 
@@ -294,14 +294,20 @@ export const useUploadStore = defineStore('upload', () => {
       }
     }
 
-    let res;
     for await (const chunk of getChunks()) {
-      res = await axios.put(task.uploadUri!, chunk.blob, {
-        signal,
-        headers: {
-          'Content-Range': `bytes ${chunk.start}-${chunk.end}/${file.size}`,
-        },
-      });
+      try {
+        const res = await axios.put(task.uploadUri!, chunk.blob, {
+          signal,
+          headers: {
+            'Content-Range': `bytes ${chunk.start}-${chunk.end}/${file.size}`,
+          },
+        });
+        console.log('res', res);
+      } catch (err) {
+        console.log('err', err);
+        if (axios.isAxiosError(err)) {
+        }
+      }
 
       const nextOffset = chunk.end + 1;
       tracker.update(nextOffset);

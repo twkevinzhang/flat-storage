@@ -9,8 +9,10 @@ const props = withDefaults(
     indent?: boolean;
     columns?: { label: string; key: ColumnKeys }[];
     columnWidths?: Record<string, number>;
-    selectedKey?: string;
     expandedKeys?: string[];
+    showCheckbox?: boolean;
+    selectedKeys?: string[];
+    indeterminateKeys?: string[];
   }>(),
   {
     tree: () => [],
@@ -18,14 +20,18 @@ const props = withDefaults(
     indent: false,
     columns: () => [],
     columnWidths: () => ({}),
+    showCheckbox: false,
+    selectedKeys: () => [],
+    indeterminateKeys: () => [],
   }
 );
 
 const emits = defineEmits<{
-  (e: 'nodeExpand', node: Entity): void;
+  (e: 'nodeToggle', node: Entity, newValue: boolean): void;
   (e: 'nodeClick', node: Entity): void;
   (e: 'showMoreClick'): void;
   (e: 'update:expandedKeys', keys: string[]): void;
+  (e: 'toggleSelection', node: Entity): void;
 }>();
 
 const internalExpandedKeys = ref<Array<string>>([]);
@@ -42,8 +48,16 @@ function isExpanded(node: Entity) {
   return actualExpandedKeys.value.includes(node.key);
 }
 
-function isSelected(node: Entity) {
-  return props.selectedKey === node.key;
+function isChecked(node: Entity): boolean {
+  return props.selectedKeys.includes(node.key);
+}
+
+function isIndeterminate(node: Entity): boolean {
+  return props.indeterminateKeys.includes(node.key);
+}
+
+function handleToggleSelection(node: Entity) {
+  emits('toggleSelection', node);
 }
 
 function angleIcon(node: Entity) {
@@ -72,9 +86,10 @@ function nodeToggle(node: Entity) {
     actualExpandedKeys.value = actualExpandedKeys.value.filter(
       (key) => key !== node.key
     );
+    emits('nodeToggle', node, false);
   } else {
     actualExpandedKeys.value = [...actualExpandedKeys.value, node.key];
-    emits('nodeExpand', node);
+    emits('nodeToggle', node, true);
   }
 }
 
@@ -101,11 +116,7 @@ function getCellValue(node: Entity, key: ColumnKeys) {
     <li v-for="node in take(props.tree, props.limit)" :key="node.key">
       <!-- Row with dynamic columns -->
       <div
-        class="flex items-center border-b border-gray-100 hover:bg-gray-50 transition-colors"
-        :class="{
-          '!bg-primary-50': isSelected(node),
-          'bg-white': !isSelected(node),
-        }"
+        class="flex items-center border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors"
       >
         <template v-for="col in props.columns" :key="col.key">
           <!-- Special handling for Name column with toggle/icons -->
@@ -114,31 +125,42 @@ function getCellValue(node: Entity, key: ColumnKeys) {
             class="flex items-center flex-shrink-0 min-w-0"
             :style="{ width: props.columnWidths[col.key] + 'px' }"
           >
-            <template v-if="node.leaf">
-              <Hover
-                class="w-6 flex-shrink-0"
-                :icon="angleIcon(node)"
-                :fluid="false"
-                rounded="none"
-                @click="(e) => nodeToggle(node)"
-              />
-            </template>
-            <template v-else>
-              <span class="w-2 flex-shrink-0" />
-            </template>
             <div
               :class="[
-                'w-full p-2 overflow-hidden',
+                'w-full p-1 overflow-hidden flex gap-2 items-center',
                 props.indent ? 'pl-8' : '',
               ]"
             >
+              <!-- Checkbox (僅在 selectMode 顯示) -->
+              <Checkbox
+                v-if="props.showCheckbox"
+                :model-value="isChecked(node)"
+                :indeterminate="isIndeterminate(node)"
+                binary
+                class="flex-shrink-0 ml-2"
+                @update:model-value="handleToggleSelection(node)"
+              />
+
+              <template v-if="node.leaf">
+                <Hover
+                  class="w-6 flex-shrink-0"
+                  :icon="angleIcon(node)"
+                  :fluid="false"
+                  rounded="none"
+                  @click="(e) => nodeToggle(node)"
+                />
+              </template>
+              <template v-else>
+                <div class="w-6 size-8 flex-shrink-0" />
+              </template>
+
+              <PrimeIcon :fullname="mimeIcon(node)" />
               <Hover
                 class="min-w-0"
-                :icon="mimeIcon(node)"
                 :label="node.label"
                 severity="link"
                 :fluid="false"
-                paddingSize="none"
+                padding-size="none"
                 @click="(e) => emits('nodeClick', node)"
               />
             </div>
@@ -164,10 +186,13 @@ function getCellValue(node: Entity, key: ColumnKeys) {
           :limit="props.limit"
           :columns="props.columns"
           :column-widths="props.columnWidths"
-          :selected-key="props.selectedKey"
-          v-model:expanded-keys="actualExpandedKeys"
+          :show-checkbox="props.showCheckbox"
+          :selected-keys="props.selectedKeys"
+          :expanded-keys="actualExpandedKeys"
+          :indeterminate-keys="props.indeterminateKeys"
           @node-click="(node) => emits('nodeClick', node)"
-          @node-expand="(node) => emits('nodeExpand', node)"
+          @node-toggle="(node) => nodeToggle(node)"
+          @toggle-selection="(key) => emits('toggleSelection', key)"
         />
       </template>
     </li>

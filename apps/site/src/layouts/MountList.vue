@@ -3,17 +3,25 @@ import { Entity } from '@site/components/ObjectTree';
 import { ColumnKeys } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
 
-const props = defineProps({
-  isRoot: {
-    type: Boolean,
-    required: true,
-  },
-  tree: {
-    type: Array<Entity>,
-    required: true,
-  },
-});
-const emits = defineEmits(['nodeClick', 'nodeExpand', 'up', 'showMoreClick']);
+const props = defineProps<{
+  class?: any;
+  isRoot: boolean;
+  tree: Entity[];
+  pt?: {
+    root?: any;
+  };
+  showCheckbox?: boolean;
+  selectedKeys?: string[];
+  indeterminateKeys?: string[];
+}>();
+
+const emits = defineEmits<{
+  (e: 'nodeToggle', node: Entity, newValue: boolean): void;
+  (e: 'nodeClick', node: Entity): void;
+  (e: 'showMoreClick'): void;
+  (e: 'up'): void;
+  (e: 'toggleSelection', node: Entity): void;
+}>();
 
 const listViewStore = useListViewStore();
 const { activeColumns } = storeToRefs(listViewStore);
@@ -28,7 +36,7 @@ const columnWidths = ref<Record<string, number>>({
 </script>
 <template>
   <!-- Scrollable container for mobile -->
-  <div class="overflow-x-auto">
+  <div v-bind="pt?.root" class="overflow-x-auto">
     <div class="min-w-max">
       <!-- Column Headers -->
       <SplitterPx
@@ -90,8 +98,12 @@ const columnWidths = ref<Record<string, number>>({
           :limit="10"
           :columns="activeColumns"
           :column-widths="columnWidths"
+          :show-checkbox="showCheckbox"
+          :selected-keys="selectedKeys"
+          :indeterminate-keys="indeterminateKeys"
           @node-click="(e) => emits('nodeClick', e)"
-          @node-expand="(e) => emits('nodeExpand', e)"
+          @node-toggle="(e, b) => emits('nodeToggle', e, b)"
+          @toggle-selection="(e) => emits('toggleSelection', e)"
         />
       </ul>
     </div>

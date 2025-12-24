@@ -217,7 +217,7 @@ function handleCancel() {
           :columns="columns"
           :column-widths="columnWidths"
           :selected-key="destinationPath"
-          v-model:expanded-keys="expandedKeys"
+          :expanded-keys="expandedKeys"
           @node-click="handleNodeClick"
         />
       </div>

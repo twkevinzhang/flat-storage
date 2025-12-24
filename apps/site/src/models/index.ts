@@ -413,9 +413,9 @@ export class EntityPath {
     throw new Error('Invalid path no name');
   }
 
-  get parent(): EntityPath {
+  get parent(): EntityPath | null {
     if (this.isRootLevel) {
-      throw new Error('Root level path has no parent');
+      return null;
     }
     const slice = this.segments.slice(0, -1);
     return new EntityPath(this.sessionId, slice);

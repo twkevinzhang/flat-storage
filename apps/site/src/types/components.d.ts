@@ -14,11 +14,9 @@ declare module 'vue' {
     AppDialog: typeof import('./../app/AppDialog.vue')['default']
     Breadcrumb: typeof import('./../components/Breadcrumb.vue')['default']
     Button: typeof import('primevue/button')['default']
-    ButtonGroup: typeof import('primevue/buttongroup')['default']
-    Card: typeof import('primevue/card')['default']
+    Checkbox: typeof import('primevue/checkbox')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
-    Drawer: typeof import('primevue/drawer')['default']
     Fieldset: typeof import('primevue/fieldset')['default']
     FileUpload: typeof import('primevue/fileupload')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
@@ -45,9 +43,10 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
     SelectButton: typeof import('primevue/selectbutton')['default']
+    SelectModeActionBar: typeof import('./../layouts/SelectModeActionBar.vue')['default']
+    SelectModeOverlay: typeof import('./../layouts/SelectModeOverlay.vue')['default']
     Sessions: typeof import('./../pages/sessions/index.vue')['default']
     SidebarMenu: typeof import('./../layouts/SidebarMenu.vue')['default']
-    SplitButton: typeof import('primevue/splitbutton')['default']
     SplitterPx: typeof import('./../components/SplitterPx.vue')['default']
     SplitterPxPanel: typeof import('./../components/SplitterPxPanel.vue')['default']
     Step: typeof import('primevue/step')['default']
@@ -63,7 +62,6 @@ declare module 'vue' {
     UploadProgress: typeof import('./../components/UploadProgress.vue')['default']
   }
   export interface GlobalDirectives {
-    Ripple: typeof import('primevue/ripple')['default']
     Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

@@ -26,6 +26,13 @@ export function removeTrailingSlash(path: string): string {
   return path.endsWith('/') ? path.slice(0, -1) : path;
 }
 
+export function removeTrailingPart(path: string): string {
+  path = removeTrailingSlash(path);
+  const lastSlashIndex = path.lastIndexOf('/');
+  if (lastSlashIndex === -1) return '';
+  return path.slice(0, lastSlashIndex);
+}
+
 export function decodeProxyBuffer(data: any): string {
   if (typeof data === 'string') return data;
   if (data?.type === 'Buffer' && Array.isArray(data.data)) {
