@@ -11,6 +11,7 @@ import { pathIt, useListViewStore } from '@site/stores/list-view';
 import { useSessionStore } from '@site/stores/session';
 import { useUiStore } from '@site/stores/ui';
 import { useMetadataStore } from '@site/stores/metadata';
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 
 /**
  * =====
@@ -93,6 +94,39 @@ const dialogStore = useDialogStore();
 const uiStore = useUiStore();
 const { viewMode } = storeToRefs(uiStore);
 
+// 響應式斷點
+const breakpoints = useBreakpoints(breakpointsTailwind);
+const isMobile = breakpoints.smaller('md');
+const isDesktop = breakpoints.greaterOrEqual('md');
+
+// 手機版更多選單
+const moreMenu = ref<any>(null);
+const moreMenuItems = computed(() => [
+  {
+    label: '篩選',
+    icon: 'pi pi-filter',
+    badge: listViewStoreRefs.filterCount.value || undefined,
+    command: () => {
+      dialogStore.open('filter');
+    },
+  },
+  {
+    label: '排序',
+    icon: 'pi pi-sort-alpha-down',
+    badge: listViewStoreRefs.sortRulesCount.value || undefined,
+    command: () => {
+      dialogStore.open('sort');
+    },
+  },
+  {
+    label: '欄位順序',
+    icon: 'pi pi-sort',
+    command: () => {
+      dialogStore.open('order');
+    },
+  },
+]);
+
 /**
  * =====
  * Handlers
@@ -160,72 +194,64 @@ function toLeafNode(v: ObjectEntity): Entity {
 
 <template>
   <div class="flex flex-col gap-2">
-    <div>
-      <Breadcrumb
-        v-if="!path.isRootLevel"
-        :path="path"
-        @navigate="(e: EntityPath) => handleNavigate(e)"
+    <!-- Breadcrumb (手機版和桌面版都顯示) -->
+    <Breadcrumb
+      v-if="!path.isRootLevel"
+      :path="path"
+      @navigate="(e: EntityPath) => handleNavigate(e)"
+    />
+
+    <!-- 資料夾名稱列 (獨立一行) -->
+    <div class="flex items-center gap-2">
+      <!-- 選擇模式按鈕 (僅桌面版) -->
+      <Button
+        v-if="isDesktop"
+        icon="pi pi-check-square"
+        :severity="uiStore.selectMode ? 'info' : 'secondary'"
+        :variant="uiStore.selectMode ? 'filled' : 'outlined'"
+        aria-label="選擇模式"
+        @click="uiStore.toggleSelectMode()"
       />
-      <div class="flex items-center gap-2">
-        <Hover
-          class="flex-1"
-          severity="list-item"
-          :fluid="false"
-          @click="(e) => dialogStore.open('menu')"
-        >
-          <span class="text-xl font-bold break-all">
-            {{ listViewStoreRefs.name.value }}
-          </span>
-          <PrimeIcon name="angle-down" />
-        </Hover>
+
+      <!-- 資料夾名稱 + 選單 -->
+      <Hover
+        class="flex-1"
+        severity="list-item"
+        :fluid="false"
+        @click="dialogStore.open('menu')"
+      >
+        <span :class="['font-bold break-all', isDesktop ? 'text-xl' : 'text-lg']">
+          {{ listViewStoreRefs.name.value }}
+        </span>
+        <PrimeIcon name="angle-down" />
+      </Hover>
+    </div>
+
+    <!-- 工具列容器 -->
+    <div :class="['flex items-center', isMobile ? 'gap-2' : 'gap-4']">
+      <!-- 手機版：更多選單 + 主要操作 -->
+      <div
+        v-if="isMobile"
+        class="flex items-center gap-2 w-full"
+      >
+        <Menu ref="moreMenu" :model="moreMenuItems" :popup="true" />
+        <Button
+          icon="pi pi-ellipsis-v"
+          severity="secondary"
+          variant="outlined"
+          aria-label="更多選項"
+          @click="(e) => moreMenu?.toggle(e)"
+        />
         <Button
           icon="pi pi-refresh"
           severity="secondary"
           variant="outlined"
-          @click="(e) => handleRefresh()"
+          aria-label="重新整理"
+          @click="handleRefresh()"
         />
-      </div>
-    </div>
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <div class="flex flex-wrap items-center gap-2">
-        <SelectButton
-          v-model="viewMode"
-          size="large"
-          :options="[
-            { icon: 'th-large', name: 'Grid', value: 'grid' },
-            { icon: 'list', name: 'List', value: 'list' },
-            { icon: 'map', name: 'Column', value: 'column' },
-          ]"
-          optionLabel="name"
-          optionValue="value"
-        >
-          <template #option="{ option }">
-            <PrimeIcon :name="option.icon" />
-          </template>
-        </SelectButton>
-        <ButtonGroup>
-          <Button
-            icon="pi pi-filter"
-            severity="secondary"
-            variant="outlined"
-            :badge="listViewStoreRefs.filterCount.value"
-            badgeSeverity="contrast"
-            @click="(e) => dialogStore.open('filter')"
-          />
-          <Button
-            icon="pi pi-sort-alpha-down"
-            severity="secondary"
-            variant="outlined"
-            :badge="listViewStoreRefs.sortRulesCount.value"
-            badgeSeverity="contrast"
-            @click="(e) => dialogStore.open('sort')"
-          />
-        </ButtonGroup>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
         <SplitButton
           label="Upload"
-          @click="(e) => handleUpload()"
+          severity="primary"
           :model="[
             {
               label: 'Create Folder',
@@ -233,15 +259,99 @@ function toLeafNode(v: ObjectEntity): Entity {
               command: () => {},
             },
           ]"
-        />
-        <Button
-          icon="pi pi-sort"
-          severity="secondary"
-          variant="outlined"
-          badgeSeverity="contrast"
-          @click="(e) => dialogStore.open('order')"
+          @click="handleUpload()"
         />
       </div>
+
+      <!-- 桌面版：區域 2 + 區域 3 -->
+      <template v-else>
+        <!-- 區域 2: View & Organization -->
+        <div class="flex items-center gap-3">
+          <SelectButton
+            v-model="viewMode"
+            option-label="name"
+            option-value="value"
+            :options="[
+              { icon: 'th-large', name: 'Grid', value: 'grid' },
+              { icon: 'list', name: 'List', value: 'list' },
+              { icon: 'map', name: 'Column', value: 'column' },
+            ]"
+          >
+            <template #option="{ option }">
+              <PrimeIcon :name="option.icon" />
+            </template>
+          </SelectButton>
+          <ButtonGroup>
+            <Button
+              icon="pi pi-filter"
+              severity="secondary"
+              variant="outlined"
+              badge-severity="contrast"
+              aria-label="篩選"
+              :badge="listViewStoreRefs.filterCount.value"
+              @click="dialogStore.open('filter')"
+            />
+            <Button
+              icon="pi pi-sort-alpha-down"
+              severity="secondary"
+              variant="outlined"
+              badge-severity="contrast"
+              aria-label="排序"
+              :badge="listViewStoreRefs.sortRulesCount.value"
+              @click="dialogStore.open('sort')"
+            />
+            <Button
+              icon="pi pi-sort"
+              severity="secondary"
+              variant="outlined"
+              aria-label="欄位順序"
+              @click="dialogStore.open('order')"
+            />
+          </ButtonGroup>
+        </div>
+
+        <!-- 區域 3: Primary Actions -->
+        <div class="flex items-center gap-2">
+          <Button
+            icon="pi pi-refresh"
+            severity="secondary"
+            variant="outlined"
+            aria-label="重新整理"
+            @click="handleRefresh()"
+          />
+          <SplitButton
+            label="Upload"
+            severity="primary"
+            :model="[
+              {
+                label: 'Create Folder',
+                icon: 'pi pi-folder-plus',
+                command: () => {},
+              },
+            ]"
+            @click="handleUpload()"
+          />
+        </div>
+      </template>
+    </div>
+
+    <!-- 手機版第二列：視圖模式 -->
+    <div v-if="isMobile" class="mt-2 flex items-center">
+      <SelectButton
+        v-model="viewMode"
+        size="small"
+        option-label="name"
+        option-value="value"
+        :options="[
+          { icon: 'th-large', name: 'Grid', value: 'grid' },
+          { icon: 'list', name: 'List', value: 'list' },
+          { icon: 'map', name: 'Column', value: 'column' },
+        ]"
+      >
+        <template #option="{ option }">
+          <PrimeIcon :name="option.icon" />
+        </template>
+      </SelectButton>
     </div>
     <div class="my-2 overflow-y-auto">
       <MountList
