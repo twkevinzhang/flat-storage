@@ -97,7 +97,7 @@ function getCellValue(node: Entity, key: ColumnKeys) {
 </script>
 
 <template>
-  <ul :class="indent ? 'pl-6' : ''">
+  <ul>
     <li v-for="node in take(props.tree, props.limit)" :key="node.key">
       <!-- Row with dynamic columns -->
       <div
@@ -122,32 +122,26 @@ function getCellValue(node: Entity, key: ColumnKeys) {
                 rounded="none"
                 @click="(e) => nodeToggle(node)"
               />
-              <div class="w-full p-2 overflow-hidden">
-                <Hover
-                  class="min-w-0"
-                  :icon="mimeIcon(node)"
-                  :label="node.label"
-                  severity="link"
-                  :fluid="false"
-                  paddingSize="none"
-                  @click="(e) => emits('nodeClick', node)"
-                />
-              </div>
             </template>
             <template v-else>
               <span class="w-2 flex-shrink-0" />
-              <div class="w-full p-2 overflow-hidden">
-                <Hover
-                  class="min-w-0"
-                  :icon="mimeIcon(node)"
-                  :label="node.label"
-                  severity="link"
-                  :fluid="false"
-                  paddingSize="none"
-                  @click="(e) => emits('nodeClick', node)"
-                />
-              </div>
             </template>
+            <div
+              :class="[
+                'w-full p-2 overflow-hidden',
+                props.indent ? 'pl-8' : '',
+              ]"
+            >
+              <Hover
+                class="min-w-0"
+                :icon="mimeIcon(node)"
+                :label="node.label"
+                severity="link"
+                :fluid="false"
+                paddingSize="none"
+                @click="(e) => emits('nodeClick', node)"
+              />
+            </div>
           </div>
 
           <!-- Generic columns -->
