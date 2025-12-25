@@ -107,6 +107,11 @@ function formatFileSize(bytes: number): string {
   return `${size.toFixed(1)} ${units[i]}`;
 }
 
+function name(path: string): string {
+  const parts = path.split('/');
+  return parts[parts.length - 1] ?? '';
+}
+
 function formatSpeed(bytesPerSecond: number): string {
   return `${formatFileSize(bytesPerSecond)}/s`;
 }
@@ -280,9 +285,7 @@ function handleToggleCollapse() {
               isMobile ? 'px-3 py-2' : 'px-4 py-2.5',
             ]"
           >
-            <div
-              :class="['flex items-center', isMobile ? 'gap-2' : 'gap-3']"
-            >
+            <div :class="['flex items-center', isMobile ? 'gap-2' : 'gap-3']">
               <!-- Status Icon -->
               <i
                 :class="[
@@ -303,7 +306,7 @@ function handleToggleCollapse() {
                       isMobile ? 'text-xs' : 'text-sm',
                     ]"
                   >
-                    {{ task.objectName }}
+                    {{ name(task.path) }}
                   </p>
                   <div
                     class="flex items-center gap-2 text-xs text-surface-500 mt-0.5"
@@ -320,16 +323,22 @@ function handleToggleCollapse() {
                         <span>
                           ·
                           {{
-                            formatSpeed(uploadStore.getProgress(task.id)?.speed ?? 0)
+                            formatSpeed(
+                              uploadStore.getProgress(task.id)?.speed ?? 0
+                            )
                           }}
                         </span>
                         <span
-                          v-if="(uploadStore.getProgress(task.id)?.estimatedTimeRemaining ?? 0) > 0"
+                          v-if="
+                            (uploadStore.getProgress(task.id)
+                              ?.estimatedTimeRemaining ?? 0) > 0
+                          "
                         >
                           ·
                           {{
                             formatTime(
-                              uploadStore.getProgress(task.id)?.estimatedTimeRemaining ?? 0
+                              uploadStore.getProgress(task.id)
+                                ?.estimatedTimeRemaining ?? 0
                             )
                           }}
                         </span>
@@ -350,8 +359,8 @@ function handleToggleCollapse() {
                 <div
                   v-if="
                     !isMobile &&
-                      task.status !== UploadStatus.COMPLETED &&
-                      task.status !== UploadStatus.CANCELLED
+                    task.status !== UploadStatus.COMPLETED &&
+                    task.status !== UploadStatus.CANCELLED
                   "
                   class="flex-1"
                 >
@@ -366,7 +375,7 @@ function handleToggleCollapse() {
                 <div
                   v-if="
                     task.status !== UploadStatus.COMPLETED &&
-                      task.status !== UploadStatus.CANCELLED
+                    task.status !== UploadStatus.CANCELLED
                   "
                   class="text-xs font-medium text-surface-600 dark:text-surface-400 flex-shrink-0 w-10 text-right"
                 >
@@ -377,7 +386,9 @@ function handleToggleCollapse() {
               <!-- Actions -->
               <div class="flex items-center gap-0.5 flex-shrink-0">
                 <!-- Priority Controls (only for pending tasks, hidden on mobile) -->
-                <template v-if="!isMobile && task.status === UploadStatus.PENDING">
+                <template
+                  v-if="!isMobile && task.status === UploadStatus.PENDING"
+                >
                   <Button
                     icon="pi pi-angle-up"
                     severity="secondary"
@@ -394,7 +405,7 @@ function handleToggleCollapse() {
                     size="small"
                     :disabled="
                       uploadStoreRefs.tasks.value.indexOf(task) ===
-                        uploadStoreRefs.tasks.value.length - 1
+                      uploadStoreRefs.tasks.value.length - 1
                     "
                     title="降低優先序"
                     @click="uploadStore.decreasePriority(task.id)"
@@ -425,8 +436,8 @@ function handleToggleCollapse() {
                 <Button
                   v-if="
                     task.status === UploadStatus.FAILED ||
-                      task.status === UploadStatus.EXPIRED ||
-                      task.status === UploadStatus.VERIFICATION_FAILED
+                    task.status === UploadStatus.EXPIRED ||
+                    task.status === UploadStatus.VERIFICATION_FAILED
                   "
                   icon="pi pi-refresh"
                   severity="secondary"
@@ -440,8 +451,8 @@ function handleToggleCollapse() {
                 <Button
                   v-if="
                     task.status !== UploadStatus.COMPLETED &&
-                      task.status !== UploadStatus.CANCELLED &&
-                      task.status !== UploadStatus.FAILED
+                    task.status !== UploadStatus.CANCELLED &&
+                    task.status !== UploadStatus.FAILED
                   "
                   icon="pi pi-times"
                   severity="secondary"
@@ -455,8 +466,8 @@ function handleToggleCollapse() {
                 <Button
                   v-if="
                     task.status === UploadStatus.COMPLETED ||
-                      task.status === UploadStatus.CANCELLED ||
-                      task.status === UploadStatus.FAILED
+                    task.status === UploadStatus.CANCELLED ||
+                    task.status === UploadStatus.FAILED
                   "
                   icon="pi pi-trash"
                   severity="secondary"
@@ -472,17 +483,12 @@ function handleToggleCollapse() {
           <!-- Empty State -->
           <div
             v-if="uploadStoreRefs.tasks.value.length === 0"
-            :class="[
-              'text-center text-surface-500',
-              isMobile ? 'p-6' : 'p-8',
-            ]"
+            :class="['text-center text-surface-500', isMobile ? 'p-6' : 'p-8']"
           >
             <i
               :class="['pi pi-inbox mb-2', isMobile ? 'text-3xl' : 'text-4xl']"
             />
-            <p class="text-sm">
-              目前沒有上傳任務
-            </p>
+            <p class="text-sm">目前沒有上傳任務</p>
           </div>
         </div>
       </Transition>

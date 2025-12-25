@@ -52,7 +52,7 @@ interface FileWithConflict {
 const filesWithConflicts = computed<FileWithConflict[]>(() => {
   const existingNames = new Set(
     metadataStoreRefs.allObjects.value
-      .filter((obj) => obj.path.parent.equals(currentPath.value))
+      .filter((obj) => obj.path.parent?.equals(currentPath.value))
       .map((obj) => obj.name)
   );
 
@@ -149,8 +149,7 @@ async function handleConfirm() {
       uploadStore.createTask({
         sessionId: sessionId.value,
         file: file,
-        targetPath: currentPathSegments.value,
-        name: finalName,
+        path: joinPath(currentPathSegments.value, finalName),
       });
     });
 

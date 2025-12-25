@@ -209,7 +209,7 @@ export const useUploadStore = defineStore('upload', () => {
       updateTask(task.id, { status: UploadStatus.COMPLETED });
 
       // 發送完成通知
-      sendNotification('上傳完成', `${task.objectName} 已成功上傳`, 'success');
+      sendNotification('上傳完成', `${task.file.name} 已成功上傳`, 'success');
     } catch (err: any) {
       console.error('上傳失敗:', err);
       if (err.name === 'AbortError') return;
@@ -235,7 +235,7 @@ export const useUploadStore = defineStore('upload', () => {
       }
 
       // 發送失敗通知
-      sendNotification('上傳失敗', `${task.objectName} 上傳失敗`, 'error');
+      sendNotification('上傳失敗', `${task.file.name} 上傳失敗`, 'error');
     } finally {
       activeControllers.delete(task.id);
       trackers.delete(task.id);
@@ -265,7 +265,7 @@ export const useUploadStore = defineStore('upload', () => {
     const bucket = proxyBucket(session);
     const task = getTask(taskId);
     const [uploadUri] = await bucket
-      .file(task.gcsPath())
+      .file(task.objectNameOnGcs())
       .createResumableUpload({
         metadata: {
           contentType: task.file.type,
@@ -321,7 +321,7 @@ export const useUploadStore = defineStore('upload', () => {
   async function runVerifyPhase(taskId: string, session: SessionEntity) {
     const bucket = proxyBucket(session);
     const task = getTask(taskId);
-    const [metadata] = await bucket.file(task.gcsPath()).getMetadata();
+    const [metadata] = await bucket.file(task.objectNameOnGcs()).getMetadata();
 
     // 將 Hex 轉為 Base64 比對
     const hexToB64 = (hex: string) =>
@@ -344,12 +344,14 @@ export const useUploadStore = defineStore('upload', () => {
   async function runUpdateMetadata(taskId: string, session: SessionEntity) {
     const bucket = proxyBucket(session);
     const task = getTask(taskId);
-    const [gcsMetadata] = await bucket.file(task.gcsPath()).getMetadata();
+    const [gcsMetadata] = await bucket
+      .file(task.objectNameOnGcs())
+      .getMetadata();
 
     const appMetadata = {
       path: EntityPath.fromRoute({
         sessionId: session.id,
-        mount: task.gcsPath(),
+        mount: task.path,
       }),
       mimeType: gcsMetadata.contentType,
       sizeBytes: Number(gcsMetadata.size),
@@ -361,7 +363,7 @@ export const useUploadStore = defineStore('upload', () => {
     };
     const entity = ObjectEntity.new(appMetadata);
 
-    await bucket.file(task.gcsPath()).setMetadata(appMetadata);
+    await bucket.file(task.objectNameOnGcs()).setMetadata(appMetadata);
 
     await metadataStore.addEntity(session, entity);
   }
@@ -421,12 +423,7 @@ export const useUploadStore = defineStore('upload', () => {
     notificationPermission,
     hasActiveUploads: computed(() => uploadingTasks.value.length > 0),
     requestNotificationPermission,
-    createTask: (params: {
-      sessionId: string;
-      file: File;
-      targetPath: string;
-      name: string;
-    }) => {
+    createTask: (params: { sessionId: string; file: File; path: string }) => {
       const task = UploadTask.new({
         sessionId: params.sessionId,
         file: {
@@ -435,8 +432,7 @@ export const useUploadStore = defineStore('upload', () => {
           type: params.file.type,
           lastModified: params.file.lastModified,
         },
-        targetPath: params.targetPath,
-        objectName: params.name,
+        path: params.path,
         uploadedBytes: 0,
         status: UploadStatus.PENDING,
         priority: tasks.value.length,

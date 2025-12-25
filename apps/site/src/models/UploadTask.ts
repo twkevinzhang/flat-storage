@@ -25,8 +25,7 @@ export class UploadTask {
     public id: string,
     public sessionId: string,
     public file: UploadTaskFile,
-    public targetPath: string,
-    public objectName: string,
+    public path: string,
     public uploadedBytes: number,
     public status: UploadStatus,
     public priority: number,
@@ -42,8 +41,7 @@ export class UploadTask {
     id: string;
     sessionId: string;
     file: UploadTaskFile;
-    targetPath: string;
-    objectName: string;
+    path: string;
     uploadedBytes: number;
     status: UploadStatus;
     priority: number;
@@ -58,8 +56,7 @@ export class UploadTask {
       params.id,
       params.sessionId,
       params.file,
-      params.targetPath,
-      params.objectName,
+      params.path,
       params.uploadedBytes,
       params.status,
       params.priority,
@@ -82,10 +79,9 @@ export class UploadTask {
         type: updates.file?.type ?? source.file.type,
         lastModified: updates.file?.lastModified ?? source.file.lastModified,
       },
-      targetPath: updates.targetPath ?? source.targetPath,
+      path: updates.path ?? source.path,
       crc32c: updates.crc32c ?? source.crc32c,
       xxHash64: updates.xxHash64 ?? source.xxHash64,
-      objectName: updates.objectName ?? source.objectName,
       uploadUri: updates.uploadUri ?? source.uploadUri,
       uploadedBytes: updates.uploadedBytes ?? source.uploadedBytes,
       status: updates.status ?? source.status,
@@ -99,8 +95,7 @@ export class UploadTask {
   static new(params: {
     sessionId: string;
     file: UploadTaskFile;
-    targetPath: string;
-    objectName: string;
+    path: string;
     uploadedBytes: number;
     status: UploadStatus;
     priority: number;
@@ -123,8 +118,7 @@ export class UploadTask {
       id,
       sessionId,
       file,
-      targetPath,
-      objectName,
+      path,
       uploadedBytes,
       status,
       priority,
@@ -140,8 +134,7 @@ export class UploadTask {
       id,
       sessionId,
       file,
-      targetPath,
-      objectName,
+      path: path,
       uploadedBytes,
       status,
       priority,
@@ -159,8 +152,7 @@ export class UploadTask {
       id: this.id,
       sessionId: this.sessionId,
       file: this.file,
-      targetPath: this.targetPath,
-      objectName: this.objectName,
+      path: this.path,
       uploadedBytes: this.uploadedBytes,
       status: this.status,
       priority: this.priority,
@@ -175,16 +167,6 @@ export class UploadTask {
 
   objectNameOnGcs(): string {
     return `${this.createdAt}_${this.xxHash64}`;
-  }
-
-  gcsPath(): string {
-    let path = '';
-    if (this.targetPath === '/' || this.targetPath === '') {
-      path = this.objectNameOnGcs();
-    } else if (this.targetPath.startsWith('/')) {
-      path = `${this.targetPath.slice(1)}/${this.objectNameOnGcs()}`;
-    }
-    return path;
   }
 }
 
