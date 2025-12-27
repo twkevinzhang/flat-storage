@@ -149,7 +149,10 @@ async function handleConfirm() {
       uploadStore.createTask({
         sessionId: sessionId.value,
         file: file,
-        path: joinPath(currentPathSegments.value, finalName),
+        path:
+          currentPathSegments.value === '/'
+            ? finalName
+            : joinPath(currentPathSegments.value, finalName),
       });
     });
 
