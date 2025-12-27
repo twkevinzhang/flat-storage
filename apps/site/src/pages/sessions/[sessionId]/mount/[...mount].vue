@@ -298,16 +298,18 @@ function toLeafNode(v: ObjectEntity): Entity {
         >
           <SelectButton
             v-model="viewMode"
+            size="small"
             option-label="name"
             option-value="value"
             :options="[
               { icon: 'th-large', name: 'Grid', value: 'grid' },
               { icon: 'list', name: 'List', value: 'list' },
-              { icon: 'map', name: 'Column', value: 'column' },
+              { svgIcon: 'three-columns', name: 'Column', value: 'column' },
             ]"
           >
             <template #option="{ option }">
-              <PrimeIcon :name="option.icon" />
+              <PrimeIcon v-if="option.icon" :name="option.icon" />
+              <SvgIcon v-else :name="option.svgIcon" class="text-slate-500" />
             </template>
           </SelectButton>
           <ButtonGroup>
@@ -382,11 +384,12 @@ function toLeafNode(v: ObjectEntity): Entity {
         :options="[
           { icon: 'th-large', name: 'Grid', value: 'grid' },
           { icon: 'list', name: 'List', value: 'list' },
-          { icon: 'map', name: 'Column', value: 'column' },
+          { svgIcon: 'three-columns', name: 'Column', value: 'column' },
         ]"
       >
         <template #option="{ option }">
-          <PrimeIcon :name="option.icon" />
+          <PrimeIcon v-if="option.icon" :name="option.icon" />
+          <SvgIcon v-else :name="option.svgIcon" />
         </template>
       </SelectButton>
     </div>
