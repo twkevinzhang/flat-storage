@@ -13,6 +13,7 @@ import { useUiStore } from '@site/stores/ui';
 import { useSelectModeStore } from '@site/stores/select-mode';
 import { useMetadataStore } from '@site/stores/metadata';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
+import MountColumn from '@site/layouts/MountColumn.vue';
 
 /**
  * =====
@@ -394,8 +395,13 @@ function toLeafNode(v: ObjectEntity): Entity {
       </SelectButton>
     </div>
     <div
-      class="my-2 overflow-y-auto relative"
-      :class="{ 'z-50 pointer-events-auto': selectModeStore.selectMode }"
+      class="my-2 relative"
+      :class="{
+        'z-50 pointer-events-auto': selectModeStore.selectMode,
+        'overflow-scroll': viewMode !== 'column',
+        'overflow-hidden': viewMode === 'column',
+      }"
+      :style="viewMode === 'column' ? 'height: calc(100vh - 200px); min-height: 400px;' : ''"
     >
       <MountList
         v-if="viewMode === 'list'"
@@ -412,6 +418,17 @@ function toLeafNode(v: ObjectEntity): Entity {
         @toggle-selection="handleToggleSelection"
       />
       <MountGrid v-if="viewMode === 'grid'" />
+      <MountColumn
+        v-if="viewMode === 'column'"
+        :class="{ 'z-50 pointer-events-auto': selectModeStore.selectMode }"
+        :tree="tree"
+        :show-checkbox="selectModeStoreRefs.selectMode.value"
+        :selected-keys="Array.from(selectModeStoreRefs.selectionKeys.value)"
+        :indeterminate-keys="selectModeStoreRefs.indeterminateKeys.value"
+        @node-click="handleNodeClick"
+        @toggle-selection="handleToggleSelection"
+        @up="handleUp"
+      />
     </div>
 
     <!-- Select Mode Components -->

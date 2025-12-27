@@ -141,7 +141,7 @@ const sidebarWidths = computed({
             @click="isDrawerVisible = true"
           />
         </div>
-        <div class="flex-1">
+        <div class="flex-1 w-full">
           <div v-if="isLoading">
             Check Metadata file in {{ session?.metadataPath }}
           </div>
