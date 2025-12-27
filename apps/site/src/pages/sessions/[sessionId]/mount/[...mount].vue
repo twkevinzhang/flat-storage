@@ -13,6 +13,8 @@ import { useUiStore } from '@site/stores/ui';
 import { useSelectModeStore } from '@site/stores/select-mode';
 import { useMetadataStore } from '@site/stores/metadata';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
+import MountList from '@site/layouts/MountList.vue';
+import MountGrid from '@site/layouts/MountGrid.vue';
 import MountColumn from '@site/layouts/MountColumn.vue';
 
 /**
@@ -133,6 +135,57 @@ const moreMenuItems = computed(() => [
   },
 ]);
 
+// 視圖模式選項 (重用)
+const viewModeOptions = [
+  { icon: 'th-large', name: 'Grid', value: 'grid' },
+  { icon: 'list', name: 'List', value: 'list' },
+  { svgIcon: 'three-columns', name: 'Column', value: 'column' },
+];
+
+// Upload 按鈕選項 (重用)
+const uploadMenuModel = [
+  {
+    label: 'Create Folder',
+    icon: 'pi pi-folder-plus',
+    command: () => dialogStore.open('create-folder'),
+  },
+];
+
+// 工具列按鈕配置
+const toolbarButtons = {
+  refresh: {
+    icon: 'pi pi-refresh',
+    label: '重新整理',
+    handler: () => handleRefresh(),
+  },
+  columnOrder: {
+    icon: 'pi pi-eye',
+    label: '欄位順序',
+    handler: () => dialogStore.open('order'),
+  },
+  filter: {
+    icon: 'pi pi-filter',
+    label: '篩選',
+    handler: () => dialogStore.open('filter'),
+    badge: () => listViewStoreRefs.filterCount.value,
+  },
+  sort: {
+    icon: 'pi pi-sort-alpha-down',
+    label: '排序',
+    handler: () => dialogStore.open('sort'),
+    badge: () => listViewStoreRefs.sortRulesCount.value,
+  },
+};
+
+// 計算屬性：根據 selectMode 決定的樣式
+const selectModeDisabledClass = computed(() => ({
+  'pointer-events-none opacity-50': selectModeStore.selectMode,
+}));
+
+const selectModeActiveClass = computed(() => ({
+  'z-50 pointer-events-auto': selectModeStore.selectMode,
+}));
+
 /**
  * =====
  * Handlers
@@ -250,8 +303,8 @@ function toLeafNode(v: ObjectEntity): Entity {
     </div>
 
     <!-- 工具列容器 -->
-    <div :class="['flex items-center', isMobile ? 'gap-2' : 'gap-4']">
-      <!-- 手機版：更多選單 + 主要操作 -->
+    <div :class="['flex gap-2', isDesktop ? 'flex-row gap-4' : 'flex-col']">
+      <!-- 手機版：更多選單 + 操作按鈕 -->
       <div v-if="isMobile" class="flex items-center gap-2 w-full relative">
         <Menu ref="moreMenu" :model="moreMenuItems" :popup="true" />
         <Button
@@ -262,172 +315,105 @@ function toLeafNode(v: ObjectEntity): Entity {
           class="relative z-50"
           @click="(e) => moreMenu?.toggle(e)"
         />
-        <div
-          class="flex items-center gap-2 flex-1"
-          :class="{
-            'pointer-events-none opacity-50': selectModeStore.selectMode,
-          }"
-        >
+        <div class="flex items-center gap-2 flex-1" :class="selectModeDisabledClass">
           <Button
-            icon="pi pi-refresh"
+            :icon="toolbarButtons.refresh.icon"
             severity="secondary"
             variant="outlined"
-            aria-label="重新整理"
-            @click="handleRefresh()"
+            :aria-label="toolbarButtons.refresh.label"
+            @click="toolbarButtons.refresh.handler"
           />
           <SplitButton
             label="Upload"
             severity="primary"
-            :model="[
-              {
-                label: 'Create Folder',
-                icon: 'pi pi-folder-plus',
-                command: () => dialogStore.open('create-folder'),
-              },
-            ]"
+            :model="uploadMenuModel"
             @click="handleUpload()"
           />
         </div>
       </div>
 
-      <!-- 桌面版：區域 2 + 區域 3 -->
-      <template v-else>
-        <!-- 區域 2: View & Organization -->
-        <div
-          class="flex items-center gap-3 relative"
-          :class="{ 'z-50 pointer-events-auto': selectModeStore.selectMode }"
+      <!-- 視圖模式選擇器（共用組件） -->
+      <div class="flex items-center gap-3 relative" :class="selectModeActiveClass">
+        <SelectButton
+          v-model="viewMode"
+          size="small"
+          option-label="name"
+          option-value="value"
+          :options="viewModeOptions"
         >
-          <SelectButton
-            v-model="viewMode"
-            size="small"
-            option-label="name"
-            option-value="value"
-            :options="[
-              { icon: 'th-large', name: 'Grid', value: 'grid' },
-              { icon: 'list', name: 'List', value: 'list' },
-              { svgIcon: 'three-columns', name: 'Column', value: 'column' },
-            ]"
-          >
-            <template #option="{ option }">
-              <PrimeIcon v-if="option.icon" :name="option.icon" />
-              <SvgIcon v-else :name="option.svgIcon" class="text-slate-500" />
-            </template>
-          </SelectButton>
-          <ButtonGroup>
-            <Button
-              icon="pi pi-filter"
-              severity="secondary"
-              badge-severity="contrast"
-              aria-label="篩選"
-              :badge="listViewStoreRefs.filterCount.value"
-              @click="dialogStore.open('filter')"
-            />
-            <Button
-              icon="pi pi-sort-alpha-down"
-              severity="secondary"
-              badge-severity="contrast"
-              aria-label="排序"
-              :badge="listViewStoreRefs.sortRulesCount.value"
-              @click="dialogStore.open('sort')"
-            />
-          </ButtonGroup>
-        </div>
+          <template #option="{ option }">
+            <PrimeIcon v-if="option.icon" :name="option.icon" />
+            <SvgIcon v-else :name="option.svgIcon" :class="isDesktop && 'text-slate-500'" />
+          </template>
+        </SelectButton>
 
-        <!-- 區域 3: Primary Actions -->
-        <div
-          class="flex items-center gap-2"
-          :class="{
-            'pointer-events-none opacity-50': selectModeStore.selectMode,
-          }"
-        >
+        <!-- 桌面版：篩選排序按鈕組 -->
+        <ButtonGroup v-if="isDesktop">
           <Button
-            icon="pi pi-eye"
+            :icon="toolbarButtons.filter.icon"
             severity="secondary"
-            variant="outlined"
-            aria-label="欄位順序"
-            @click="dialogStore.open('order')"
+            badge-severity="contrast"
+            :aria-label="toolbarButtons.filter.label"
+            :badge="toolbarButtons.filter.badge()"
+            @click="toolbarButtons.filter.handler"
           />
-
           <Button
-            icon="pi pi-refresh"
+            :icon="toolbarButtons.sort.icon"
             severity="secondary"
-            variant="outlined"
-            aria-label="重新整理"
-            @click="handleRefresh()"
+            badge-severity="contrast"
+            :aria-label="toolbarButtons.sort.label"
+            :badge="toolbarButtons.sort.badge()"
+            @click="toolbarButtons.sort.handler"
           />
-          <SplitButton
-            label="Upload"
-            severity="primary"
-            :model="[
-              {
-                label: 'Create Folder',
-                icon: 'pi pi-folder-plus',
-                command: () => dialogStore.open('create-folder'),
-              },
-            ]"
-            @click="handleUpload()"
-          />
-        </div>
-      </template>
-    </div>
+        </ButtonGroup>
+      </div>
 
-    <!-- 手機版第二列：視圖模式 -->
-    <div
-      v-if="isMobile"
-      class="mt-2 flex items-center relative"
-      :class="{ 'z-50 pointer-events-auto': selectModeStore.selectMode }"
-    >
-      <SelectButton
-        v-model="viewMode"
-        size="small"
-        option-label="name"
-        option-value="value"
-        :options="[
-          { icon: 'th-large', name: 'Grid', value: 'grid' },
-          { icon: 'list', name: 'List', value: 'list' },
-          { svgIcon: 'three-columns', name: 'Column', value: 'column' },
-        ]"
-      >
-        <template #option="{ option }">
-          <PrimeIcon v-if="option.icon" :name="option.icon" />
-          <SvgIcon v-else :name="option.svgIcon" />
-        </template>
-      </SelectButton>
+      <!-- 桌面版：主要操作 -->
+      <div v-if="isDesktop" class="flex items-center gap-2" :class="selectModeDisabledClass">
+        <Button
+          :icon="toolbarButtons.columnOrder.icon"
+          severity="secondary"
+          variant="outlined"
+          :aria-label="toolbarButtons.columnOrder.label"
+          @click="toolbarButtons.columnOrder.handler"
+        />
+        <Button
+          :icon="toolbarButtons.refresh.icon"
+          severity="secondary"
+          variant="outlined"
+          :aria-label="toolbarButtons.refresh.label"
+          @click="toolbarButtons.refresh.handler"
+        />
+        <SplitButton
+          label="Upload"
+          severity="primary"
+          :model="uploadMenuModel"
+          @click="handleUpload()"
+        />
+      </div>
     </div>
+    <!-- 視圖容器 -->
     <div
       class="my-2 relative"
-      :class="{
-        'z-50 pointer-events-auto': selectModeStore.selectMode,
-        'overflow-scroll': viewMode !== 'column',
-        'overflow-hidden': viewMode === 'column',
-      }"
+      :class="[
+        selectModeActiveClass,
+        viewMode === 'column' ? 'overflow-hidden' : 'overflow-scroll'
+      ]"
       :style="viewMode === 'column' ? 'height: calc(100vh - 200px); min-height: 400px;' : ''"
     >
-      <MountList
-        v-if="viewMode === 'list'"
-        :class="{ 'z-50 pointer-events-auto': selectModeStore.selectMode }"
-        :is-root="path.isRootLevel"
+      <component
+        :is="viewMode === 'list' ? MountList : viewMode === 'column' ? MountColumn : MountGrid"
+        :class="selectModeActiveClass"
+        :is-root="viewMode === 'list' ? path.isRootLevel : undefined"
         :tree="tree"
         :show-checkbox="selectModeStoreRefs.selectMode.value"
         :selected-keys="Array.from(selectModeStoreRefs.selectionKeys.value)"
         :indeterminate-keys="selectModeStoreRefs.indeterminateKeys.value"
         @node-click="handleNodeClick"
-        @node-toggle="handleNodeToggle"
-        @up="handleUp"
-        @show-more-click="handleShowMoreClick"
-        @toggle-selection="handleToggleSelection"
-      />
-      <MountGrid v-if="viewMode === 'grid'" />
-      <MountColumn
-        v-if="viewMode === 'column'"
-        :class="{ 'z-50 pointer-events-auto': selectModeStore.selectMode }"
-        :tree="tree"
-        :show-checkbox="selectModeStoreRefs.selectMode.value"
-        :selected-keys="Array.from(selectModeStoreRefs.selectionKeys.value)"
-        :indeterminate-keys="selectModeStoreRefs.indeterminateKeys.value"
-        @node-click="handleNodeClick"
+        @node-toggle="viewMode === 'list' ? handleNodeToggle : undefined"
         @toggle-selection="handleToggleSelection"
         @up="handleUp"
+        @show-more-click="viewMode === 'list' ? handleShowMoreClick : undefined"
       />
     </div>
 

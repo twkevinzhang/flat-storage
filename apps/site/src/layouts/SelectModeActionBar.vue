@@ -29,6 +29,30 @@ function handleDelete() {
 function handleCancel() {
   selectModeStore.exitSelectMode();
 }
+
+// 共用的操作按鈕定義
+const safeActionButtons = [
+  {
+    icon: 'pi pi-folder-open',
+    label: '移動',
+    handler: handleMove,
+  },
+  {
+    icon: 'pi pi-download',
+    label: '下載',
+    handler: handleDownload,
+  },
+  {
+    icon: 'pi pi-star',
+    label: '新增到最愛',
+    handler: handleAddToFavorites,
+  },
+  {
+    icon: 'pi pi-lock',
+    label: '上鎖',
+    handler: handleLock,
+  },
+];
 </script>
 
 <template>
@@ -49,32 +73,13 @@ function handleCancel() {
               </span>
               <div class="h-6 w-px bg-white/30"></div>
               <Button
-                icon="pi pi-folder-open"
-                label="移動"
+                v-for="btn in safeActionButtons"
+                :key="btn.icon"
+                :icon="btn.icon"
+                :label="btn.label"
                 variant="outlined"
                 severity="secondary"
-                @click="handleMove"
-              />
-              <Button
-                icon="pi pi-download"
-                label="下載"
-                variant="outlined"
-                severity="secondary"
-                @click="handleDownload"
-              />
-              <Button
-                icon="pi pi-star"
-                label="新增到最愛"
-                variant="outlined"
-                severity="secondary"
-                @click="handleAddToFavorites"
-              />
-              <Button
-                icon="pi pi-lock"
-                label="上鎖"
-                variant="outlined"
-                severity="secondary"
-                @click="handleLock"
+                @click="btn.handler"
               />
             </div>
 
@@ -112,40 +117,15 @@ function handleCancel() {
               class="flex-1 overflow-x-auto flex items-center gap-2 scrollbar-hide"
             >
               <Button
-                icon="pi pi-folder-open"
+                v-for="btn in safeActionButtons"
+                :key="btn.icon"
+                :icon="btn.icon"
+                :aria-label="btn.label"
                 variant="outlined"
                 severity="secondary"
                 size="small"
-                aria-label="移動"
                 class="text-white flex-shrink-0"
-                @click="handleMove"
-              />
-              <Button
-                icon="pi pi-download"
-                variant="outlined"
-                severity="secondary"
-                size="small"
-                aria-label="下載"
-                class="text-white flex-shrink-0"
-                @click="handleDownload"
-              />
-              <Button
-                icon="pi pi-star"
-                variant="outlined"
-                severity="secondary"
-                size="small"
-                aria-label="新增到最愛"
-                class="text-white flex-shrink-0"
-                @click="handleAddToFavorites"
-              />
-              <Button
-                icon="pi pi-lock"
-                variant="outlined"
-                severity="secondary"
-                size="small"
-                aria-label="上鎖"
-                class="text-white flex-shrink-0"
-                @click="handleLock"
+                @click="btn.handler"
               />
               <div class="h-6 w-px bg-white/30 flex-shrink-0"></div>
               <Button
