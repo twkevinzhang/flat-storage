@@ -128,6 +128,30 @@ export class ProxyFile {
     return this.execute('createResumableUpload', [options]);
   }
 
+  async getSignedUrl(options?: {
+    action?: 'read' | 'write' | 'delete' | 'resumable';
+    expires?: number | string | Date;
+    contentType?: string;
+  }): Promise<string> {
+    const result = await this.execute('getSignedUrl', [options || { action: 'read', expires: Date.now() + 3600000 }]);
+    // Result is an array with [url]
+    return Array.isArray(result) ? result[0] : result;
+  }
+
+  /**
+   * 通過 proxy 下載檔案（返回 download URL）
+   */
+  getProxyDownloadUrl(): string {
+    const params = new URLSearchParams({
+      bucket: this.bucket,
+      file: this.path,
+      projectId: this.auth.projectId || '',
+      accessKey: this.auth.accessKey || '',
+      secretKey: this.auth.secretKey || '',
+    });
+    return `${this.baseUrl}/gcs/v1/download?${params.toString()}`;
+  }
+
   private async execute(method: string, args: any[]) {
     const res = await axios.post(`${this.baseUrl}/gcs/v1/execute`, {
       auth: this.auth,

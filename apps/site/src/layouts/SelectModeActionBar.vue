@@ -1,17 +1,71 @@
 <script setup lang="ts">
 import { useSelectModeStore } from '@site/stores/select-mode';
+import { useDownloadStore } from '@site/stores/download';
+import { useMetadataStore } from '@site/stores/metadata';
+import { expandSelections } from '@site/utilities/download';
+import { DownloadTaskFile } from '@site/models/DownloadTask';
+import { ObjectEntity } from '@site/models';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
+import { useSessionStore } from '@site/stores/session';
 
+const sessionStore = useSessionStore();
 const selectModeStore = useSelectModeStore();
+const downloadStore = useDownloadStore();
+const metadataStore = useMetadataStore();
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller('md');
+const route = useRoute();
+const sessionId = computed(() => (route.params as any).sessionId as string);
+const session = computed(() => sessionStore.get(sessionId.value));
 
 function handleMove() {
   // TODO: 實作移動功能
 }
 
 function handleDownload() {
-  // TODO: 實作下載功能
+  console.log('handleDownload 被觸發');
+  downloadStore.setSession(session.value!);
+  console.log('session 設定完成:', session.value);
+
+  // Get selected entities
+  const selectedEntities = Array.from(selectModeStore.selectionKeys)
+    .map((key) => selectModeStore.items.find((item) => item.key === key))
+    .filter(Boolean) as ObjectEntity[];
+
+  console.log('選擇的實體數量:', selectedEntities.length);
+
+  if (isEmpty(selectedEntities)) {
+    console.log('沒有選擇任何實體，返回');
+    return;
+  }
+
+  // Get all entities for folder expansion
+  const allEntities = metadataStore.allObjects;
+  console.log('所有實體數量:', allEntities.length);
+
+  // Expand selections to include folder contents
+  const expandedFiles = expandSelections(selectedEntities, allEntities);
+  console.log('展開後的檔案數量:', expandedFiles.length);
+
+  // Create download tasks
+  const tasks: DownloadTaskFile[] = expandedFiles.map(
+    ({ entity, relativePath }) => ({
+      name: entity.path.name,
+      path: entity.path.toSegmentsString(),
+      size: entity.sizeBytes || 0,
+      relativePath,
+    })
+  );
+
+  console.log('建立的下載任務:', tasks);
+  downloadStore.addTasks(tasks);
+  console.log(
+    '下載任務已加入 store，當前任務數量:',
+    downloadStore.tasks.length
+  );
+
+  // Exit select mode
+  selectModeStore.exitSelectMode();
 }
 
 function handleAddToFavorites() {

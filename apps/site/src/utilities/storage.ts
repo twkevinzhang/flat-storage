@@ -1,5 +1,6 @@
 import { Driver, SessionEntity } from '@site/models';
 import { GcsProxyClient } from '@site/services/gcs';
+import { removeLeadingSlash } from './index';
 
 export function proxyBucket(session: SessionEntity) {
   if (session.driver !== Driver.gcs) {
