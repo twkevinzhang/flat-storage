@@ -328,15 +328,6 @@ function toLeafNode(v: ObjectEntity): Entity {
               @click="dialogStore.open('sort')"
             />
           </ButtonGroup>
-          <Button
-            icon="pi pi-sort"
-            severity="secondary"
-            aria-label="欄位順序"
-            :class="{
-              'pointer-events-none opacity-50': selectModeStore.selectMode,
-            }"
-            @click="dialogStore.open('order')"
-          />
         </div>
 
         <!-- 區域 3: Primary Actions -->
@@ -346,6 +337,14 @@ function toLeafNode(v: ObjectEntity): Entity {
             'pointer-events-none opacity-50': selectModeStore.selectMode,
           }"
         >
+          <Button
+            icon="pi pi-eye"
+            severity="secondary"
+            variant="outlined"
+            aria-label="欄位順序"
+            @click="dialogStore.open('order')"
+          />
+
           <Button
             icon="pi pi-refresh"
             severity="secondary"
