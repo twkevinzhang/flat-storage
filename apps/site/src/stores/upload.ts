@@ -10,7 +10,6 @@ import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
 import { nanoid } from 'nanoid';
 import { calculateHashes } from '@site/utilities';
 import { proxyBucket } from '@site/utilities/storage';
-import axios from 'axios';
 import { useMetadataStore } from '@site/stores/metadata';
 
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
@@ -198,7 +197,7 @@ export const useUploadStore = defineStore('upload', () => {
       if (!task.uploadUri) await runSessionPhase(task.id, session);
 
       // 3. 執行分塊上傳 (核心 Reactive 部分)
-      await runUploadPhase(task.id, controller.signal);
+      await runUploadPhase(task.id, session, controller.signal);
 
       // 4. 驗證
       // const metadata = await runVerifyPhase(task.id, session); // FIXME: bypass
@@ -278,36 +277,36 @@ export const useUploadStore = defineStore('upload', () => {
   /**
    * 階段 3: 分塊上傳 (使用 Async Generator)
    */
-  async function runUploadPhase(taskId: string, signal: AbortSignal) {
+  async function runUploadPhase(taskId: string, session: SessionEntity, signal: AbortSignal) {
     const file = getFile(taskId);
     const task = getTask(taskId);
     const tracker = new ProgressTracker(task.id, file.size);
     trackers.set(task.id, tracker);
 
-    // 定義非同步生成器來切割檔案
     async function* getChunks() {
       let offset = task.uploadedBytes;
       while (offset < file.size) {
         const end = Math.min(offset + CHUNK_SIZE, file.size);
+        // 注意：GCS 續傳要求除了最後一塊外，每一塊大小必須是 256KB 的倍數
         yield { blob: file.slice(offset, end), start: offset, end: end - 1 };
         offset = end;
       }
     }
 
     for await (const chunk of getChunks()) {
-      try {
-        const res = await axios.put(task.uploadUri!, chunk.blob, {
-          signal,
-          headers: {
-            'Content-Range': `bytes ${chunk.start}-${chunk.end}/${file.size}`,
-          },
-        });
-        console.log('res', res);
-      } catch (err) {
-        console.log('err', err);
-        if (axios.isAxiosError(err)) {
-        }
-      }
+      if (signal.aborted) throw new DOMException('Upload aborted', 'AbortError');
+
+      // 直接上傳到 GCS
+      const axios = (await import('axios')).default;
+      await axios.put(task.uploadUri!, chunk.blob, {
+        signal,
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Content-Range': `bytes ${chunk.start}-${chunk.end}/${file.size}`,
+        },
+        // 308 Resume Incomplete 是 GCS resumable upload 的正常回應
+        validateStatus: (status) => (status >= 200 && status < 400) || status === 308,
+      });
 
       const nextOffset = chunk.end + 1;
       tracker.update(nextOffset);
