@@ -198,7 +198,7 @@ function getCellValue(node: Entity, key: ColumnKeys) {
     </li>
     <li
       v-if="props.tree.length > props.limit"
-      class="pl-2 text-gray-500 italic border-b border-gray-100"
+      class="pl-2 text-gray-500 italic border-b border-gray-100 bg-white"
     >
       <Hover
         :label="`... and ${props.tree.length - props.limit} more`"
