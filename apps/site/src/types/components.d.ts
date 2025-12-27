@@ -17,6 +17,7 @@ declare module 'vue' {
     ButtonGroup: typeof import('primevue/buttongroup')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     ColumnPanel: typeof import('./../components/ColumnPanel.vue')['default']
+    CreateFolderDialog: typeof import('./../dialogs/CreateFolderDialog.vue')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Drawer: typeof import('primevue/drawer')['default']

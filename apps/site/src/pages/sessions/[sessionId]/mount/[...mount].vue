@@ -282,7 +282,7 @@ function toLeafNode(v: ObjectEntity): Entity {
               {
                 label: 'Create Folder',
                 icon: 'pi pi-folder-plus',
-                command: () => {},
+                command: () => dialogStore.open('create-folder'),
               },
             ]"
             @click="handleUpload()"
@@ -362,7 +362,7 @@ function toLeafNode(v: ObjectEntity): Entity {
               {
                 label: 'Create Folder',
                 icon: 'pi pi-folder-plus',
-                command: () => {},
+                command: () => dialogStore.open('create-folder'),
               },
             ]"
             @click="handleUpload()"

@@ -101,4 +101,9 @@ const { visible, close, replaceWith } = useDialogStore();
     :visible="visible('upload')"
     @update:visible="() => close('upload')"
   />
+
+  <CreateFolderDialog
+    :visible="visible('create-folder')"
+    @update:visible="() => close('create-folder')"
+  />
 </template>
