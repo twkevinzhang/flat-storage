@@ -64,21 +64,34 @@ const columnWidths = ref<Record<string, number>>({
         <!-- Parent directory row -->
         <li v-if="!isRoot">
           <div
-            class="flex items-center border-b border-gray-100 hover:bg-gray-50 overflow-hidden"
+            class="flex items-center border-b border-gray-100 bg-white hover:bg-gray-50 overflow-hidden"
           >
             <template v-for="col in activeColumns" :key="col.key">
               <div
                 v-if="col.key === ColumnKeys.name"
-                class="flex items-center flex-shrink-0"
+                class="flex items-center flex-shrink-0 min-w-0"
                 :style="{ width: columnWidths[ColumnKeys.name] + 'px' }"
               >
-                <span class="w-2 flex-shrink-0" />
-                <Hover
-                  icon="pi pi-folder"
-                  label=".."
-                  severity="link"
-                  @click="(e) => emits('up')"
-                />
+                <div
+                  :class="[
+                    'w-full p-1 overflow-hidden flex gap-2 items-center',
+                  ]"
+                >
+                  <span
+                    v-if="props.showCheckbox"
+                    class="ml-2 w-[20px] flex-shrink-0"
+                  />
+                  <div class="w-6 size-8 flex-shrink-0" />
+                  <PrimeIcon fullname="pi pi-folder" />
+                  <Hover
+                    class="min-w-0"
+                    label=".."
+                    severity="link"
+                    :fluid="false"
+                    padding-size="none"
+                    @click="(e) => emits('up')"
+                  />
+                </div>
               </div>
               <div
                 v-else
