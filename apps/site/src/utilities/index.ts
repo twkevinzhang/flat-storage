@@ -33,7 +33,7 @@ export function removeTrailingPart(path: string): string {
   return path.slice(0, lastSlashIndex);
 }
 
-export function decodeProxyBuffer(data: any): string {
+export function decodeBuffer(data: any): string {
   if (typeof data === 'string') return data;
   if (data?.type === 'Buffer' && Array.isArray(data.data)) {
     return new TextDecoder().decode(new Uint8Array(data.data));
@@ -41,4 +41,9 @@ export function decodeProxyBuffer(data: any): string {
   return data?.toString() || '';
 }
 
+export function isNotEmpty(obj: any): boolean {
+  return !isEmpty(obj);
+}
+
 export * from './hash';
+export * from './download';

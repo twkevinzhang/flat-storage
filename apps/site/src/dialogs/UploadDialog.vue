@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useListViewStore } from '@site/stores/list-view';
-import { useMetadataStore } from '@site/stores/metadata';
-import { useSessionStore } from '@site/stores/session';
-import { useUploadStore } from '@site/stores/upload';
+import { useMetadataStore } from '@site/stores';
+import { useSessionStore } from '@site/stores';
+import { useUploadStore } from '@site/stores';
 import type {
   FileUploadSelectEvent,
   FileUploadRemoveEvent,
@@ -137,7 +137,7 @@ function formatFileSize(bytes: number): string {
  * Upload Confirmation
  */
 async function handleConfirm() {
-  if (!session.value || selectedFiles.value.length === 0) return;
+  if (!session.value || isEmpty(selectedFiles.value)) return;
 
   isProcessing.value = true;
   try {
@@ -307,7 +307,7 @@ watch(
         <Button
           label="Upload"
           :loading="isProcessing"
-          :disabled="selectedFiles.length === 0"
+          :disabled="isEmpty(selectedFiles)"
           @click="handleConfirm"
         />
       </div>

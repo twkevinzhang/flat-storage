@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useUiStore } from '@site/stores/ui';
-import { useSessionStore } from '@site/stores/session';
+import { useUiStore } from '@site/stores';
+import { useSessionStore } from '@site/stores';
 import { breakpointsTailwind } from '@vueuse/core';
 
 /**

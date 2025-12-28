@@ -6,12 +6,14 @@ import {
   ObjectsFilter,
   EntityPath,
 } from '@site/models';
-import { useDialogStore } from '@site/stores/dialog';
+import { useDialogStore } from '@site/stores';
 import { pathIt, useListViewStore } from '@site/stores/list-view';
-import { useSessionStore } from '@site/stores/session';
-import { useUiStore } from '@site/stores/ui';
+import { useSessionStore } from '@site/stores';
+import { useUiStore } from '@site/stores';
 import { useSelectModeStore } from '@site/stores/select-mode';
-import { useMetadataStore } from '@site/stores/metadata';
+import { useMetadataStore } from '@site/stores';
+import { useDownloadStore } from '@site/stores/download';
+import { useUploadStore } from '@site/stores/upload';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import MountList from '@site/layouts/MountList.vue';
 import MountGrid from '@site/layouts/MountGrid.vue';
@@ -32,6 +34,8 @@ const metadataStore = useMetadataStore();
 const metadataStoreRefs = storeToRefs(metadataStore);
 const selectModeStore = useSelectModeStore();
 const selectModeStoreRefs = storeToRefs(selectModeStore);
+const downloadStore = useDownloadStore();
+const uploadStore = useUploadStore();
 
 const path = computed(() => {
   const sessionId = (route.params as any).sessionId as string;
@@ -42,6 +46,18 @@ const session = computed(() => {
   const sessionId = (route.params as any).sessionId as string;
   return sessionStore.get(sessionId);
 });
+
+// Set session for download and upload stores when page loads
+watch(
+  session,
+  (newSession) => {
+    if (newSession) {
+      downloadStore.setSession(newSession);
+      uploadStore.setSession(newSession);
+    }
+  },
+  { immediate: true }
+);
 
 watch(
   path,

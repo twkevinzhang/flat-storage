@@ -5,8 +5,6 @@ export interface HashResult {
   crc32c: string;
 }
 
-const CHUNK_SIZE = 10 * 1024 * 1024;
-
 export async function calculateHashes(
   file: File,
   onProgress?: (progress: number) => void

@@ -2,7 +2,7 @@ import { ObjectEntity, SessionEntity, EntityPath } from '@site/models';
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
 import { INJECT_KEYS } from '@site/services';
 import { useToast } from 'primevue/usetoast';
-import { SessionService } from '@site/services/session';
+import { SessionService } from '@site/services';
 
 export const useMetadataStore = defineStore('metadata', () => {
   /**

@@ -81,7 +81,10 @@ const classes = computed(() => {
     >
       <PrimeIcon v-if="icon" :fullname="icon" v-bind="pt?.primeIcon" />
       <slot>
-        <span v-if="!isEmpty(label)" class="text-left break-all whitespace-normal">
+        <span
+          v-if="isNotEmpty(label)"
+          class="text-left break-all whitespace-normal"
+        >
           {{ label }}
         </span>
       </slot>
