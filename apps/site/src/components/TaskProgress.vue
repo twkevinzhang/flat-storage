@@ -1,24 +1,69 @@
-<script setup lang="ts">
-import { useDownloadStore } from '@site/stores/download';
-import { DownloadStatus, DownloadTask } from '@site/models/DownloadTask';
-import { breakpointsTailwind } from '@vueuse/core';
+<script setup lang="ts" generic="TTask extends BaseTask, TStatus extends string">
+/**
+ * 通用的任務進度組件
+ * 支援 Upload 和 Download 兩種任務類型
+ */
 
-const {
-  failedTasks,
-  downloadingTasks,
-  completedTasks,
-  totalProgress,
-  isCollapsed,
-  tasks,
-  isMobile,
-} = defineProps<{
-  failedTasks: DownloadTask[];
-  downloadingTasks: DownloadTask[];
-  completedTasks: DownloadTask[];
+// 基礎任務介面（Upload 和 Download Task 都需要實作）
+interface BaseTask {
+  id: string;
+  status: string;
+  file: {
+    size: number;
+  };
+  error?: string;
+  speed?: number;
+  eta?: number;
+}
+
+interface TaskProgressConfig<TStatus extends string> {
+  // Header 配置
+  icon: string;
+  iconColor: string;
+  title: string;
+
+  // 狀態映射
+  statusMap: {
+    getIcon: (status: TStatus) => string;
+    getColor: (status: TStatus) => string;
+    getLabel: (status: TStatus) => string;
+  };
+
+  // 任務特定邏輯
+  getFileName: (task: TTask) => string;
+  getProgress: (task: TTask) => number;
+  getUploadedOrDownloadedBytes: (task: TTask) => number;
+
+  // 狀態判斷
+  isCompleted: (status: TStatus) => boolean;
+  isCancelled: (status: TStatus) => boolean;
+  isActive: (status: TStatus) => boolean;
+  isPaused: (status: TStatus) => boolean;
+  isFailed: (status: TStatus) => boolean;
+  canRetry: (status: TStatus) => boolean;
+  canPause: (status: TStatus) => boolean;
+  canCancel: (status: TStatus) => boolean;
+}
+
+const props = defineProps<{
+  // 任務資料
+  tasks: TTask[];
+  activeTasks: TTask[];
+  completedTasks: TTask[];
+  failedTasks?: TTask[];
+
+  // UI 狀態
   totalProgress: number;
   isCollapsed: boolean;
-  tasks: DownloadTask[];
   isMobile: boolean;
+
+  // 配置
+  config: TaskProgressConfig<TStatus>;
+
+  // 可選功能
+  showClearCompleted?: boolean;
+  showRetryAll?: boolean;
+  showPriorityControls?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -26,85 +71,18 @@ const emit = defineEmits<{
   (e: 'resume', taskId: string): void;
   (e: 'retry', taskId: string): void;
   (e: 'remove', taskId: string): void;
+  (e: 'cancel', taskId: string): void;
   (e: 'clearCompleted'): void;
   (e: 'retryAll'): void;
   (e: 'toggleCollapse'): void;
+  (e: 'increasePriority', taskId: string): void;
+  (e: 'decreasePriority', taskId: string): void;
 }>();
 
 /**
- * Helpers
+ * 工具函數
  */
-function getStatusIcon(status: DownloadStatus): string {
-  switch (status) {
-    case DownloadStatus.PENDING:
-      return 'pi pi-clock';
-    case DownloadStatus.FETCHING_URL:
-      return 'pi pi-spin pi-spinner';
-    case DownloadStatus.DOWNLOADING:
-      return 'pi pi-spin pi-spinner';
-    case DownloadStatus.PAUSED:
-      return 'pi pi-pause';
-    case DownloadStatus.COMPLETED:
-      return 'pi pi-check-circle';
-    case DownloadStatus.FAILED:
-      return 'pi pi-times-circle';
-    case DownloadStatus.EXPIRED:
-      return 'pi pi-exclamation-circle';
-    case DownloadStatus.CANCELLED:
-      return 'pi pi-ban';
-    default:
-      return 'pi pi-file';
-  }
-}
-
-function getStatusColor(status: DownloadStatus): string {
-  switch (status) {
-    case DownloadStatus.PENDING:
-      return 'text-gray-500';
-    case DownloadStatus.FETCHING_URL:
-      return 'text-blue-500';
-    case DownloadStatus.DOWNLOADING:
-      return 'text-blue-500';
-    case DownloadStatus.PAUSED:
-      return 'text-orange-500';
-    case DownloadStatus.COMPLETED:
-      return 'text-green-500';
-    case DownloadStatus.FAILED:
-      return 'text-red-500';
-    case DownloadStatus.EXPIRED:
-      return 'text-orange-500';
-    case DownloadStatus.CANCELLED:
-      return 'text-gray-500';
-    default:
-      return 'text-gray-500';
-  }
-}
-
-function getStatusLabel(status: DownloadStatus): string {
-  switch (status) {
-    case DownloadStatus.PENDING:
-      return '等待中';
-    case DownloadStatus.FETCHING_URL:
-      return '取得下載網址';
-    case DownloadStatus.DOWNLOADING:
-      return '下載中';
-    case DownloadStatus.PAUSED:
-      return '已暫停';
-    case DownloadStatus.COMPLETED:
-      return '已完成';
-    case DownloadStatus.FAILED:
-      return '失敗';
-    case DownloadStatus.EXPIRED:
-      return '已過期';
-    case DownloadStatus.CANCELLED:
-      return '已取消';
-    default:
-      return status;
-  }
-}
-
 function formatFileSize(bytes: number): string {
-  // 確保 bytes 是數字
   const numBytes = typeof bytes === 'number' ? bytes : Number(bytes) || 0;
   if (numBytes === 0) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB'];
@@ -130,13 +108,6 @@ function formatTime(seconds: number): string {
     return `${Math.round(seconds / 3600)}小時`;
   }
 }
-
-function getProgress(task: any): number {
-  if (task.status === DownloadStatus.COMPLETED) return 100;
-  if (task.file.size === 0) return 0;
-
-  return Math.round((task.downloadedBytes / task.file.size) * 100);
-}
 </script>
 
 <template>
@@ -156,7 +127,10 @@ function getProgress(task: any): number {
     >
       <i
         :class="[
-          'pi pi-download text-blue-500 flex-shrink-0',
+          'pi',
+          config.icon,
+          config.iconColor,
+          'flex-shrink-0',
           isMobile ? 'text-lg' : 'text-xl',
         ]"
       />
@@ -167,19 +141,19 @@ function getProgress(task: any): number {
             isMobile ? 'text-sm' : 'text-base',
           ]"
         >
-          下載任務
+          {{ config.title }}
         </h3>
         <p class="text-xs text-surface-500 truncate">
-          <template v-if="!isEmpty(downloadingTasks)">
-            {{ downloadingTasks.length }} 個進行中
-            <span v-if="!isEmpty(completedTasks)">
+          <template v-if="activeTasks.length > 0">
+            {{ activeTasks.length }} 個進行中
+            <span v-if="completedTasks.length > 0">
               · {{ completedTasks.length }} 個已完成
             </span>
           </template>
-          <template v-else-if="!isEmpty(completedTasks)">
+          <template v-else-if="completedTasks.length > 0">
             {{ completedTasks.length }} 個已完成
           </template>
-          <template v-else> 目前沒有下載任務 </template>
+          <template v-else> 目前沒有{{ config.title }} </template>
         </p>
       </div>
     </div>
@@ -190,7 +164,8 @@ function getProgress(task: any): number {
       <!-- Overall Progress -->
       <div
         :class="[
-          'font-medium text-blue-600 dark:text-blue-400',
+          'font-medium',
+          config.iconColor.replace('text-', 'text-').replace('-500', '-600') + ' dark:' + config.iconColor.replace('-500', '-400'),
           isMobile ? 'text-xs' : 'text-sm',
         ]"
       >
@@ -199,19 +174,17 @@ function getProgress(task: any): number {
 
       <!-- Retry All Button -->
       <button
-        v-if="!isMobile && failedTasks.length > 0"
+        v-if="!isMobile && showRetryAll && failedTasks && failedTasks.length > 0"
         class="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-800 rounded transition-colors"
         title="全部重試"
         @click.stop="emit('retryAll')"
       >
-        <i
-          class="pi pi-refresh text-sm text-surface-600 dark:text-surface-400"
-        />
+        <i class="pi pi-refresh text-sm text-surface-600 dark:text-surface-400" />
       </button>
 
       <!-- Clear Completed Button -->
       <button
-        v-if="!isMobile && completedTasks.length > 0"
+        v-if="!isMobile && showClearCompleted && completedTasks.length > 0"
         class="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-800 rounded transition-colors"
         title="清除已完成"
         @click.stop="emit('clearCompleted')"
@@ -239,7 +212,7 @@ function getProgress(task: any): number {
     :class="['overflow-y-auto', isMobile ? 'max-h-[70vh]' : 'max-h-96']"
   >
     <div
-      v-for="task in tasks"
+      v-for="(task, index) in tasks"
       :key="task.id"
       :class="[
         'border-b border-surface-200 dark:border-surface-700 last:border-b-0 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors',
@@ -250,8 +223,8 @@ function getProgress(task: any): number {
         <!-- Status Icon -->
         <i
           :class="[
-            getStatusIcon(task.status),
-            getStatusColor(task.status),
+            config.statusMap.getIcon(task.status as TStatus),
+            config.statusMap.getColor(task.status as TStatus),
             'flex-shrink-0',
             isMobile ? 'text-base' : 'text-lg',
           ]"
@@ -267,20 +240,18 @@ function getProgress(task: any): number {
                 isMobile ? 'text-xs' : 'text-sm',
               ]"
             >
-              {{ task.file.relativePath }}
+              {{ config.getFileName(task) }}
             </p>
-            <div
-              class="flex items-center gap-2 text-xs text-surface-500 mt-0.5"
-            >
-              <span :class="getStatusColor(task.status)">
-                {{ getStatusLabel(task.status) }}
+            <div class="flex items-center gap-2 text-xs text-surface-500 mt-0.5">
+              <span :class="config.statusMap.getColor(task.status as TStatus)">
+                {{ config.statusMap.getLabel(task.status as TStatus) }}
               </span>
               <span>{{ formatFileSize(task.file.size) }}</span>
-              <!-- Speed & ETA (only for downloading tasks on desktop) -->
-              <template
-                v-if="!isMobile && task.status === DownloadStatus.DOWNLOADING"
-              >
-                <span v-if="task.speed"> · {{ formatSpeed(task.speed) }} </span>
+              <!-- Speed & ETA (only for active tasks on desktop) -->
+              <template v-if="!isMobile && config.isActive(task.status as TStatus)">
+                <span v-if="task.speed">
+                  · {{ formatSpeed(task.speed) }}
+                </span>
                 <span v-if="task.eta && task.eta > 0">
                   · {{ formatTime(task.eta) }}
                 </span>
@@ -300,13 +271,13 @@ function getProgress(task: any): number {
           <div
             v-if="
               !isMobile &&
-              task.status !== DownloadStatus.COMPLETED &&
-              task.status !== DownloadStatus.CANCELLED
+              !config.isCompleted(task.status as TStatus) &&
+              !config.isCancelled(task.status as TStatus)
             "
             class="flex-1"
           >
             <ProgressBar
-              :value="getProgress(task)"
+              :value="config.getProgress(task)"
               :show-value="false"
               class="h-1.5"
             />
@@ -315,20 +286,42 @@ function getProgress(task: any): number {
           <!-- Progress Percentage -->
           <div
             v-if="
-              task.status !== DownloadStatus.COMPLETED &&
-              task.status !== DownloadStatus.CANCELLED
+              !config.isCompleted(task.status as TStatus) &&
+              !config.isCancelled(task.status as TStatus)
             "
             class="text-xs font-medium text-surface-600 dark:text-surface-400 flex-shrink-0 w-10 text-right"
           >
-            {{ getProgress(task) }}%
+            {{ config.getProgress(task) }}%
           </div>
         </div>
 
         <!-- Actions -->
         <div class="flex items-center gap-0.5 flex-shrink-0">
+          <!-- Priority Controls (only for pending tasks, hidden on mobile) -->
+          <template v-if="!isMobile && showPriorityControls">
+            <Button
+              icon="pi pi-angle-up"
+              severity="secondary"
+              variant="text"
+              size="small"
+              :disabled="index === 0"
+              title="提高優先序"
+              @click="emit('increasePriority', task.id)"
+            />
+            <Button
+              icon="pi pi-angle-down"
+              severity="secondary"
+              variant="text"
+              size="small"
+              :disabled="index === tasks.length - 1"
+              title="降低優先序"
+              @click="emit('decreasePriority', task.id)"
+            />
+          </template>
+
           <!-- Pause/Resume -->
           <Button
-            v-if="task.status === DownloadStatus.DOWNLOADING"
+            v-if="config.canPause(task.status as TStatus)"
             icon="pi pi-pause"
             severity="secondary"
             variant="text"
@@ -337,7 +330,7 @@ function getProgress(task: any): number {
             @click="emit('pause', task.id)"
           />
           <Button
-            v-else-if="task.status === DownloadStatus.PAUSED"
+            v-else-if="config.isPaused(task.status as TStatus)"
             icon="pi pi-play"
             severity="secondary"
             variant="text"
@@ -348,10 +341,7 @@ function getProgress(task: any): number {
 
           <!-- Retry -->
           <Button
-            v-if="
-              task.status === DownloadStatus.FAILED ||
-              task.status === DownloadStatus.EXPIRED
-            "
+            v-if="config.canRetry(task.status as TStatus)"
             icon="pi pi-refresh"
             severity="secondary"
             variant="text"
@@ -360,12 +350,23 @@ function getProgress(task: any): number {
             @click="emit('retry', task.id)"
           />
 
+          <!-- Cancel -->
+          <Button
+            v-if="config.canCancel(task.status as TStatus)"
+            icon="pi pi-times"
+            severity="secondary"
+            variant="text"
+            size="small"
+            title="取消"
+            @click="emit('cancel', task.id)"
+          />
+
           <!-- Remove -->
           <Button
             v-if="
-              task.status === DownloadStatus.COMPLETED ||
-              task.status === DownloadStatus.CANCELLED ||
-              task.status === DownloadStatus.FAILED
+              config.isCompleted(task.status as TStatus) ||
+              config.isCancelled(task.status as TStatus) ||
+              config.isFailed(task.status as TStatus)
             "
             icon="pi pi-trash"
             severity="secondary"
@@ -385,7 +386,7 @@ function getProgress(task: any): number {
     >
       <div :class="['flex items-center', isMobile ? 'gap-2' : 'gap-3']">
         <i :class="['pi', 'pi-inbox', isMobile ? 'text-3xl' : 'text-4xl']" />
-        <span class="text-sm">目前沒有下載任務</span>
+        <span class="text-sm">目前沒有{{ config.title }}</span>
         <div class="h-[32px] w-[35px]" />
       </div>
     </div>
