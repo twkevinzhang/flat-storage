@@ -56,7 +56,7 @@ const downloadStoreRefs = storeToRefs(downloadStore);
 <template>
   <div
     :class="[
-      'fixed bg-white dark:bg-surface-900 shadow-2xl rounded-lg border border-surface-200 dark:border-surface-700 z-50',
+      'fixed bg-white dark:bg-surface-900 shadow-2xl rounded-lg border border-surface-200 dark:border-surface-700 z-30',
       isMobile
         ? 'right-2 bottom-2 w-full max-w-[calc(100vw-1rem)]'
         : 'right-4 bottom-4 w-[600px] max-w-[calc(100vw-2rem)]',

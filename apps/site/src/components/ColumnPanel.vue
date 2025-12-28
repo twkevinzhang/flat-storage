@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Entity } from '@site/components/ObjectTree';
 import { EntityPath } from '@site/models';
+import { breakpointsTailwind } from '@vueuse/core';
+import { useSelectModeStore } from '@site/stores/select-mode';
+
+const breakpoints = useBreakpoints(breakpointsTailwind);
+const isMobile = breakpoints.smaller('md');
+const selectModeStore = useSelectModeStore();
 
 const props = defineProps<{
   path: EntityPath;
@@ -27,6 +33,10 @@ function isIndeterminate(item: Entity): boolean {
 
 function handleToggleSelection(item: Entity, event: Event) {
   event.stopPropagation();
+  // 點擊 checkbox 時自動進入選擇模式
+  if (!selectModeStore.selectMode) {
+    selectModeStore.enterSelectMode();
+  }
   emits('toggleSelection', item);
 }
 </script>
@@ -38,20 +48,24 @@ function handleToggleSelection(item: Entity, event: Event) {
     <div
       v-for="item in entities"
       :key="item.key"
-      class="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors duration-150 hover:bg-slate-50 border-b border-slate-50"
+      class="group flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors duration-150 hover:bg-slate-50 border-b border-slate-50"
       :class="{
         'bg-blue-50': item.key === selectedKey && !active,
         'bg-blue-500 text-white': item.key === selectedKey && active,
       }"
       @click="emits('itemClick', item)"
     >
-      <!-- Checkbox (select mode) -->
+      <!-- Checkbox (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
       <Checkbox
-        v-if="showCheckbox"
         :model-value="isChecked(item)"
         :indeterminate="isIndeterminate(item)"
         binary
-        class="flex-shrink-0"
+        :class="[
+          'flex-shrink-0 transition-opacity',
+          isMobile || showCheckbox
+            ? 'opacity-100'
+            : 'opacity-0 group-hover:opacity-100',
+        ]"
         @update:model-value="handleToggleSelection(item, $event)"
       />
 

@@ -2,6 +2,12 @@
 import { Entity } from '@site/components/ObjectTree';
 import { ColumnKeys } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
+import { useSelectModeStore } from '@site/stores/select-mode';
+import { breakpointsTailwind } from '@vueuse/core';
+
+const breakpoints = useBreakpoints(breakpointsTailwind);
+const isMobile = breakpoints.smaller('md');
+const selectModeStore = useSelectModeStore();
 
 const props = defineProps<{
   class?: any;
@@ -33,6 +39,44 @@ const columnWidths = ref<Record<string, number>>({
   [ColumnKeys.createdAt]: 150,
   [ColumnKeys.latestUpdatedAt]: 176,
 });
+
+// 全選狀態
+const isAllSelected = computed(() => {
+  if (props.tree.length === 0) return false;
+  return props.tree.every((item) => props.selectedKeys?.includes(item.key));
+});
+
+const isIndeterminate = computed(() => {
+  if (props.tree.length === 0) return false;
+  const selectedCount = props.tree.filter((item) =>
+    props.selectedKeys?.includes(item.key)
+  ).length;
+  return selectedCount > 0 && selectedCount < props.tree.length;
+});
+
+// 全選/取消全選
+function handleSelectAll() {
+  // 點擊時自動進入選擇模式
+  if (!selectModeStore.selectMode) {
+    selectModeStore.enterSelectMode();
+  }
+
+  if (isAllSelected.value) {
+    // 取消全選：移除所有當前顯示的項目
+    props.tree.forEach((item) => {
+      if (props.selectedKeys?.includes(item.key)) {
+        emits('toggleSelection', item);
+      }
+    });
+  } else {
+    // 全選：添加所有當前顯示的項目
+    props.tree.forEach((item) => {
+      if (!props.selectedKeys?.includes(item.key)) {
+        emits('toggleSelection', item);
+      }
+    });
+  }
+}
 </script>
 <template>
   <!-- Scrollable container for mobile -->
@@ -41,14 +85,25 @@ const columnWidths = ref<Record<string, number>>({
       <!-- Column Headers -->
       <SplitterPx
         v-model:widths="columnWidths"
-        class="bg-gray-50 border-b border-gray-300 font-semibold text-sm text-gray-700"
+        class="group bg-gray-50 border-b border-gray-300 font-semibold text-sm text-gray-700"
       >
+        <div class="size-8 flex items-center justify-center">
+          <!-- 全選按鈕 (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
+          <Checkbox
+            :model-value="isAllSelected"
+            :indeterminate="isIndeterminate"
+            binary
+            class="flex-shrink-0"
+            @update:model-value="handleSelectAll"
+          />
+        </div>
+        <div class="w-6 h-8 flex-shrink-0" />
         <SplitterPxPanel
           v-for="col in activeColumns"
           :key="col.key"
           :id="col.key"
           :size="columnWidths[col.key]"
-          :min-size="col.key === ColumnKeys.name ? 100 : 60"
+          :min-size="col.key === ColumnKeys.name ? 200 : 60"
           class="p-2"
         >
           <template #default>{{ col.label }}</template>
@@ -66,6 +121,8 @@ const columnWidths = ref<Record<string, number>>({
           <div
             class="flex items-center border-b border-gray-100 bg-white hover:bg-gray-50 overflow-hidden"
           >
+            <div class="size-8 flex-shrink-0"></div>
+            <div class="size-8 flex-shrink-0"></div>
             <template v-for="col in activeColumns" :key="col.key">
               <div
                 v-if="col.key === ColumnKeys.name"
@@ -79,7 +136,7 @@ const columnWidths = ref<Record<string, number>>({
                 >
                   <span
                     v-if="props.showCheckbox"
-                    class="ml-2 w-[20px] flex-shrink-0"
+                    class="size-8 flex-shrink-0"
                   />
                   <div class="w-6 size-8 flex-shrink-0" />
                   <PrimeIcon fullname="pi pi-folder" />

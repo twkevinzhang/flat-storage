@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ColumnKeys } from '@site/models';
 import { Entity } from '@site/components/ObjectTree';
+import { breakpointsTailwind } from '@vueuse/core';
+import { useSelectModeStore } from '@site/stores/select-mode';
+
+const breakpoints = useBreakpoints(breakpointsTailwind);
+const isMobile = breakpoints.smaller('md');
+const selectModeStore = useSelectModeStore();
 
 const props = withDefaults(
   defineProps<{
@@ -57,6 +63,10 @@ function isIndeterminate(node: Entity): boolean {
 }
 
 function handleToggleSelection(node: Entity) {
+  // 點擊 checkbox 時自動進入選擇模式
+  if (!selectModeStore.selectMode) {
+    selectModeStore.enterSelectMode();
+  }
   emits('toggleSelection', node);
 }
 
@@ -116,10 +126,39 @@ function getCellValue(node: Entity, key: ColumnKeys) {
     <li v-for="node in take(props.tree, props.limit)" :key="node.key">
       <!-- Row with dynamic columns -->
       <div
-        class="flex items-center border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors"
+        class="group flex items-center border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors"
       >
         <template v-for="col in props.columns" :key="col.key">
           <!-- Special handling for Name column with toggle/icons -->
+          <!-- Checkbox (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
+          <template v-if="col.key === ColumnKeys.name">
+            <div class="size-8 flex items-center justify-center">
+              <Checkbox
+                :model-value="isChecked(node)"
+                :indeterminate="isIndeterminate(node)"
+                binary
+                :class="[
+                  'flex-shrink-0 transition-opacity',
+                  isMobile || props.showCheckbox
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100',
+                ]"
+                @update:model-value="handleToggleSelection(node)"
+              />
+            </div>
+            <template v-if="node.leaf">
+              <Hover
+                class="w-6 flex-shrink-0"
+                :icon="angleIcon(node)"
+                :fluid="false"
+                rounded="none"
+                @click="(e) => nodeToggle(node)"
+              />
+            </template>
+            <template v-else>
+              <div class="w-6 h-8 flex-shrink-0" />
+            </template>
+          </template>
           <div
             v-if="col.key === ColumnKeys.name"
             class="flex items-center flex-shrink-0 min-w-0"
@@ -131,29 +170,6 @@ function getCellValue(node: Entity, key: ColumnKeys) {
                 props.indent ? 'pl-8' : '',
               ]"
             >
-              <!-- Checkbox (僅在 selectMode 顯示) -->
-              <Checkbox
-                v-if="props.showCheckbox"
-                :model-value="isChecked(node)"
-                :indeterminate="isIndeterminate(node)"
-                binary
-                class="flex-shrink-0 ml-2"
-                @update:model-value="handleToggleSelection(node)"
-              />
-
-              <template v-if="node.leaf">
-                <Hover
-                  class="w-6 flex-shrink-0"
-                  :icon="angleIcon(node)"
-                  :fluid="false"
-                  rounded="none"
-                  @click="(e) => nodeToggle(node)"
-                />
-              </template>
-              <template v-else>
-                <div class="w-6 size-8 flex-shrink-0" />
-              </template>
-
               <PrimeIcon :fullname="mimeIcon(node)" />
               <Hover
                 class="min-w-0"

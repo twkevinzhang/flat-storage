@@ -113,8 +113,9 @@ const safeActionButtons = [
     <Transition name="slide-up">
       <div
         v-if="selectModeStore.selectMode && selectModeStore.selectionsCount > 0"
-        class="fixed bottom-0 left-0 right-0 bg-black text-white z-50"
+        class="fixed bottom-0 left-0 right-0 text-white z-50"
         :class="isMobile ? 'py-3' : 'py-4'"
+        style="background-color: var(--p-primary-500)"
       >
         <div class="container mx-auto px-4">
           <!-- 桌面版 -->
@@ -130,7 +131,6 @@ const safeActionButtons = [
                 :key="btn.icon"
                 :icon="btn.icon"
                 :label="btn.label"
-                variant="outlined"
                 severity="secondary"
                 @click="btn.handler"
               />
@@ -143,7 +143,6 @@ const safeActionButtons = [
                 icon="pi pi-trash"
                 label="刪除"
                 severity="danger"
-                variant="text"
                 class="text-red-300 hover:text-red-100"
                 @click="handleDelete"
               />
@@ -152,7 +151,6 @@ const safeActionButtons = [
                 icon="pi pi-times"
                 label="取消"
                 severity="secondary"
-                variant="text"
                 @click="handleCancel"
               />
             </div>
@@ -174,7 +172,6 @@ const safeActionButtons = [
                 :key="btn.icon"
                 :icon="btn.icon"
                 :aria-label="btn.label"
-                variant="outlined"
                 severity="secondary"
                 size="small"
                 class="text-white flex-shrink-0"
@@ -184,7 +181,6 @@ const safeActionButtons = [
               <Button
                 icon="pi pi-trash"
                 severity="danger"
-                variant="text"
                 size="small"
                 aria-label="刪除"
                 class="text-red-300 flex-shrink-0"
@@ -196,7 +192,6 @@ const safeActionButtons = [
             <Button
               icon="pi pi-times"
               severity="secondary"
-              variant="text"
               size="small"
               aria-label="取消"
               class="text-white flex-shrink-0"

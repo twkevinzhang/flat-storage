@@ -148,6 +148,11 @@ export const useSelectModeStore = defineStore('select-mode', () => {
       }
     }
     selectionKeys.value = new Set(selectionKeys.value);
+
+    // 如果沒有任何項目被選中，自動退出選擇模式
+    if (selectionKeys.value.size === 0) {
+      exitSelectMode();
+    }
   }
 
   function selectAllItems(keys: string[]) {
@@ -156,6 +161,10 @@ export const useSelectModeStore = defineStore('select-mode', () => {
 
   function clearSelection() {
     selectionKeys.value.clear();
+    // 清空選擇時自動退出選擇模式
+    if (selectMode.value) {
+      selectMode.value = false;
+    }
   }
 
   function enterSelectMode() {

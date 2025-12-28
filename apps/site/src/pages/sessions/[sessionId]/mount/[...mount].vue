@@ -282,23 +282,6 @@ function toLeafNode(v: ObjectEntity): Entity {
 
     <!-- 資料夾名稱列 (獨立一行) -->
     <div class="flex items-center gap-2 relative">
-      <!-- 選擇模式按鈕 (僅桌面版) -->
-      <Button
-        v-if="isDesktop"
-        :icon="
-          selectModeStore.selectMode ? 'pi pi-times' : 'pi pi-check-square'
-        "
-        class="relative z-50"
-        :severity="selectModeStore.selectMode ? 'contrast' : 'secondary'"
-        :variant="selectModeStore.selectMode ? 'filled' : 'outlined'"
-        :aria-label="selectModeStore.selectMode ? '退出選擇模式' : '選擇模式'"
-        @click="
-          selectModeStore.selectMode
-            ? selectModeStore.exitSelectMode()
-            : selectModeStore.enterSelectMode()
-        "
-      />
-
       <!-- 資料夾名稱 + 選單 -->
       <Hover
         class="flex-1"
@@ -331,7 +314,10 @@ function toLeafNode(v: ObjectEntity): Entity {
           class="relative z-50"
           @click="(e) => moreMenu?.toggle(e)"
         />
-        <div class="flex items-center gap-2 flex-1" :class="selectModeDisabledClass">
+        <div
+          class="flex items-center gap-2 flex-1"
+          :class="selectModeDisabledClass"
+        >
           <Button
             :icon="toolbarButtons.refresh.icon"
             severity="secondary"
@@ -349,7 +335,7 @@ function toLeafNode(v: ObjectEntity): Entity {
       </div>
 
       <!-- 視圖模式選擇器（共用組件） -->
-      <div class="flex items-center gap-3 relative" :class="selectModeActiveClass">
+      <div class="flex items-center gap-3 relative">
         <SelectButton
           v-model="viewMode"
           size="small"
@@ -359,7 +345,11 @@ function toLeafNode(v: ObjectEntity): Entity {
         >
           <template #option="{ option }">
             <PrimeIcon v-if="option.icon" :name="option.icon" />
-            <SvgIcon v-else :name="option.svgIcon" :class="isDesktop && 'text-slate-500'" />
+            <SvgIcon
+              v-else
+              :name="option.svgIcon"
+              :class="isDesktop && 'text-slate-500'"
+            />
           </template>
         </SelectButton>
 
@@ -385,7 +375,11 @@ function toLeafNode(v: ObjectEntity): Entity {
       </div>
 
       <!-- 桌面版：主要操作 -->
-      <div v-if="isDesktop" class="flex items-center gap-2" :class="selectModeDisabledClass">
+      <div
+        v-if="isDesktop"
+        class="flex items-center gap-2"
+        :class="selectModeDisabledClass"
+      >
         <Button
           :icon="toolbarButtons.columnOrder.icon"
           severity="secondary"
@@ -413,13 +407,22 @@ function toLeafNode(v: ObjectEntity): Entity {
       class="my-2 relative"
       :class="[
         selectModeActiveClass,
-        viewMode === 'column' ? 'overflow-hidden' : 'overflow-scroll'
+        viewMode === 'column' ? 'overflow-hidden' : 'overflow-scroll',
       ]"
-      :style="viewMode === 'column' ? 'height: calc(100vh - 200px); min-height: 400px;' : ''"
+      :style="
+        viewMode === 'column'
+          ? 'height: calc(100vh - 200px); min-height: 400px;'
+          : ''
+      "
     >
       <component
-        :is="viewMode === 'list' ? MountList : viewMode === 'column' ? MountColumn : MountGrid"
-        :class="selectModeActiveClass"
+        :is="
+          viewMode === 'list'
+            ? MountList
+            : viewMode === 'column'
+            ? MountColumn
+            : MountGrid
+        "
         :is-root="viewMode === 'list' ? path.isRootLevel : undefined"
         :tree="tree"
         :show-checkbox="selectModeStoreRefs.selectMode.value"
