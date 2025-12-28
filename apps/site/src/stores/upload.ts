@@ -73,25 +73,25 @@ export const useUploadStore = defineStore('upload', () => {
 
   const metadataStore = useMetadataStore();
 
-  const { data: persistentTasks } = useIDBKeyval<string[]>('upload_tasks', [], {
+  const { data: persistedTasks } = useIDBKeyval<string[]>('upload_tasks', [], {
     deep: true,
   });
-  const { data: persistentFiles } = useIDBKeyval<Record<string, File>>(
+  const { data: persistedFiles } = useIDBKeyval<Record<string, File>>(
     'upload_files',
     {},
     { deep: true }
   );
   const tasks = computed({
-    get: () => persistentTasks.value.map((json) => UploadTask.fromJson(json)),
+    get: () => persistedTasks.value.map((json) => UploadTask.fromJson(json)),
     set: (value: UploadTask[]) => {
-      persistentTasks.value = value.map((t) => t.toJson());
+      persistedTasks.value = value.map((t) => t.toJson());
     },
   });
 
   const files = computed({
-    get: () => persistentFiles.value,
+    get: () => persistedFiles.value,
     set: (value: Record<string, File>) => {
-      persistentFiles.value = value;
+      persistedFiles.value = value;
     },
   });
 
@@ -504,17 +504,23 @@ export const useUploadStore = defineStore('upload', () => {
       }
       progressTrackers.delete(taskId);
       tasks.value = tasks.value.filter((t) => t.id !== taskId);
+      files.value = Object.fromEntries(
+        Object.entries(files.value).filter(([id]) => id !== taskId)
+      );
     },
     clearCompletedTasks: () => {
-      const completed = tasks.value.filter(
-        (t) => t.status === UploadStatus.COMPLETED
+      const leave = tasks.value.filter(
+        (t) =>
+          t.status !== UploadStatus.COMPLETED &&
+          t.status !== UploadStatus.CANCELLED
       );
-      tasks.value = tasks.value.filter(
-        (t) => t.status !== UploadStatus.COMPLETED
+      tasks.value = leave;
+      // 清除這些任務對應的檔案
+      files.value = Object.fromEntries(
+        Object.entries(files.value).filter(
+          ([id]) => !leave.some((t) => t.id === id)
+        )
       );
-      completed.forEach((task) => {
-        delete files.value[task.id];
-      });
     },
     toggleCollapse: () => {
       isCollapsed.value = !isCollapsed.value;

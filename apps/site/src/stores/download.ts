@@ -43,7 +43,6 @@ class ProgressTracker {
 
 export const useDownloadStore = defineStore('download', () => {
   const session = ref<SessionEntity | null>(null);
-  const tasks = ref<DownloadTask[]>([]);
   const abortControllers = new Map<string, AbortController>();
   const progressTrackers = new Map<string, ProgressTracker>();
 
@@ -53,10 +52,10 @@ export const useDownloadStore = defineStore('download', () => {
     { shallow: false }
   );
 
-  const tasksIdb = computed({
-    get: () => persistedTasks.value || [],
-    set: (value: string[]) => {
-      persistedTasks.value = value;
+  const tasks = computed({
+    get: () => persistedTasks.value.map((json) => DownloadTask.fromJson(json)),
+    set: (value: DownloadTask[]) => {
+      persistedTasks.value = value.map((t) => t.toJson());
     },
   });
 
@@ -97,26 +96,6 @@ export const useDownloadStore = defineStore('download', () => {
       ? speeds.reduce((a, b) => a + b, 0) / speeds.length
       : 0;
   });
-
-  watch(
-    isFinished,
-    (finished) => {
-      if (finished && tasksIdb.value.length > 0) {
-        tasks.value = tasksIdb.value.map((json) => DownloadTask.fromJson(json));
-      }
-    },
-    { immediate: true }
-  );
-
-  watch(
-    tasks,
-    (newTasks) => {
-      tasksIdb.value = newTasks
-        .filter((t) => t.status !== DownloadStatus.COMPLETED)
-        .map((t) => t.toJson());
-    },
-    { deep: true }
-  );
 
   watch([downloadingTasks, pendingTasks], ([downloading, pending]) => {
     const available = MAX_CONCURRENT - downloading.length;
@@ -240,7 +219,7 @@ export const useDownloadStore = defineStore('download', () => {
         file,
       });
 
-      tasks.value.push(task);
+      tasks.value = [...tasks.value, task];
     },
     pauseTask: (taskId: string) => {
       const controller = abortControllers.get(taskId);
@@ -280,8 +259,11 @@ export const useDownloadStore = defineStore('download', () => {
       tasks.value = tasks.value.filter((t) => t.id !== taskId);
     },
     clearCompleted: () => {
+      // 清除所有已終止的任務（COMPLETED 和 CANCELLED）
       tasks.value = tasks.value.filter(
-        (t) => t.status !== DownloadStatus.COMPLETED
+        (t) =>
+          t.status !== DownloadStatus.COMPLETED &&
+          t.status !== DownloadStatus.CANCELLED
       );
     },
     clearAll: () => {

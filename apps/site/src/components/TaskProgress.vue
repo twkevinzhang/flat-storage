@@ -80,6 +80,26 @@ const props = defineProps<{
   showPriorityControls?: boolean;
 }>();
 
+// 計算已結束任務的總大小（包含 COMPLETED 和 CANCELLED）
+const terminatedTasksSize = computed(() => {
+  return props.tasks
+    .filter(
+      (task) =>
+        props.config.isCompleted(task.status) ||
+        props.config.isCancelled(task.status)
+    )
+    .reduce((sum, task) => sum + task.file.size, 0);
+});
+
+// 計算已結束任務的數量
+const terminatedTasksCount = computed(() => {
+  return props.tasks.filter(
+    (task) =>
+      props.config.isCompleted(task.status) ||
+      props.config.isCancelled(task.status)
+  ).length;
+});
+
 const emit = defineEmits<{
   (e: 'pause', taskId: string): void;
   (e: 'resume', taskId: string): void;
@@ -208,9 +228,9 @@ function isTaskFailed(task: BaseTask): boolean {
 
       <!-- Clear Completed Button -->
       <button
-        v-if="!isMobile && showClearCompleted && completedTasks.length > 0"
+        v-if="!isMobile && showClearCompleted && terminatedTasksCount > 0"
         class="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-800 rounded transition-colors"
-        title="清除已完成"
+        :title="`清除已結束的任務 (${terminatedTasksCount} 個，共 ${formatFileSize(terminatedTasksSize)})`"
         @click.stop="emit('clearCompleted')"
       >
         <SvgIcon
