@@ -122,7 +122,7 @@ function handleSelectAll() {
             class="flex items-center border-b border-gray-100 bg-white hover:bg-gray-50 overflow-hidden"
           >
             <div class="size-8 flex-shrink-0"></div>
-            <div class="size-8 flex-shrink-0"></div>
+            <div class="w-6 h-8 flex-shrink-0" />
             <template v-for="col in activeColumns" :key="col.key">
               <div
                 v-if="col.key === ColumnKeys.name"
@@ -134,11 +134,6 @@ function handleSelectAll() {
                     'w-full p-1 overflow-hidden flex gap-2 items-center',
                   ]"
                 >
-                  <span
-                    v-if="props.showCheckbox"
-                    class="size-8 flex-shrink-0"
-                  />
-                  <div class="w-6 size-8 flex-shrink-0" />
                   <PrimeIcon fullname="pi pi-folder" />
                   <Hover
                     class="min-w-0"
