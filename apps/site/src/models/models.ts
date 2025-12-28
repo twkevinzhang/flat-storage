@@ -1,4 +1,3 @@
-import { SessionEntity } from './entities';
 
 export enum Driver {
   'gcs' = 'gcs',
@@ -110,24 +109,7 @@ export class ObjectsFilter {
   }
 }
 
-export class SessionForm implements Partial<Omit<SessionEntity, 'id'>> {
-  constructor(
-    public readonly name: string | undefined,
-    public readonly description: string | undefined,
-    public readonly driver: Driver,
-    public readonly mount: string,
-    public readonly uploadedAtISO: string,
-    public readonly latestConnectedISO: string | undefined,
-    public readonly metadataPath: string,
-    public readonly accessKey: string,
-    public readonly secretKey: string,
-    public readonly projectId: string | undefined
-  ) {}
-
-  check(): void {
-    if (!this.name) throw new Error('Name is required');
-  }
-}
+// SessionForm is no longer used - SessionEntity.new() with Auth is used directly
 
 export class EntityPath {
   public readonly sessionId: string;

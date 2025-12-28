@@ -1,12 +1,18 @@
-import { Driver, SessionEntity } from '@site/models';
 import axios from 'axios';
 
+// from service account json
 export interface GcsAuth {
-  projectId?: string;
-  clientEmail?: string;
-  privateKey?: string;
-  accessKey?: string;
-  secretKey?: string;
+  type?: string;
+  project_id?: string;
+  private_key_id?: string;
+  private_key?: string;
+  client_email?: string;
+  client_id?: string;
+  auth_uri?: string;
+  token_uri?: string;
+  auth_provider_x509_cert_url?: string;
+  client_x509_cert_url?: string;
+  universe_domain?: string;
 }
 
 export class GcsProxyClient {
@@ -165,24 +171,4 @@ export class ProxyFile {
     });
     return res.data.data;
   }
-}
-
-export function proxyBucket(session: SessionEntity) {
-  if (session.driver !== Driver.gcs) {
-    throw new Error(`Driver ${session.driver} not supported`);
-  }
-  const client = new GcsProxyClient({
-    accessKey: session.accessKey,
-    secretKey: session.secretKey,
-    projectId: session.projectId,
-  });
-
-  const bucket = client.bucket(removeLeadingSlash(session.mount));
-  return bucket;
-}
-
-export function proxyMetadataFile(session: SessionEntity) {
-  const bucket = proxyBucket(session);
-  const metadataFile = bucket.file(removeLeadingSlash(session.metadataPath));
-  return metadataFile;
 }

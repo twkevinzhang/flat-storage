@@ -133,6 +133,16 @@ export const useDownloadStore = defineStore('download', () => {
     }
   });
 
+  /**
+   * 工具函數
+   */
+
+  function updateTask(taskId: string, updates: Partial<DownloadTask>) {
+    tasks.value = tasks.value.map((t) =>
+      t.id === taskId ? DownloadTask.merge(t, updates) : t
+    );
+  }
+
   // Actions
   function addTask(file: DownloadTaskFile) {
     if (!session.value) {
@@ -152,78 +162,94 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   async function startDownload(taskId: string) {
-    const index = tasks.value.findIndex((t) => t.id === taskId);
-    if (index === -1) return;
-
-    const task = tasks.value[index];
-    if (!session.value) return;
+    const task = tasks.value.find((t) => t.id === taskId);
+    if (!task || !session.value) return;
 
     try {
-      // Update to downloading status directly (no need to fetch signed URL)
-      tasks.value[index] = DownloadTask.merge(task, {
-        status: DownloadStatus.DOWNLOADING,
-        error: undefined,
-      });
+      // Reuse existing signed URL if available and not expired
+      let signedUrl = task.signedUrl;
 
-      // Get proxy download URL
-      const bucket = proxyBucket(session.value);
-      const file = bucket.file(task.file.path);
-      const downloadUrl = file.getProxyDownloadUrl();
+      if (!signedUrl) {
+        // Fetch signed URL from proxy (small traffic)
+        updateTask(taskId, {
+          status: DownloadStatus.FETCHING_URL,
+          error: undefined,
+        });
+
+        const bucket = proxyBucket(session.value);
+        const file = bucket.file(task.file.path);
+
+        // Get signed URL via proxy (proxy generates the signature using its credentials)
+        // This is a small request - only the signature generation goes through proxy
+        signedUrl = await file.getSignedUrl({
+          action: 'read',
+          expires: Date.now() + 3600000, // 1 hour
+        });
+
+        // Save signed URL for resume
+        updateTask(taskId, { signedUrl });
+      }
+
+      // Update to downloading status
+      updateTask(taskId, { status: DownloadStatus.DOWNLOADING });
 
       // Create abort controller
       const controller = new AbortController();
       abortControllers.set(taskId, controller);
 
-      // Create progress tracker
-      const tracker = new ProgressTracker();
-      progressTrackers.set(taskId, tracker);
+      // Create or reuse progress tracker
+      let tracker = progressTrackers.get(taskId);
+      if (!tracker) {
+        tracker = new ProgressTracker();
+        progressTrackers.set(taskId, tracker);
+      }
 
-      // Download with progress tracking
+      // Get current progress for resumable download
+      const currentTask = tasks.value.find((t) => t.id === taskId);
+      const startByte = currentTask?.downloadedBytes || 0;
+
+      // Download directly from GCS using signed URL (NO proxy traffic!)
+      // Support resumable download with Range header
       await downloadFile(
-        downloadUrl,
+        signedUrl,
         task.file.relativePath,
         (downloadedBytes) => {
-          const index = tasks.value.findIndex((t) => t.id === taskId);
-          if (index === -1) return;
-
           tracker.update(downloadedBytes);
           const speed = tracker.getSpeed();
           const eta = tracker.getETA(task.file.size - downloadedBytes);
 
-          tasks.value[index] = DownloadTask.merge(tasks.value[index], {
+          updateTask(taskId, {
             downloadedBytes,
             speed,
             eta,
           });
         },
-        controller.signal
+        controller.signal,
+        startByte
       );
 
       // Mark as completed
-      const finalIndex = tasks.value.findIndex((t) => t.id === taskId);
-      if (finalIndex !== -1) {
-        tasks.value[finalIndex] = DownloadTask.merge(tasks.value[finalIndex], {
+      const finalTask = tasks.value.find((t) => t.id === taskId);
+      if (finalTask) {
+        updateTask(taskId, {
           status: DownloadStatus.COMPLETED,
-          downloadedBytes: tasks.value[finalIndex].file.size,
+          downloadedBytes: finalTask.file.size,
         });
       }
     } catch (error: any) {
-      const index = tasks.value.findIndex((t) => t.id === taskId);
-      if (index === -1) return;
-
       if (error.name === 'AbortError' || error.name === 'CanceledError') {
-        tasks.value[index] = DownloadTask.merge(tasks.value[index], {
-          status: DownloadStatus.CANCELLED,
-        });
-      } else {
-        tasks.value[index] = DownloadTask.merge(tasks.value[index], {
-          status: DownloadStatus.FAILED,
-          error: error.message,
-        });
+        // Don't mark as CANCELLED, keep as PAUSED for resume
+        // The pauseTask function will set the correct status
+        return;
       }
+
+      updateTask(taskId, {
+        status: DownloadStatus.FAILED,
+        error: error.message,
+      });
     } finally {
       abortControllers.delete(taskId);
-      progressTrackers.delete(taskId);
+      // Don't delete tracker - keep it for resume
     }
   }
 
@@ -232,34 +258,20 @@ export const useDownloadStore = defineStore('download', () => {
     if (controller) {
       controller.abort();
     }
-
-    const index = tasks.value.findIndex((t) => t.id === taskId);
-    if (index !== -1) {
-      tasks.value[index] = DownloadTask.merge(tasks.value[index], {
-        status: DownloadStatus.PAUSED,
-      });
-    }
+    updateTask(taskId, { status: DownloadStatus.PAUSED });
   }
 
   function resumeTask(taskId: string) {
-    const index = tasks.value.findIndex((t) => t.id === taskId);
-    if (index !== -1) {
-      tasks.value[index] = DownloadTask.merge(tasks.value[index], {
-        status: DownloadStatus.PENDING,
-      });
-    }
+    updateTask(taskId, { status: DownloadStatus.PENDING });
   }
 
   function retryTask(taskId: string) {
-    const index = tasks.value.findIndex((t) => t.id === taskId);
-    if (index !== -1) {
-      tasks.value[index] = DownloadTask.merge(tasks.value[index], {
-        status: DownloadStatus.PENDING,
-        downloadedBytes: 0,
-        error: undefined,
-        signedUrl: undefined,
-      });
-    }
+    updateTask(taskId, {
+      status: DownloadStatus.PENDING,
+      downloadedBytes: 0,
+      error: undefined,
+      signedUrl: undefined,
+    });
   }
 
   function cancelTask(taskId: string) {
@@ -267,13 +279,7 @@ export const useDownloadStore = defineStore('download', () => {
     if (controller) {
       controller.abort();
     }
-
-    const index = tasks.value.findIndex((t) => t.id === taskId);
-    if (index !== -1) {
-      tasks.value[index] = DownloadTask.merge(tasks.value[index], {
-        status: DownloadStatus.CANCELLED,
-      });
-    }
+    updateTask(taskId, { status: DownloadStatus.CANCELLED });
   }
 
   function removeTask(taskId: string) {

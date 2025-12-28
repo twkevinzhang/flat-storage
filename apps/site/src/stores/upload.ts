@@ -21,7 +21,13 @@ class ProgressTracker {
   private readonly SPEED_SAMPLE_SIZE = 5;
 
   // 構造函數接收必要的資訊
-  constructor(private taskId: string, private totalBytes: number) {}
+  constructor(
+    private taskId: string,
+    private totalBytes: number,
+    initialBytes = 0
+  ) {
+    this.lastBytes = initialBytes;
+  }
 
   update(uploadedBytes: number) {
     const now = Date.now();
@@ -210,7 +216,14 @@ export const useUploadStore = defineStore('upload', () => {
       sendNotification('上傳完成', `${task.file.name} 已成功上傳`, 'success');
     } catch (err: any) {
       console.error('上傳失敗:', err);
-      if (err.name === 'AbortError') return;
+
+      // 如果是中止錯誤，不做任何處理（pauseTask 會設定狀態）
+      // AbortError: 標準 DOM 錯誤
+      // CanceledError: Axios 特有的取消錯誤
+      if (err.name === 'AbortError' || err.name === 'CanceledError') {
+        // 保留 uploadUri 和 uploadedBytes 以支持恢復
+        return;
+      }
 
       // 檢查是否為認證過期錯誤 (401, 403, expired token 等)
       const isAuthError =
@@ -236,7 +249,7 @@ export const useUploadStore = defineStore('upload', () => {
       sendNotification('上傳失敗', `${task.file.name} 上傳失敗`, 'error');
     } finally {
       activeControllers.delete(task.id);
-      trackers.delete(task.id);
+      // 保留 tracker - 用於恢復時的速度計算
     }
   }
 
@@ -283,8 +296,13 @@ export const useUploadStore = defineStore('upload', () => {
   ) {
     const file = getFile(taskId);
     const task = getTask(taskId);
-    const tracker = new ProgressTracker(task.id, file.size);
-    trackers.set(task.id, tracker);
+
+    // 重用現有的 tracker，或創建新的
+    let tracker = trackers.get(task.id);
+    if (!tracker) {
+      tracker = new ProgressTracker(task.id, file.size, task.uploadedBytes);
+      trackers.set(task.id, tracker);
+    }
 
     async function* getChunks() {
       let offset = task.uploadedBytes;

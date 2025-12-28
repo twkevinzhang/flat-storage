@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { Driver, EntityPath, ObjectMimeType } from '.';
+import { Auth } from '@site/services/auth';
 
 export interface BucketEntity {
   name: string;
@@ -11,39 +12,33 @@ export class SessionEntity {
     public readonly name: string,
     public readonly description: string | undefined,
     public readonly driver: Driver,
+    public readonly auth: Auth,
     public readonly mount: string,
     public readonly uploadedAtISO: string,
     public readonly latestConnectedISO: string | undefined,
-    public readonly metadataPath: string,
-    public readonly accessKey: string,
-    public readonly secretKey: string,
-    public readonly projectId?: string
+    public readonly metadataPath: string
   ) {}
 
   static new(params: {
     name?: string;
     description?: string;
     driver: Driver;
+    auth: Auth;
     mount: string;
     uploadedAtISO?: string;
     latestConnectedISO?: string;
     metadataPath?: string;
-    accessKey: string;
-    secretKey: string;
-    projectId?: string;
   }): SessionEntity {
     return new SessionEntity(
       nanoid(6),
       params.name ?? 'Untitled',
       params.description,
       params.driver,
+      params.auth,
       params.mount,
       params.uploadedAtISO ?? new Date().toISOString(),
       params.latestConnectedISO,
-      params.metadataPath ?? '/',
-      params.accessKey,
-      params.secretKey,
-      params.projectId
+      params.metadataPath ?? '/'
     );
   }
 
