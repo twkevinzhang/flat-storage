@@ -43,13 +43,10 @@ class ProgressTracker {
 
 export const useDownloadStore = defineStore('download', () => {
   const session = ref<SessionEntity | null>(null);
-
-  // State
   const tasks = ref<DownloadTask[]>([]);
   const abortControllers = new Map<string, AbortController>();
   const progressTrackers = new Map<string, ProgressTracker>();
 
-  // IndexedDB persistence
   const { data: persistedTasks, isFinished } = useIDBKeyval<string[]>(
     'download-tasks',
     [],
@@ -63,7 +60,6 @@ export const useDownloadStore = defineStore('download', () => {
     },
   });
 
-  // Computed
   const pendingTasks = computed(() =>
     tasks.value
       .filter((t) => t.status === DownloadStatus.PENDING)
@@ -102,7 +98,6 @@ export const useDownloadStore = defineStore('download', () => {
       : 0;
   });
 
-  // Load tasks from IndexedDB
   watch(
     isFinished,
     (finished) => {
@@ -113,7 +108,6 @@ export const useDownloadStore = defineStore('download', () => {
     { immediate: true }
   );
 
-  // Persist tasks to IndexedDB
   watch(
     tasks,
     (newTasks) => {
@@ -124,7 +118,6 @@ export const useDownloadStore = defineStore('download', () => {
     { deep: true }
   );
 
-  // Reactive scheduler
   watch([downloadingTasks, pendingTasks], ([downloading, pending]) => {
     const available = MAX_CONCURRENT - downloading.length;
     if (available > 0 && pending.length > 0) {
@@ -133,44 +126,14 @@ export const useDownloadStore = defineStore('download', () => {
     }
   });
 
-  /**
-   * 工具函數
-   */
-
-  function updateTask(taskId: string, updates: Partial<DownloadTask>) {
-    tasks.value = tasks.value.map((t) =>
-      t.id === taskId ? DownloadTask.merge(t, updates) : t
-    );
-  }
-
-  // Actions
-  function addTask(file: DownloadTaskFile) {
-    if (!session.value) {
-      throw new Error('No active session');
-    }
-
-    const task = DownloadTask.new({
-      sessionId: session.value.id,
-      file,
-    });
-
-    tasks.value.push(task);
-  }
-
-  function addTasks(files: DownloadTaskFile[]) {
-    files.forEach((file) => addTask(file));
-  }
-
   async function startDownload(taskId: string) {
     const task = tasks.value.find((t) => t.id === taskId);
     if (!task || !session.value) return;
 
     try {
-      // Reuse existing signed URL if available and not expired
       let signedUrl = task.signedUrl;
 
       if (!signedUrl) {
-        // Fetch signed URL from proxy (small traffic)
         updateTask(taskId, {
           status: DownloadStatus.FETCHING_URL,
           error: undefined,
@@ -179,37 +142,28 @@ export const useDownloadStore = defineStore('download', () => {
         const bucket = proxyBucket(session.value);
         const file = bucket.file(task.file.path);
 
-        // Get signed URL via proxy (proxy generates the signature using its credentials)
-        // This is a small request - only the signature generation goes through proxy
         signedUrl = await file.getSignedUrl({
           action: 'read',
           expires: Date.now() + 3600000, // 1 hour
         });
 
-        // Save signed URL for resume
         updateTask(taskId, { signedUrl });
       }
 
-      // Update to downloading status
       updateTask(taskId, { status: DownloadStatus.DOWNLOADING });
 
-      // Create abort controller
       const controller = new AbortController();
       abortControllers.set(taskId, controller);
 
-      // Create or reuse progress tracker
       let tracker = progressTrackers.get(taskId);
       if (!tracker) {
         tracker = new ProgressTracker();
         progressTrackers.set(taskId, tracker);
       }
 
-      // Get current progress for resumable download
       const currentTask = tasks.value.find((t) => t.id === taskId);
       const startByte = currentTask?.downloadedBytes || 0;
 
-      // Download directly from GCS using signed URL (NO proxy traffic!)
-      // Support resumable download with Range header
       await downloadFile(
         signedUrl,
         task.file.relativePath,
@@ -249,66 +203,22 @@ export const useDownloadStore = defineStore('download', () => {
       });
     } finally {
       abortControllers.delete(taskId);
-      // Don't delete tracker - keep it for resume
     }
   }
 
-  function pauseTask(taskId: string) {
-    const controller = abortControllers.get(taskId);
-    if (controller) {
-      controller.abort();
-    }
-    updateTask(taskId, { status: DownloadStatus.PAUSED });
-  }
+  /**
+   * 工具函數
+   */
 
-  function resumeTask(taskId: string) {
-    updateTask(taskId, { status: DownloadStatus.PENDING });
-  }
-
-  function retryTask(taskId: string) {
-    updateTask(taskId, {
-      status: DownloadStatus.PENDING,
-      downloadedBytes: 0,
-      error: undefined,
-      signedUrl: undefined,
-    });
-  }
-
-  function cancelTask(taskId: string) {
-    const controller = abortControllers.get(taskId);
-    if (controller) {
-      controller.abort();
-    }
-    updateTask(taskId, { status: DownloadStatus.CANCELLED });
-  }
-
-  function removeTask(taskId: string) {
-    const controller = abortControllers.get(taskId);
-    if (controller) {
-      controller.abort();
-      abortControllers.delete(taskId);
-    }
-    progressTrackers.delete(taskId);
-    tasks.value = tasks.value.filter((t) => t.id !== taskId);
-  }
-
-  function clearCompleted() {
-    tasks.value = tasks.value.filter(
-      (t) => t.status !== DownloadStatus.COMPLETED
+  function updateTask(taskId: string, updates: Partial<DownloadTask>) {
+    tasks.value = tasks.value.map((t) =>
+      t.id === taskId ? DownloadTask.merge(t, updates) : t
     );
   }
 
-  function clearAll() {
-    abortControllers.forEach((controller) => controller.abort());
-    abortControllers.clear();
-    progressTrackers.clear();
-    tasks.value = [];
-  }
-
-  function retryAll() {
-    failedTasks.value.forEach((task) => retryTask(task.id));
-  }
-
+  /**
+   * UI 狀態
+   */
   const isCollapsed = ref(false);
 
   return {
@@ -320,16 +230,66 @@ export const useDownloadStore = defineStore('download', () => {
     totalProgress,
     averageSpeed,
     isCollapsed,
-    addTask,
-    addTasks,
-    pauseTask,
-    resumeTask,
-    retryTask,
-    cancelTask,
-    removeTask,
-    clearCompleted,
-    retryAll,
-    clearAll,
+    addTask: (file: DownloadTaskFile) => {
+      if (!session.value) {
+        throw new Error('No active session');
+      }
+
+      const task = DownloadTask.new({
+        sessionId: session.value.id,
+        file,
+      });
+
+      tasks.value.push(task);
+    },
+    pauseTask: (taskId: string) => {
+      const controller = abortControllers.get(taskId);
+      if (controller) {
+        controller.abort();
+      }
+      updateTask(taskId, { status: DownloadStatus.PAUSED });
+    },
+    resumeTask: (taskId: string) => {
+      updateTask(taskId, { status: DownloadStatus.PENDING });
+    },
+    retryTask: (taskId: string) => {
+      const task = tasks.value.find((t) => t.id === taskId);
+      if (!task) return;
+
+      updateTask(taskId, {
+        status: DownloadStatus.PENDING,
+        downloadedBytes: 0,
+        error: undefined,
+        signedUrl: undefined,
+      });
+    },
+    cancelTask: (taskId: string) => {
+      const controller = abortControllers.get(taskId);
+      if (controller) {
+        controller.abort();
+      }
+      updateTask(taskId, { status: DownloadStatus.CANCELLED });
+    },
+    removeTask: (taskId: string) => {
+      const controller = abortControllers.get(taskId);
+      if (controller) {
+        controller.abort();
+        abortControllers.delete(taskId);
+      }
+      progressTrackers.delete(taskId);
+      tasks.value = tasks.value.filter((t) => t.id !== taskId);
+    },
+    clearCompleted: () => {
+      tasks.value = tasks.value.filter(
+        (t) => t.status !== DownloadStatus.COMPLETED
+      );
+    },
+    clearAll: () => {
+      abortControllers.forEach((controller) => controller.abort());
+      abortControllers.clear();
+      progressTrackers.clear();
+      tasks.value = [];
+    },
     toggleCollapse: () => {
       isCollapsed.value = !isCollapsed.value;
     },

@@ -57,7 +57,7 @@ function handleDownload() {
   );
 
   console.log('建立的下載任務:', tasks);
-  downloadStore.addTasks(tasks);
+  tasks.forEach((file) => downloadStore.addTask(file));
   console.log(
     '下載任務已加入 store，當前任務數量:',
     downloadStore.tasks.length

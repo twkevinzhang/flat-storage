@@ -20,7 +20,6 @@ class ProgressTracker {
   private speeds: number[] = [];
   private readonly SPEED_SAMPLE_SIZE = 5;
 
-  // 構造函數接收必要的資訊
   constructor(
     private taskId: string,
     private totalBytes: number,
@@ -46,7 +45,6 @@ class ProgressTracker {
     this.lastTime = now;
   }
 
-  // 這裡命名為 getMetrics，並移除參數（因為已在 constructor 傳入）
   getMetrics(): UploadProgress {
     const avgSpeed =
       this.speeds.length > 0
@@ -70,8 +68,9 @@ class ProgressTracker {
 
 export const useUploadStore = defineStore('upload', () => {
   const session = ref<SessionEntity | null>(null);
-  const activeControllers = new Map<string, AbortController>();
-  const trackers = new Map<string, ProgressTracker>();
+  const abortControllers = new Map<string, AbortController>();
+  const progressTrackers = new Map<string, ProgressTracker>();
+
   const metadataStore = useMetadataStore();
 
   const { data: persistentTasks } = useIDBKeyval<string[]>('upload_tasks', [], {
@@ -173,8 +172,6 @@ export const useUploadStore = defineStore('upload', () => {
     return total > 0 ? Math.round((uploaded / total) * 100) : 0;
   });
 
-  // --- 自動調度器 (Reactive Scheduler) ---
-  // 當上傳中的任務少於限制，且有待處理任務時，自動啟動
   watch(
     [uploadingTasks, pendingTasks],
     () => {
@@ -182,74 +179,87 @@ export const useUploadStore = defineStore('upload', () => {
         uploadingTasks.value.length < MAX_CONCURRENT &&
         pendingTasks.value.length > 0
       ) {
-        if (!session.value) return;
+        if (!session.value!) return;
         const nextTask = pendingTasks.value[0];
-        processUpload(nextTask, session.value);
+        startUpload(nextTask);
       }
     },
     { immediate: true }
   );
 
-  async function processUpload(task: UploadTask, session: SessionEntity) {
-    const controller = new AbortController();
-    activeControllers.set(task.id, controller);
-
+  async function startUpload(task: UploadTask) {
     try {
       // 1. 雜湊計算
       if (!task.xxHash64) await runHashPhase(task.id);
 
       // 2. 取得會話路徑
-      if (!task.uploadUri) await runSessionPhase(task.id, session);
+      if (!task.uploadUri) await runSessionPhase(task.id);
 
       // 3. 執行分塊上傳 (核心 Reactive 部分)
-      await runUploadPhase(task.id, session, controller.signal);
+      updateTask(task.id, { status: UploadStatus.UPLOADING });
+
+      const controller = new AbortController();
+      abortControllers.set(task.id, controller);
+
+      await runUploadPhase(task.id, controller.signal);
 
       // 4. 驗證
-      // const metadata = await runVerifyPhase(task.id, session); // FIXME: bypass
+      // const metadata = await runVerifyPhase(task.id, session.value!); // FIXME: bypass
 
       // 5. 更新 metadata store
-      await runUpdateMetadata(task.id, session);
+      await runUpdateMetadata(task.id);
 
       updateTask(task.id, { status: UploadStatus.COMPLETED });
 
       // 發送完成通知
       sendNotification('上傳完成', `${task.file.name} 已成功上傳`, 'success');
-    } catch (err: any) {
-      console.error('上傳失敗:', err);
-
-      // 如果是中止錯誤，不做任何處理（pauseTask 會設定狀態）
-      // AbortError: 標準 DOM 錯誤
-      // CanceledError: Axios 特有的取消錯誤
-      if (err.name === 'AbortError' || err.name === 'CanceledError') {
-        // 保留 uploadUri 和 uploadedBytes 以支持恢復
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.name === 'CanceledError') {
+        // Don't mark as CANCELLED, keep as PAUSED for resume
+        // The pauseTask function will set the correct status
         return;
       }
 
       // 檢查是否為認證過期錯誤 (401, 403, expired token 等)
       const isAuthError =
-        err.response?.status === 401 ||
-        err.response?.status === 403 ||
-        err.message?.toLowerCase().includes('expired') ||
-        err.message?.toLowerCase().includes('unauthorized') ||
-        err.message?.toLowerCase().includes('forbidden');
+        error.response?.status === 401 ||
+        error.response?.status === 403 ||
+        error.message?.toLowerCase().includes('expired') ||
+        error.message?.toLowerCase().includes('unauthorized') ||
+        error.message?.toLowerCase().includes('forbidden');
+
+      // 檢查是否為 uploadUri 過期錯誤 (503, 410 等)
+      // 503 Service Unavailable: resumable upload session 可能已過期
+      // 410 Gone: resumable upload session 已明確過期
+      const isUploadUriExpired =
+        error.response?.status === 503 ||
+        error.response?.status === 410 ||
+        (error.message?.toLowerCase().includes('upload') &&
+          error.message?.toLowerCase().includes('expired'));
 
       if (isAuthError) {
         updateTask(task.id, {
           status: UploadStatus.EXPIRED,
           error: 'Session 或憑證已過期，請重新創建 session',
         });
+      } else if (isUploadUriExpired) {
+        // 清除過期的 uploadUri，下次恢復時會重新創建
+        updateTask(task.id, {
+          status: UploadStatus.FAILED,
+          error: 'Upload session 已過期，請重試以重新開始上傳',
+          uploadUri: undefined,
+        });
       } else {
         updateTask(task.id, {
           status: UploadStatus.FAILED,
-          error: err.message,
+          error: error.message,
         });
       }
 
       // 發送失敗通知
       sendNotification('上傳失敗', `${task.file.name} 上傳失敗`, 'error');
     } finally {
-      activeControllers.delete(task.id);
-      // 保留 tracker - 用於恢復時的速度計算
+      abortControllers.delete(task.id);
     }
   }
 
@@ -272,8 +282,8 @@ export const useUploadStore = defineStore('upload', () => {
   /**
    * 階段 2: 建立可恢復上傳會話 (GCS Resumable)
    */
-  async function runSessionPhase(taskId: string, session: SessionEntity) {
-    const bucket = proxyBucket(session);
+  async function runSessionPhase(taskId: string) {
+    const bucket = proxyBucket(session.value!);
     const task = getTask(taskId);
     const [uploadUri] = await bucket
       .file(task.objectNameOnGcs())
@@ -283,25 +293,21 @@ export const useUploadStore = defineStore('upload', () => {
           metadata: { xxHash64: task.xxHash64, crc32c: task.crc32c },
         },
       });
-    updateTask(task.id, { uploadUri, status: UploadStatus.UPLOADING });
+    updateTask(task.id, { uploadUri });
   }
 
   /**
    * 階段 3: 分塊上傳 (使用 Async Generator)
    */
-  async function runUploadPhase(
-    taskId: string,
-    session: SessionEntity,
-    signal: AbortSignal
-  ) {
+  async function runUploadPhase(taskId: string, signal: AbortSignal) {
     const file = getFile(taskId);
     const task = getTask(taskId);
 
     // 重用現有的 tracker，或創建新的
-    let tracker = trackers.get(task.id);
+    let tracker = progressTrackers.get(task.id);
     if (!tracker) {
       tracker = new ProgressTracker(task.id, file.size, task.uploadedBytes);
-      trackers.set(task.id, tracker);
+      progressTrackers.set(task.id, tracker);
     }
 
     async function* getChunks() {
@@ -315,10 +321,11 @@ export const useUploadStore = defineStore('upload', () => {
     }
 
     for await (const chunk of getChunks()) {
-      if (signal.aborted)
-        throw new DOMException('Upload aborted', 'AbortError');
+      if (signal.aborted) {
+        console.log('got abort signal');
+        break;
+      }
 
-      // 直接上傳到 GCS
       const axios = (await import('axios')).default;
       await axios.put(task.uploadUri!, chunk.blob, {
         signal,
@@ -340,8 +347,8 @@ export const useUploadStore = defineStore('upload', () => {
   /**
    * 階段 4: CRC32C 校驗
    */
-  async function runVerifyPhase(taskId: string, session: SessionEntity) {
-    const bucket = proxyBucket(session);
+  async function runVerifyPhase(taskId: string) {
+    const bucket = proxyBucket(session.value!);
     const task = getTask(taskId);
     const [metadata] = await bucket.file(task.objectNameOnGcs()).getMetadata();
 
@@ -363,8 +370,8 @@ export const useUploadStore = defineStore('upload', () => {
   /**
    * 階段 5: 更新 Metadata
    */
-  async function runUpdateMetadata(taskId: string, session: SessionEntity) {
-    const bucket = proxyBucket(session);
+  async function runUpdateMetadata(taskId: string) {
+    const bucket = proxyBucket(session.value!);
     const task = getTask(taskId);
     const [gcsMetadata] = await bucket
       .file(task.objectNameOnGcs())
@@ -372,7 +379,7 @@ export const useUploadStore = defineStore('upload', () => {
 
     const appMetadata = {
       path: EntityPath.fromRoute({
-        sessionId: session.id,
+        sessionId: session.value!.id,
         mount: task.path,
       }),
       mimeType: gcsMetadata.contentType,
@@ -387,7 +394,7 @@ export const useUploadStore = defineStore('upload', () => {
 
     await bucket.file(task.objectNameOnGcs()).setMetadata(appMetadata);
 
-    await metadataStore.addEntity(session, entity);
+    await metadataStore.addEntity(session.value!, entity);
   }
 
   /**
@@ -433,7 +440,9 @@ export const useUploadStore = defineStore('upload', () => {
     ];
   }
 
-  // UI 狀態
+  /**
+   * UI 狀態
+   */
   const isCollapsed = ref(false);
 
   return {
@@ -466,13 +475,13 @@ export const useUploadStore = defineStore('upload', () => {
       return task;
     },
     pauseTask: (id: string) => {
-      activeControllers.get(id)?.abort();
+      abortControllers.get(id)?.abort();
       updateTask(id, { status: UploadStatus.PAUSED });
     },
     resumeTask: (id: string) =>
       updateTask(id, { status: UploadStatus.PENDING }),
     cancelTask: (id: string) => {
-      activeControllers.get(id)?.abort();
+      abortControllers.get(id)?.abort();
       updateTask(id, { status: UploadStatus.CANCELLED });
     },
     retryTask: (id: string) => {
@@ -488,6 +497,12 @@ export const useUploadStore = defineStore('upload', () => {
       });
     },
     removeTask: (taskId: string) => {
+      const controller = abortControllers.get(taskId);
+      if (controller) {
+        controller.abort();
+        abortControllers.delete(taskId);
+      }
+      progressTrackers.delete(taskId);
       tasks.value = tasks.value.filter((t) => t.id !== taskId);
     },
     clearCompletedTasks: () => {
@@ -511,7 +526,7 @@ export const useUploadStore = defineStore('upload', () => {
     decreasePriority: (id: string) => moveTask(id, 1),
     getProgress: (id: string) => {
       const task = tasks.value.find((t) => t.id === id);
-      return task ? trackers.get(id)?.getMetrics() || null : null;
+      return task ? progressTrackers.get(id)?.getMetrics() || null : null;
     },
   };
 });

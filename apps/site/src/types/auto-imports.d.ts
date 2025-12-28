@@ -72,7 +72,6 @@ declare global {
   const debouncedWatch: typeof import('@vueuse/core')['debouncedWatch']
   const deburr: typeof import('lodash-es')['deburr']
   const decodeBuffer: typeof import('@site/utilities')['decodeBuffer']
-  const decodeProxyBuffer: typeof import('@site/utilities')['decodeProxyBuffer']
   const defaultTo: typeof import('lodash-es')['defaultTo']
   const defaults: typeof import('lodash-es')['defaults']
   const defaultsDeep: typeof import('lodash-es')['defaultsDeep']
