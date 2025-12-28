@@ -71,6 +71,7 @@ declare global {
   const debouncedRef: typeof import('@vueuse/core')['debouncedRef']
   const debouncedWatch: typeof import('@vueuse/core')['debouncedWatch']
   const deburr: typeof import('lodash-es')['deburr']
+  const decodeBuffer: typeof import('@site/utilities')['decodeBuffer']
   const decodeProxyBuffer: typeof import('@site/utilities')['decodeProxyBuffer']
   const defaultTo: typeof import('lodash-es')['defaultTo']
   const defaults: typeof import('lodash-es')['defaults']
@@ -84,6 +85,7 @@ declare global {
   const differenceBy: typeof import('lodash-es')['differenceBy']
   const differenceWith: typeof import('lodash-es')['differenceWith']
   const divide: typeof import('lodash-es')['divide']
+  const downloadFile: typeof import('@site/utilities')['downloadFile']
   const drop: typeof import('lodash-es')['drop']
   const dropRight: typeof import('lodash-es')['dropRight']
   const dropRightWhile: typeof import('lodash-es')['dropRightWhile']
@@ -182,6 +184,7 @@ declare global {
   const isNaN: typeof import('lodash-es')['isNaN']
   const isNative: typeof import('lodash-es')['isNative']
   const isNil: typeof import('lodash-es')['isNil']
+  const isNotEmpty: typeof import('@site/utilities')['isNotEmpty']
   const isNull: typeof import('lodash-es')['isNull']
   const isNumber: typeof import('lodash-es')['isNumber']
   const isObject: typeof import('lodash-es')['isObject']
@@ -717,7 +720,7 @@ declare module 'vue' {
     readonly debouncedRef: UnwrapRef<typeof import('@vueuse/core')['debouncedRef']>
     readonly debouncedWatch: UnwrapRef<typeof import('@vueuse/core')['debouncedWatch']>
     readonly deburr: UnwrapRef<typeof import('lodash-es')['deburr']>
-    readonly decodeProxyBuffer: UnwrapRef<typeof import('@site/utilities')['decodeProxyBuffer']>
+    readonly decodeBuffer: UnwrapRef<typeof import('@site/utilities')['decodeBuffer']>
     readonly defaultTo: UnwrapRef<typeof import('lodash-es')['defaultTo']>
     readonly defaults: UnwrapRef<typeof import('lodash-es')['defaults']>
     readonly defaultsDeep: UnwrapRef<typeof import('lodash-es')['defaultsDeep']>
@@ -730,6 +733,7 @@ declare module 'vue' {
     readonly differenceBy: UnwrapRef<typeof import('lodash-es')['differenceBy']>
     readonly differenceWith: UnwrapRef<typeof import('lodash-es')['differenceWith']>
     readonly divide: UnwrapRef<typeof import('lodash-es')['divide']>
+    readonly downloadFile: UnwrapRef<typeof import('@site/utilities')['downloadFile']>
     readonly drop: UnwrapRef<typeof import('lodash-es')['drop']>
     readonly dropRight: UnwrapRef<typeof import('lodash-es')['dropRight']>
     readonly dropRightWhile: UnwrapRef<typeof import('lodash-es')['dropRightWhile']>
@@ -828,6 +832,7 @@ declare module 'vue' {
     readonly isNaN: UnwrapRef<typeof import('lodash-es')['isNaN']>
     readonly isNative: UnwrapRef<typeof import('lodash-es')['isNative']>
     readonly isNil: UnwrapRef<typeof import('lodash-es')['isNil']>
+    readonly isNotEmpty: UnwrapRef<typeof import('@site/utilities')['isNotEmpty']>
     readonly isNull: UnwrapRef<typeof import('lodash-es')['isNull']>
     readonly isNumber: UnwrapRef<typeof import('lodash-es')['isNumber']>
     readonly isObject: UnwrapRef<typeof import('lodash-es')['isObject']>

@@ -6,12 +6,12 @@ import {
   ObjectsFilter,
   EntityPath,
 } from '@site/models';
-import { useDialogStore } from '@site/stores/dialog';
+import { useDialogStore } from '@site/stores';
 import { pathIt, useListViewStore } from '@site/stores/list-view';
-import { useSessionStore } from '@site/stores/session';
-import { useUiStore } from '@site/stores/ui';
+import { useSessionStore } from '@site/stores';
+import { useUiStore } from '@site/stores';
 import { useSelectModeStore } from '@site/stores/select-mode';
-import { useMetadataStore } from '@site/stores/metadata';
+import { useMetadataStore } from '@site/stores';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 
 /**

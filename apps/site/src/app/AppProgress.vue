@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { DownloadStatus, DownloadTask } from '@site/models/DownloadTask';
+import { DownloadStatus, DownloadTask } from '@site/models';
 import { UploadStatus, UploadTask } from '@site/models';
-import { useDownloadStore } from '@site/stores/download';
-import { useUploadStore } from '@site/stores/upload';
+import { useDownloadStore } from '@site/stores';
+import { useUploadStore } from '@site/stores';
 import { breakpointsTailwind } from '@vueuse/core';
 import TaskProgress from '@site/components/TaskProgress.vue';
 

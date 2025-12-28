@@ -13,7 +13,7 @@ export interface DownloadTaskFile {
   name: string;
   path: string;
   size: number;
-  relativePath: string;  // For maintaining folder structure
+  relativePath: string; // For maintaining folder structure
 }
 
 export class DownloadTask {
@@ -51,7 +51,10 @@ export class DownloadTask {
     );
   }
 
-  static merge(source: DownloadTask, updates: Partial<DownloadTask>): DownloadTask {
+  static merge(
+    source: DownloadTask,
+    updates: Partial<DownloadTask>
+  ): DownloadTask {
     return new DownloadTask(
       source.id,
       source.sessionId,

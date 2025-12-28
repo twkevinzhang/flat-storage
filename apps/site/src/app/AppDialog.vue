@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDialogStore } from '@site/stores/dialog';
+import { useDialogStore } from '@site/stores';
 
 const { visible, close, replaceWith } = useDialogStore();
 </script>

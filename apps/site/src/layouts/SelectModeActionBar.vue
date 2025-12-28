@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { useSelectModeStore } from '@site/stores/select-mode';
-import { useDownloadStore } from '@site/stores/download';
-import { useMetadataStore } from '@site/stores/metadata';
-import { expandSelections } from '@site/utilities/download';
-import { DownloadTaskFile } from '@site/models/DownloadTask';
+import { useDownloadStore } from '@site/stores';
+import { useMetadataStore } from '@site/stores';
+import { DownloadTaskFile, expandSelections } from '@site/models';
 import { ObjectEntity } from '@site/models';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
-import { useSessionStore } from '@site/stores/session';
+import { useSessionStore } from '@site/stores';
 
 const sessionStore = useSessionStore();
 const selectModeStore = useSelectModeStore();

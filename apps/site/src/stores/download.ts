@@ -1,15 +1,9 @@
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
-import {
-  DownloadTask,
-  DownloadStatus,
-  DownloadTaskFile,
-} from '@site/models/DownloadTask';
+import { DownloadTask, DownloadStatus, DownloadTaskFile } from '@site/models';
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
-import { useSessionStore } from './session';
-import { proxyBucket } from '@site/utilities/storage';
-import { downloadFile } from '@site/utilities/download';
 import { SessionEntity } from '@site/models';
+import { proxyBucket } from '@site/services';
 
 const MAX_CONCURRENT = 3;
 

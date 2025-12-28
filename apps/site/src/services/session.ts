@@ -7,9 +7,8 @@ import {
   SessionEntity,
   SessionForm,
 } from '@site/models';
-import { GcsProxyClient } from '@site/services/gcs';
-import { proxyBucket, proxyMetadataFile } from '@site/utilities/storage';
-import { decodeProxyBuffer } from '@site/utilities';
+import { GcsProxyClient, proxyBucket, proxyMetadataFile } from '@site/services';
+import { decodeBuffer } from '@site/utilities';
 
 export interface SessionService {
   listBuckets(args: {
@@ -101,7 +100,7 @@ export class SessionServiceImpl implements SessionService {
 
   async fetchEntities(session: SessionEntity): Promise<ObjectEntity[]> {
     const [content] = await proxyMetadataFile(session).download();
-    const contentStr = decodeProxyBuffer(content);
+    const contentStr = decodeBuffer(content);
     const entities = ObjectEntity.ArrayfromJson(contentStr, session.id);
     return entities;
   }

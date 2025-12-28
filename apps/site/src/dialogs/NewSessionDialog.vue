@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form } from '@primevue/forms';
 import { SessionEntity, Driver, BucketEntity } from '@site/models';
-import { useSessionStore } from '@site/stores/session';
+import { useSessionStore } from '@site/stores';
 
 const sessionStore = useSessionStore();
 

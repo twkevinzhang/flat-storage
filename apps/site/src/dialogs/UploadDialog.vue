@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useListViewStore } from '@site/stores/list-view';
-import { useMetadataStore } from '@site/stores/metadata';
-import { useSessionStore } from '@site/stores/session';
-import { useUploadStore } from '@site/stores/upload';
+import { useMetadataStore } from '@site/stores';
+import { useSessionStore } from '@site/stores';
+import { useUploadStore } from '@site/stores';
 import type {
   FileUploadSelectEvent,
   FileUploadRemoveEvent,

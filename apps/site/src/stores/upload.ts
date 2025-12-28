@@ -7,10 +7,9 @@ import {
   EntityPath,
 } from '@site/models';
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval';
-import { nanoid } from 'nanoid';
 import { calculateHashes } from '@site/utilities';
-import { proxyBucket } from '@site/utilities/storage';
-import { useMetadataStore } from '@site/stores/metadata';
+import { useMetadataStore } from '@site/stores';
+import { proxyBucket } from '@site/services';
 
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_CONCURRENT = 3;
@@ -277,7 +276,11 @@ export const useUploadStore = defineStore('upload', () => {
   /**
    * 階段 3: 分塊上傳 (使用 Async Generator)
    */
-  async function runUploadPhase(taskId: string, session: SessionEntity, signal: AbortSignal) {
+  async function runUploadPhase(
+    taskId: string,
+    session: SessionEntity,
+    signal: AbortSignal
+  ) {
     const file = getFile(taskId);
     const task = getTask(taskId);
     const tracker = new ProgressTracker(task.id, file.size);
@@ -294,7 +297,8 @@ export const useUploadStore = defineStore('upload', () => {
     }
 
     for await (const chunk of getChunks()) {
-      if (signal.aborted) throw new DOMException('Upload aborted', 'AbortError');
+      if (signal.aborted)
+        throw new DOMException('Upload aborted', 'AbortError');
 
       // 直接上傳到 GCS
       const axios = (await import('axios')).default;
@@ -305,7 +309,8 @@ export const useUploadStore = defineStore('upload', () => {
           'Content-Range': `bytes ${chunk.start}-${chunk.end}/${file.size}`,
         },
         // 308 Resume Incomplete 是 GCS resumable upload 的正常回應
-        validateStatus: (status) => (status >= 200 && status < 400) || status === 308,
+        validateStatus: (status) =>
+          (status >= 200 && status < 400) || status === 308,
       });
 
       const nextOffset = chunk.end + 1;

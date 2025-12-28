@@ -1,3 +1,4 @@
+import { Driver, SessionEntity } from '@site/models';
 import axios from 'axios';
 
 export interface GcsAuth {
@@ -133,7 +134,9 @@ export class ProxyFile {
     expires?: number | string | Date;
     contentType?: string;
   }): Promise<string> {
-    const result = await this.execute('getSignedUrl', [options || { action: 'read', expires: Date.now() + 3600000 }]);
+    const result = await this.execute('getSignedUrl', [
+      options || { action: 'read', expires: Date.now() + 3600000 },
+    ]);
     // Result is an array with [url]
     return Array.isArray(result) ? result[0] : result;
   }
@@ -162,4 +165,24 @@ export class ProxyFile {
     });
     return res.data.data;
   }
+}
+
+export function proxyBucket(session: SessionEntity) {
+  if (session.driver !== Driver.gcs) {
+    throw new Error(`Driver ${session.driver} not supported`);
+  }
+  const client = new GcsProxyClient({
+    accessKey: session.accessKey,
+    secretKey: session.secretKey,
+    projectId: session.projectId,
+  });
+
+  const bucket = client.bucket(removeLeadingSlash(session.mount));
+  return bucket;
+}
+
+export function proxyMetadataFile(session: SessionEntity) {
+  const bucket = proxyBucket(session);
+  const metadataFile = bucket.file(removeLeadingSlash(session.metadataPath));
+  return metadataFile;
 }
