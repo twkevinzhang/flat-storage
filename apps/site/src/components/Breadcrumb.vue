@@ -38,7 +38,7 @@ const parts = computed(() => [
             },
           }"
         />
-        <PrimeIcon name="angle-right" size="large" />
+        <PrimeIcon name="angle-right" />
       </template>
     </template>
     <slot></slot>
