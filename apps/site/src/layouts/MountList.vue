@@ -5,8 +5,6 @@ import { useListViewStore } from '@site/stores/list-view';
 import { useSelectModeStore } from '@site/stores/select-mode';
 import { breakpointsTailwind } from '@vueuse/core';
 
-const breakpoints = useBreakpoints(breakpointsTailwind);
-const isMobile = breakpoints.smaller('md');
 const selectModeStore = useSelectModeStore();
 
 const props = defineProps<{

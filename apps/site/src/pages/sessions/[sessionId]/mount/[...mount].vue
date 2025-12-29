@@ -295,103 +295,24 @@ function toLeafNode(v: ObjectEntity): Entity {
     </Breadcrumb>
 
     <!-- 工具列容器 -->
-    <div :class="['flex gap-2', isDesktop ? 'flex-row gap-4' : 'flex-col']">
-      <!-- 手機版：更多選單 + 操作按鈕 -->
-      <div v-if="isMobile" class="flex items-center gap-2 w-full relative">
-        <Menu ref="moreMenu" :model="moreMenuItems" :popup="true" />
-        <!-- 更多選項按鈕 -->
-        <Button
-          icon="pi pi-sliders-h"
-          severity="secondary"
-          variant="outlined"
-          aria-label="更多選項"
-          class="relative z-50"
-          @click="(e) => moreMenu?.toggle(e)"
-        />
-        <div
-          class="flex items-center gap-2 flex-1"
-          :class="selectModeDisabledClass"
-        >
-          <Button
-            :icon="toolbarButtons.refresh.icon"
-            severity="secondary"
-            variant="outlined"
-            :aria-label="toolbarButtons.refresh.label"
-            @click="toolbarButtons.refresh.handler"
-          />
-          <SplitButton
-            label="Upload"
-            severity="primary"
-            :model="uploadMenuModel"
-            @click="handleUpload()"
-          />
-        </div>
-      </div>
+    <MobileToolbar
+      v-if="isMobile"
+      :more-menu-items="moreMenuItems"
+      :select-mode-disabled-class="selectModeDisabledClass"
+      :toolbar-buttons="toolbarButtons"
+      :upload-menu-model="uploadMenuModel"
+      @upload="handleUpload"
+    />
+    <DesktopToolbar
+      v-else
+      v-model:view-mode="viewMode"
+      :view-mode-options="viewModeOptions"
+      :select-mode-disabled-class="selectModeDisabledClass"
+      :toolbar-buttons="toolbarButtons"
+      :upload-menu-model="uploadMenuModel"
+      @upload="handleUpload"
+    />
 
-      <!-- 視圖模式選擇器（桌面版） -->
-      <div v-if="isDesktop" class="flex items-center gap-3 relative">
-        <SelectButton
-          v-model="viewMode"
-          size="small"
-          option-label="name"
-          option-value="value"
-          :options="viewModeOptions"
-        >
-          <template #option="{ option }">
-            <PrimeIcon v-if="option.icon" :name="option.icon" />
-            <SvgIcon v-else :name="option.svgIcon" class="text-slate-500" />
-          </template>
-        </SelectButton>
-
-        <!-- 桌面版：篩選排序按鈕組 -->
-        <ButtonGroup v-if="isDesktop">
-          <Button
-            :icon="toolbarButtons.filter.icon"
-            severity="secondary"
-            badge-severity="contrast"
-            :aria-label="toolbarButtons.filter.label"
-            :badge="toolbarButtons.filter.badge()"
-            @click="toolbarButtons.filter.handler"
-          />
-          <Button
-            :icon="toolbarButtons.sort.icon"
-            severity="secondary"
-            badge-severity="contrast"
-            :aria-label="toolbarButtons.sort.label"
-            :badge="toolbarButtons.sort.badge()"
-            @click="toolbarButtons.sort.handler"
-          />
-        </ButtonGroup>
-      </div>
-
-      <!-- 桌面版：主要操作 -->
-      <div
-        v-if="isDesktop"
-        class="flex items-center gap-2"
-        :class="selectModeDisabledClass"
-      >
-        <Button
-          :icon="toolbarButtons.columnOrder.icon"
-          severity="secondary"
-          variant="outlined"
-          :aria-label="toolbarButtons.columnOrder.label"
-          @click="toolbarButtons.columnOrder.handler"
-        />
-        <Button
-          :icon="toolbarButtons.refresh.icon"
-          severity="secondary"
-          variant="outlined"
-          :aria-label="toolbarButtons.refresh.label"
-          @click="toolbarButtons.refresh.handler"
-        />
-        <SplitButton
-          label="Upload"
-          severity="primary"
-          :model="uploadMenuModel"
-          @click="handleUpload()"
-        />
-      </div>
-    </div>
     <!-- 視圖容器 -->
     <div
       class="my-2 relative"
