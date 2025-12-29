@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@primevue/forms';
-import { SessionEntity, Driver, BucketEntity } from '@site/models';
+import { SessionEntity, Driver, BucketEntity, EntityPath } from '@site/models';
 import { useSessionStore } from '@site/stores';
 import type { Auth } from '@site/services';
 
@@ -50,7 +50,8 @@ async function handleStep1Next(activateCallback: (step: string) => void) {
           const serviceAccount = JSON.parse(initialValues.serviceAccountJson);
 
           if (!serviceAccount.client_email || !serviceAccount.private_key) {
-            jsonError.value = 'Invalid service account JSON: missing client_email or private_key';
+            jsonError.value =
+              'Invalid service account JSON: missing client_email or private_key';
             return;
           }
 
@@ -108,7 +109,7 @@ function handleFinish() {
   emits('update:visible', false);
 
   router.push({
-    path: `/sessions/${session.id}/mount/${session.mount}`,
+    path: EntityPath.fromRoute({ sessionId: session.id, mount: '/' }).toRoute(),
   });
 }
 </script>
@@ -163,11 +164,7 @@ function handleFinish() {
                   />
                   <label for="serviceAccountJson">Service Account JSON</label>
                 </FloatLabel>
-                <Message
-                  v-if="jsonError"
-                  severity="error"
-                  :closable="false"
-                >
+                <Message v-if="jsonError" severity="error" :closable="false">
                   {{ jsonError }}
                 </Message>
               </div>
