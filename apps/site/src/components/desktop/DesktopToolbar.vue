@@ -40,22 +40,15 @@ function handleUpload() {
 
 <template>
   <!-- 工具列容器 -->
-  <div class="flex flex-row gap-4">
+  <div class="flex justify-between">
     <!-- 視圖模式選擇器（桌面版） -->
     <div class="flex items-center gap-3 relative">
-      <SelectButton
-        :model-value="props.viewMode"
-        size="small"
-        option-label="name"
-        option-value="value"
-        :options="props.viewModeOptions"
-        @update:model-value="(value) => emit('update:viewMode', value)"
-      >
-        <template #option="{ option }">
-          <PrimeIcon v-if="option.icon" :name="option.icon" />
-          <SvgIcon v-else :name="option.svgIcon" class="text-slate-500" />
-        </template>
-      </SelectButton>
+      <SplitButton
+        label="Upload"
+        severity="primary"
+        :model="props.uploadMenuModel"
+        @click="handleUpload()"
+      />
 
       <!-- 桌面版：篩選排序按鈕組 -->
       <ButtonGroup>
@@ -79,10 +72,21 @@ function handleUpload() {
     </div>
 
     <!-- 桌面版：主要操作 -->
-    <div
-      class="flex items-center gap-2"
-      :class="props.selectModeDisabledClass"
-    >
+    <div class="flex items-center gap-2" :class="props.selectModeDisabledClass">
+      <SelectButton
+        :model-value="props.viewMode"
+        size="small"
+        option-label="name"
+        option-value="value"
+        :options="props.viewModeOptions"
+        @update:model-value="(value) => emit('update:viewMode', value)"
+      >
+        <template #option="{ option }">
+          <PrimeIcon v-if="option.icon" :name="option.icon" />
+          <SvgIcon v-else :name="option.svgIcon" class="text-slate-500" />
+        </template>
+      </SelectButton>
+
       <Button
         :icon="props.toolbarButtons.columnOrder.icon"
         severity="secondary"
@@ -96,12 +100,6 @@ function handleUpload() {
         variant="outlined"
         :aria-label="props.toolbarButtons.refresh.label"
         @click="props.toolbarButtons.refresh.handler"
-      />
-      <SplitButton
-        label="Upload"
-        severity="primary"
-        :model="props.uploadMenuModel"
-        @click="handleUpload()"
       />
     </div>
   </div>
