@@ -18,6 +18,7 @@ import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import MountList from '@site/layouts/MountList.vue';
 import MountGrid from '@site/layouts/MountGrid.vue';
 import MountColumn from '@site/layouts/MountColumn.vue';
+import { MenuItem } from 'primevue/menuitem';
 
 /**
  * =====
@@ -277,6 +278,65 @@ function toLeafNode(v: ObjectEntity): Entity {
     loading: false,
   } as any;
 }
+
+/**
+ * =====
+ * Folder Menu Items
+ * =====
+ */
+
+const folderMenuItems = computed<MenuItem[]>(() => [
+  {
+    label: '重新命名',
+    icon: 'pi pi-pencil',
+    command: () => {
+      dialogStore.replaceWith('rename');
+    },
+  },
+  {
+    label: '移動到...',
+    icon: 'pi pi-directions',
+    command: () => {
+      dialogStore.replaceWith('move');
+    },
+  },
+  {
+    label: '上鎖',
+    icon: 'pi pi-lock',
+  },
+  {
+    label: '新增到最愛',
+    icon: 'pi pi-star',
+  },
+  {
+    label: 'Info',
+    items: [
+      {
+        label: '下載',
+        icon: 'pi pi-download',
+      },
+      {
+        label: '複製路徑',
+        icon: 'pi pi-clone',
+      },
+      {
+        label: '統計',
+        icon: 'pi pi-chart-bar',
+      },
+      {
+        label: '操作紀錄',
+        icon: 'pi pi-history',
+      },
+    ],
+  },
+]);
+
+const folderDangerItems = computed<MenuItem[]>(() => [
+  {
+    label: '刪除',
+    icon: 'pi pi-trash',
+  },
+]);
 </script>
 
 <template>
@@ -284,14 +344,20 @@ function toLeafNode(v: ObjectEntity): Entity {
     <!-- Breadcrumb (手機版和桌面版都顯示) -->
     <Breadcrumb :path="path" @navigate="(e: EntityPath) => handleNavigate(e)">
       <!-- 資料夾名稱 + 選單 -->
-      <Hover class="flex-1" :fluid="false" @click="dialogStore.open('menu')">
-        <span
-          :class="['font-bold break-all', isDesktop ? 'text-lg' : 'text-base']"
-        >
-          {{ listViewStoreRefs.name.value }}
-        </span>
-        <PrimeIcon name="angle-down" />
-      </Hover>
+      <ResponsiveMenu
+        :items="folderMenuItems"
+        :danger-items="folderDangerItems"
+        header="資料夾操作"
+      >
+        <Hover class="flex-1" :fluid="false">
+          <span
+            :class="['font-bold break-all', isDesktop ? 'text-lg' : 'text-base']"
+          >
+            {{ listViewStoreRefs.name.value }}
+          </span>
+          <PrimeIcon name="angle-down" />
+        </Hover>
+      </ResponsiveMenu>
     </Breadcrumb>
 
     <!-- 工具列容器 -->

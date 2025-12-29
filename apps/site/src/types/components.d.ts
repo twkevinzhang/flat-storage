@@ -51,6 +51,7 @@ declare module 'vue' {
     PrimeIcon: typeof import('./../components/PrimeIcon.vue')['default']
     ProgressBar: typeof import('primevue/progressbar')['default']
     RenameDialog: typeof import('./../dialogs/RenameDialog.vue')['default']
+    ResponsiveMenu: typeof import('./../components/ResponsiveMenu.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
