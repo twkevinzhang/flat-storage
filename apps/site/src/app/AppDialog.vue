@@ -82,7 +82,7 @@ const { visible, close, replaceWith } = useDialogStore();
     @update:visible="() => close('order')"
   />
 
-  <NewSessionDialog
+  <CreateSessionDialog
     :visible="visible('new-session')"
     @update:visible="() => close('new-session')"
   />
