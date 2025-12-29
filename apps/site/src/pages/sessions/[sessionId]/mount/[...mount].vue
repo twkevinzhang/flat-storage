@@ -409,7 +409,7 @@ const folderDangerItems = computed<MenuItem[]>(() => [
         :selected-keys="Array.from(selectModeStoreRefs.selectionKeys.value)"
         :indeterminate-keys="selectModeStoreRefs.indeterminateKeys.value"
         @node-click="handleNodeClick"
-        @node-toggle="viewMode === 'list' ? handleNodeToggle : undefined"
+        @node-toggle="handleNodeToggle"
         @toggle-selection="handleToggleSelection"
         @up="handleUp"
         @show-more-click="viewMode === 'list' ? handleShowMoreClick : undefined"
