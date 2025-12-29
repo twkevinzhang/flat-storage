@@ -126,6 +126,14 @@ const isDesktop = breakpoints.greaterOrEqual('md');
 const moreMenu = ref<any>(null);
 const moreMenuItems = computed(() => [
   {
+    label: '視圖模式',
+    icon: 'pi pi-th-large',
+    disabled: selectModeStore.selectMode,
+    command: () => {
+      dialogStore.open('view-mode');
+    },
+  },
+  {
     label: '篩選',
     icon: 'pi pi-filter',
     badge: listViewStoreRefs.filterCount.value || undefined,
@@ -274,40 +282,26 @@ function toLeafNode(v: ObjectEntity): Entity {
 <template>
   <div class="flex flex-col gap-2">
     <!-- Breadcrumb (手機版和桌面版都顯示) -->
-    <Breadcrumb
-      v-if="!path.isRootLevel"
-      :path="path"
-      @navigate="(e: EntityPath) => handleNavigate(e)"
-    />
-
-    <!-- 資料夾名稱列 (獨立一行) -->
-    <div class="flex items-center gap-2 relative">
+    <Breadcrumb :path="path" @navigate="(e: EntityPath) => handleNavigate(e)">
       <!-- 資料夾名稱 + 選單 -->
-      <Hover
-        class="flex-1"
-        severity="list-item"
-        :fluid="false"
-        :class="{
-          'pointer-events-none opacity-50': selectModeStore.selectMode,
-        }"
-        @click="dialogStore.open('menu')"
-      >
+      <Hover class="flex-1" :fluid="false" @click="dialogStore.open('menu')">
         <span
-          :class="['font-bold break-all', isDesktop ? 'text-xl' : 'text-lg']"
+          :class="['font-bold break-all', isDesktop ? 'text-lg' : 'text-base']"
         >
           {{ listViewStoreRefs.name.value }}
         </span>
         <PrimeIcon name="angle-down" />
       </Hover>
-    </div>
+    </Breadcrumb>
 
     <!-- 工具列容器 -->
     <div :class="['flex gap-2', isDesktop ? 'flex-row gap-4' : 'flex-col']">
       <!-- 手機版：更多選單 + 操作按鈕 -->
       <div v-if="isMobile" class="flex items-center gap-2 w-full relative">
         <Menu ref="moreMenu" :model="moreMenuItems" :popup="true" />
+        <!-- 更多選項按鈕 -->
         <Button
-          icon="pi pi-ellipsis-v"
+          icon="pi pi-sliders-h"
           severity="secondary"
           variant="outlined"
           aria-label="更多選項"
@@ -334,8 +328,8 @@ function toLeafNode(v: ObjectEntity): Entity {
         </div>
       </div>
 
-      <!-- 視圖模式選擇器（共用組件） -->
-      <div class="flex items-center gap-3 relative">
+      <!-- 視圖模式選擇器（桌面版） -->
+      <div v-if="isDesktop" class="flex items-center gap-3 relative">
         <SelectButton
           v-model="viewMode"
           size="small"
@@ -345,11 +339,7 @@ function toLeafNode(v: ObjectEntity): Entity {
         >
           <template #option="{ option }">
             <PrimeIcon v-if="option.icon" :name="option.icon" />
-            <SvgIcon
-              v-else
-              :name="option.svgIcon"
-              :class="isDesktop && 'text-slate-500'"
-            />
+            <SvgIcon v-else :name="option.svgIcon" class="text-slate-500" />
           </template>
         </SelectButton>
 

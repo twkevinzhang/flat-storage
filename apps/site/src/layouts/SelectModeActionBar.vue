@@ -22,9 +22,7 @@ function handleMove() {
 }
 
 function handleDownload() {
-  console.log('handleDownload 被觸發');
   downloadStore.setSession(session.value!);
-  console.log('session 設定完成:', session.value);
 
   // Get selected entities
   const selectedEntities = Array.from(selectModeStore.selectionKeys)

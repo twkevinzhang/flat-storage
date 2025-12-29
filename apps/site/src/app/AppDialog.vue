@@ -106,4 +106,6 @@ const { visible, close, replaceWith } = useDialogStore();
     :visible="visible('create-folder')"
     @update:visible="() => close('create-folder')"
   />
+
+  <ViewModeDialog />
 </template>

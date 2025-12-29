@@ -69,6 +69,7 @@ declare module 'vue' {
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
     UploadDialog: typeof import('./../dialogs/UploadDialog.vue')['default']
+    ViewModeDialog: typeof import('./../dialogs/ViewModeDialog.vue')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']

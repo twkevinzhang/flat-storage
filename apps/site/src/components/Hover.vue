@@ -7,6 +7,7 @@ const props = withDefaults(
     icon?: string | undefined;
     pt?: {
       primeIcon?: any;
+      span?: any;
     };
     suffixIcon?: string | undefined;
     position?: 'left' | 'right' | 'center' | undefined;
@@ -84,6 +85,7 @@ const classes = computed(() => {
         <span
           v-if="isNotEmpty(label)"
           class="text-left break-all whitespace-normal"
+          v-bind="pt?.span"
         >
           {{ label }}
         </span>
