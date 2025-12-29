@@ -21,9 +21,7 @@ const parts = computed(() => [
 </script>
 
 <template>
-  <nav
-    class="p-2 flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal"
-  >
+  <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal">
     <template v-if="path.isSegmentLevel">
       <template v-for="(part, index) in parts" :key="index">
         <Hover
