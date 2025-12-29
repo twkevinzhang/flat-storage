@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { useSelectModeStore } from '@site/stores/select-mode';
 import { useDownloadStore } from '@site/stores';
-import { useMetadataStore } from '@site/stores';
-import { DownloadTaskFile, expandSelections } from '@site/models';
-import { ObjectEntity } from '@site/models';
+import { DownloadTaskFile, ObjectEntity, ObjectMimeType } from '@site/models';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import { useSessionStore } from '@site/stores';
+import { Entity } from '@site/components/ObjectTree';
 
 const sessionStore = useSessionStore();
 const selectModeStore = useSelectModeStore();
+const selectModeStoreRefs = storeToRefs(selectModeStore);
 const downloadStore = useDownloadStore();
-const metadataStore = useMetadataStore();
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller('md');
 const route = useRoute();
@@ -24,38 +23,19 @@ function handleMove() {
 function handleDownload() {
   downloadStore.setSession(session.value!);
 
-  // Get selected entities
-  const selectedEntities = Array.from(selectModeStore.selectionKeys)
-    .map((key) => selectModeStore.items.find((item) => item.key === key))
-    .filter(Boolean)
-    .filter((e) => e && !e.isFolder);
-
-  if (isEmpty(selectedEntities)) {
+  if (isEmpty(selectModeStoreRefs.downloadableObjects.value)) {
     return;
   }
 
-  // Get all entities for folder expansion
-  const allEntities = metadataStore.allObjects;
-  console.log('所有實體數量:', allEntities.length);
-
   // Create download tasks
-  const tasks: DownloadTaskFile[] = selectedEntities.map(
-    ({ entity, relativePath }) => ({
-      name: entity.path.name,
-      path: entity.path.toSegmentsString(),
-      size: entity.sizeBytes || 0,
-      relativePath,
-    })
-  );
+  const tasks: DownloadTaskFile[] =
+    selectModeStoreRefs.downloadableObjects.value.map((e) => ({
+      name: e.name,
+      size: e.sizeBytes || 0,
+      pathOnDrive: e.pathOnDrive,
+    }));
 
-  console.log('建立的下載任務:', tasks);
   tasks.forEach((file) => downloadStore.addTask(file));
-  console.log(
-    '下載任務已加入 store，當前任務數量:',
-    downloadStore.tasks.length
-  );
-
-  // Exit select mode
   selectModeStore.exitSelectMode();
 }
 
@@ -109,14 +89,17 @@ const safeActionButtons = [
       leave-to-class="translate-y-full"
     >
       <div
-        v-if="selectModeStore.selectMode && selectModeStore.selectionsCount > 0"
+        v-if="
+          selectModeStoreRefs.selectMode.value &&
+          selectModeStoreRefs.selectionsCount.value > 0
+        "
         class="fixed bottom-0 left-0 right-0 text-white z-50 bg-sky-500"
         :class="isMobile ? 'py-3' : 'py-4'"
       >
         <div class="container mx-auto px-4">
           <DesktopSelectModeActionBar
             v-if="!isMobile"
-            :selections-count="selectModeStore.selectionsCount"
+            :selections-count="selectModeStoreRefs.selectionsCount.value"
             :safe-action-buttons="safeActionButtons"
             :on-delete="handleDelete"
             :on-cancel="handleCancel"
@@ -124,7 +107,7 @@ const safeActionButtons = [
 
           <MobileSelectModeActionBar
             v-else
-            :selections-count="selectModeStore.selectionsCount"
+            :selections-count="selectModeStoreRefs.selectionsCount.value"
             :safe-action-buttons="safeActionButtons"
             :on-delete="handleDelete"
             :on-cancel="handleCancel"

@@ -230,7 +230,9 @@ function isTaskFailed(task: BaseTask): boolean {
       <button
         v-if="!isMobile && showClearCompleted && terminatedTasksCount > 0"
         class="p-1.5 hover:bg-surface-100 dark:hover:bg-surface-800 rounded transition-colors"
-        :title="`清除已結束的任務 (${terminatedTasksCount} 個，共 ${formatFileSize(terminatedTasksSize)})`"
+        :title="`清除已結束的任務 (${terminatedTasksCount} 個，共 ${formatFileSize(
+          terminatedTasksSize
+        )})`"
         @click.stop="emit('clearCompleted')"
       >
         <SvgIcon
@@ -284,7 +286,7 @@ function isTaskFailed(task: BaseTask): boolean {
                 isMobile ? 'text-xs' : 'text-sm',
               ]"
             >
-              {{ config.getFileName(task) }}
+              {{ task.file.name }}
             </p>
             <div
               class="flex items-center gap-2 text-xs text-surface-500 mt-0.5"

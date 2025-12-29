@@ -11,9 +11,8 @@ export enum DownloadStatus {
 
 export interface DownloadTaskFile {
   name: string;
-  path: string;
+  pathOnDrive: string;
   size: number;
-  relativePath: string; // For maintaining folder structure
 }
 
 export class DownloadTask {

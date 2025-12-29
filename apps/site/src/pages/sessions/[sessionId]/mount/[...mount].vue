@@ -351,7 +351,10 @@ const folderDangerItems = computed<MenuItem[]>(() => [
       >
         <Hover class="flex-1" :fluid="false">
           <span
-            :class="['font-bold break-all', isDesktop ? 'text-lg' : 'text-base']"
+            :class="[
+              'font-bold break-all',
+              isDesktop ? 'text-lg' : 'text-base',
+            ]"
           >
             {{ listViewStoreRefs.name.value }}
           </span>

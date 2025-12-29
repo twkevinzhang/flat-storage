@@ -137,6 +137,7 @@ declare global {
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
+  const getFilename: typeof import('@site/utilities')['getFilename']
   const groupBy: typeof import('lodash-es')['groupBy']
   const gt: typeof import('lodash-es')['gt']
   const gte: typeof import('lodash-es')['gte']
@@ -785,6 +786,7 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
+    readonly getFilename: UnwrapRef<typeof import('@site/utilities')['getFilename']>
     readonly groupBy: UnwrapRef<typeof import('lodash-es')['groupBy']>
     readonly gt: UnwrapRef<typeof import('lodash-es')['gt']>
     readonly gte: UnwrapRef<typeof import('lodash-es')['gte']>

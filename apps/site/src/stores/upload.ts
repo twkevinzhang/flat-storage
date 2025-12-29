@@ -322,7 +322,6 @@ export const useUploadStore = defineStore('upload', () => {
 
     for await (const chunk of getChunks()) {
       if (signal.aborted) {
-        console.log('got abort signal');
         break;
       }
 
@@ -373,15 +372,15 @@ export const useUploadStore = defineStore('upload', () => {
   async function runUpdateMetadata(taskId: string) {
     const bucket = proxyBucket(session.value!);
     const task = getTask(taskId);
-    const [gcsMetadata] = await bucket
-      .file(task.objectNameOnGcs())
-      .getMetadata();
+    const pathOnDrive = task.objectNameOnGcs();
+    const [gcsMetadata] = await bucket.file(pathOnDrive).getMetadata();
 
     const appMetadata = {
       path: EntityPath.fromRoute({
         sessionId: session.value!.id,
         mount: task.path,
       }),
+      pathOnDrive,
       mimeType: gcsMetadata.contentType,
       sizeBytes: Number(gcsMetadata.size),
       uploadedAtISO: gcsMetadata.timeCreated,

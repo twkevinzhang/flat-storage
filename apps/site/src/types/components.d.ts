@@ -16,7 +16,6 @@ declare module 'vue' {
     Breadcrumb: typeof import('./../components/Breadcrumb.vue')['default']
     Button: typeof import('primevue/button')['default']
     ButtonGroup: typeof import('primevue/buttongroup')['default']
-    Checkbox: typeof import('primevue/checkbox')['default']
     ColoredCheckbox: typeof import('./../components/ColoredCheckbox.vue')['default']
     ColumnPanel: typeof import('./../components/ColumnPanel.vue')['default']
     CreateFolderDialog: typeof import('./../dialogs/CreateFolderDialog.vue')['default']

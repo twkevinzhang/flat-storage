@@ -33,6 +33,13 @@ export function removeTrailingPart(path: string): string {
   return path.slice(0, lastSlashIndex);
 }
 
+export function getFilename(path: string): string {
+  if (count(path, '/') === 0) {
+    return path;
+  }
+  return path.split('/').pop() || '';
+}
+
 export function decodeBuffer(data: any): string {
   if (typeof data === 'string') return data;
   if (data?.type === 'Buffer' && Array.isArray(data.data)) {

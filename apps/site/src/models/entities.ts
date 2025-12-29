@@ -52,9 +52,23 @@ export class SessionEntity {
   }
 }
 
-export class ObjectEntity {
+export interface FlatObject {
+  readonly path: EntityPath;
+  readonly pathOnDrive: string;
+  readonly mimeType?: ObjectMimeType;
+  readonly sizeBytes?: number;
+  readonly uploadedAtISO?: string;
+  readonly latestUpdatedAtISO?: string;
+  readonly md5Hash?: string;
+  readonly crc32c?: string;
+  readonly xxHash64?: string;
+  readonly deletedAtISO?: string;
+}
+
+export class ObjectEntity implements FlatObject {
   private constructor(
     public readonly path: EntityPath,
+    public readonly pathOnDrive: string,
     public readonly mimeType?: ObjectMimeType,
     public readonly sizeBytes?: number,
     public readonly uploadedAtISO?: string,
@@ -67,6 +81,7 @@ export class ObjectEntity {
 
   static new(params: {
     path: EntityPath;
+    pathOnDrive: string;
     mimeType?: ObjectMimeType;
     sizeBytes?: number;
     uploadedAtISO?: string;
@@ -78,6 +93,7 @@ export class ObjectEntity {
   }): ObjectEntity {
     return new ObjectEntity(
       params.path,
+      params.pathOnDrive,
       params.mimeType,
       params.sizeBytes,
       params.uploadedAtISO,
@@ -96,6 +112,7 @@ export class ObjectEntity {
         sessionId: sessionId,
         mount: json.path,
       }),
+      pathOnDrive: json.pathOnDrive,
       mimeType: json.mimeType,
       sizeBytes: json.sizeBytes,
       uploadedAtISO: json.uploadedAtISO,
@@ -110,15 +127,15 @@ export class ObjectEntity {
   // GCS File response doc: https://github.com/googleapis/nodejs-storage/blob/3dcda1b7153664197215c7316761e408ca870bc4/src/file.ts#L556
   static fromGCS(f: any, sessionId: string): ObjectEntity {
     const isFolder = f.metadata.name.endsWith('/');
-    let normalizedPath = removeLeadingSlash(f.metadata.name);
-    normalizedPath = removeTrailingSlash(normalizedPath);
     return ObjectEntity.new({
       ...f,
       ...f.metadata,
+      name: getFilename(f.metadata.name),
       path: EntityPath.fromRoute({
         sessionId,
-        mount: normalizedPath,
+        mount: removeLeadingSlash(removeTrailingSlash(f.metadata.name)),
       }),
+      pathOnDrive: f.metadata.name,
       mimeType: isFolder ? ObjectMimeType.folder : f.metadata.contentType,
       sizeBytes: f.metadata.size,
       uploadedAtISO: f.metadata.timeCreated,
@@ -133,6 +150,7 @@ export class ObjectEntity {
   toJson(): string {
     return JSON.stringify({
       path: this.path.toSegmentsString(),
+      pathOnDrive: this.pathOnDrive,
       mimeType: this.mimeType,
       sizeBytes: this.sizeBytes,
       uploadedAtISO: this.uploadedAtISO,
@@ -188,72 +206,72 @@ export class ObjectEntity {
   }
 }
 
-export interface ExpandedFile {
-  entity: ObjectEntity;
-  relativePath: string;
-}
+// export interface ExpandedFile {
+//   entity: ObjectEntity;
+//   relativePath: string;
+// }
 
-/**
- * Recursively expand a folder to get all file entities
- */
-export function expandFolder(
-  folder: ObjectEntity,
-  allEntities: ObjectEntity[],
-  basePath: string = ''
-): ExpandedFile[] {
-  const result: ExpandedFile[] = [];
-  const folderPathStr = folder.path.toString();
+// /**
+//  * Recursively expand a folder to get all file entities
+//  */
+// export function expandFolder(
+//   folder: ObjectEntity,
+//   allEntities: ObjectEntity[],
+//   basePath: string = ''
+// ): ExpandedFile[] {
+//   const result: ExpandedFile[] = [];
+//   const folderPathStr = folder.path.toString();
 
-  for (const entity of allEntities) {
-    const entityPathStr = entity.path.toString();
+//   for (const entity of allEntities) {
+//     const entityPathStr = entity.path.toString();
 
-    // Check if entity is inside this folder
-    if (entityPathStr.startsWith(folderPathStr + '/')) {
-      const relativePath = entityPathStr.substring(folderPathStr.length + 1);
+//     // Check if entity is inside this folder
+//     if (entityPathStr.startsWith(folderPathStr + '/')) {
+//       const relativePath = entityPathStr.substring(folderPathStr.length + 1);
 
-      if (entity.isFolder) {
-        // Recursively expand subfolders
-        result.push(
-          ...expandFolder(
-            entity,
-            allEntities,
-            basePath ? `${basePath}/${relativePath}` : relativePath
-          )
-        );
-      } else {
-        // Add file with relative path
-        result.push({
-          entity,
-          relativePath: basePath ? `${basePath}/${relativePath}` : relativePath,
-        });
-      }
-    }
-  }
+//       if (entity.isFolder) {
+//         // Recursively expand subfolders
+//         result.push(
+//           ...expandFolder(
+//             entity,
+//             allEntities,
+//             basePath ? `${basePath}/${relativePath}` : relativePath
+//           )
+//         );
+//       } else {
+//         // Add file with relative path
+//         result.push({
+//           entity,
+//           relativePath: basePath ? `${basePath}/${relativePath}` : relativePath,
+//         });
+//       }
+//     }
+//   }
 
-  return result;
-}
+//   return result;
+// }
 
-/**
- * Expand selections to include all files in folders
- */
-export function expandSelections(
-  selectedEntities: ObjectEntity[],
-  allEntities: ObjectEntity[]
-): ExpandedFile[] {
-  const result: ExpandedFile[] = [];
+// /**
+//  * Expand selections to include all files in folders
+//  */
+// export function expandSelections(
+//   selectedEntities: ObjectEntity[],
+//   allEntities: ObjectEntity[]
+// ): ExpandedFile[] {
+//   const result: ExpandedFile[] = [];
 
-  for (const entity of selectedEntities) {
-    if (!entity.isFolder) {
-      // Direct file selection
-      result.push({
-        entity,
-        relativePath: entity.name,
-      });
-    } else {
-      // Folder selection - expand to all files
-      result.push(...expandFolder(entity, allEntities));
-    }
-  }
+//   for (const entity of selectedEntities) {
+//     if (!entity.isFolder) {
+//       // Direct file selection
+//       result.push({
+//         entity,
+//         relativePath: entity.name,
+//       });
+//     } else {
+//       // Folder selection - expand to all files
+//       result.push(...expandFolder(entity, allEntities));
+//     }
+//   }
 
-  return result;
-}
+//   return result;
+// }

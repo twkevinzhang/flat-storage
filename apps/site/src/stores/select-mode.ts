@@ -1,4 +1,5 @@
 import type { Entity } from '@site/components/ObjectTree';
+import { ObjectEntity } from '@site/models';
 
 export const useSelectModeStore = defineStore('select-mode', () => {
   const selectMode = ref<boolean>(false);
@@ -6,7 +7,26 @@ export const useSelectModeStore = defineStore('select-mode', () => {
   const itemKeys = computed(() => items.value.map((item) => item.key));
   const selectionKeys = ref<Set<string>>(new Set());
 
-  const selectionsCount = computed(() => selectionKeys.value.size);
+  const downloadableObjects = computed(() =>
+    items.value
+      .filter((item) => selectionKeys.value.has(item.key))
+      .map((item) =>
+        ObjectEntity.new({
+          path: item.path,
+          pathOnDrive: item.pathOnDrive,
+          mimeType: item.mimeType,
+          sizeBytes: item.sizeBytes,
+          uploadedAtISO: item.uploadedAtISO,
+          latestUpdatedAtISO: item.latestUpdatedAtISO,
+          md5Hash: item.md5Hash,
+          crc32c: item.crc32c,
+          xxHash64: item.xxHash64,
+          deletedAtISO: item.deletedAtISO,
+        })
+      )
+      .filter((e) => !e.isFolder)
+  );
+  const selectionsCount = computed(() => downloadableObjects.value.length);
 
   /**
    * 從 key 中提取父節點的 key
@@ -207,6 +227,7 @@ export const useSelectModeStore = defineStore('select-mode', () => {
     selectionKeys,
     indeterminateKeys,
     selectionsCount,
+    downloadableObjects,
     enterSelectMode,
     exitSelectMode,
     setItems,

@@ -119,7 +119,7 @@ export const useDownloadStore = defineStore('download', () => {
         });
 
         const bucket = proxyBucket(session.value);
-        const file = bucket.file(task.file.path);
+        const file = bucket.file(task.file.pathOnDrive);
 
         signedUrl = await file.getSignedUrl({
           action: 'read',
@@ -145,7 +145,7 @@ export const useDownloadStore = defineStore('download', () => {
 
       await downloadFile(
         signedUrl,
-        task.file.relativePath,
+        task.file.name, // 使用檔案名稱作為下載的預設檔名
         (downloadedBytes) => {
           tracker.update(downloadedBytes);
           const speed = tracker.getSpeed();
