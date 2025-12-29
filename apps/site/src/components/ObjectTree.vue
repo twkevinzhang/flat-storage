@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ColumnKeys } from '@site/models';
+import { ColumnKeys, ObjectEntity } from '@site/models';
 import { Entity } from '@site/components/ObjectTree';
 import { breakpointsTailwind } from '@vueuse/core';
 import { useSelectModeStore } from '@site/stores/select-mode';
-import ColoredCheckbox from '@site/components/ColoredCheckbox.vue';
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller('md');
@@ -14,6 +13,7 @@ const props = withDefaults(
     tree?: Entity[];
     limit?: number;
     indent?: boolean;
+    depth?: number;
     columns?: { label: string; key: ColumnKeys }[];
     columnWidths?: Record<string, number>;
     expandedKeys?: string[];
@@ -25,6 +25,7 @@ const props = withDefaults(
     tree: () => [],
     limit: 10,
     indent: false,
+    depth: 0,
     columns: () => [],
     columnWidths: () => ({}),
     showCheckbox: false,
@@ -104,20 +105,32 @@ function nodeToggle(node: Entity) {
   }
 }
 
-function getCellValue(node: Entity, key: ColumnKeys) {
+function getCellValue(item: Entity, key: ColumnKeys) {
+  const entity = ObjectEntity.new({
+    path: item.path,
+    pathOnDrive: item.pathOnDrive,
+    mimeType: item.mimeType,
+    sizeBytes: item.sizeBytes,
+    uploadedAtISO: item.uploadedAtISO,
+    latestUpdatedAtISO: item.latestUpdatedAtISO,
+    md5Hash: item.md5Hash,
+    crc32c: item.crc32c,
+    xxHash64: item.xxHash64,
+    deletedAtISO: item.deletedAtISO,
+  });
   switch (key) {
     case ColumnKeys.name:
-      return node.label;
+      return entity.name;
     case ColumnKeys.mimeType:
-      return node.mimeType || '-';
+      return entity.mimeType || '-';
     case ColumnKeys.sizeBytes:
-      return node.sizeFormatted || '-';
+      return entity.sizeFormatted || '-';
     case ColumnKeys.createdAt:
-      return node.createdAt?.toLocaleString() || '-';
+      return entity.createdAt?.toLocaleString() || '-';
     case ColumnKeys.latestUpdatedAt:
-      return node.modifiedAtFormatted || '-';
+      return entity.modifiedAtFormatted || '-';
     default:
-      return (node as any)[key] || '-';
+      return (entity as any)[key] || '-';
   }
 }
 </script>
@@ -125,52 +138,59 @@ function getCellValue(node: Entity, key: ColumnKeys) {
 <template>
   <ul>
     <li v-for="node in take(props.tree, props.limit)" :key="node.key">
-      <!-- Row with dynamic columns -->
       <div
         class="group flex items-center border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors"
       >
         <template v-for="col in props.columns" :key="col.key">
-          <!-- Special handling for Name column with toggle/icons -->
-          <!-- Checkbox (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
           <template v-if="col.key === ColumnKeys.name">
-            <div class="size-8 flex items-center justify-center">
-              <ColoredCheckbox
-                :model-value="isChecked(node)"
-                :indeterminate="isIndeterminate(node)"
-                :class="[
-                  'flex-shrink-0 transition-opacity',
-                  isMobile || props.showCheckbox
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100',
-                ]"
-                @update:model-value="handleToggleSelection(node)"
-              />
-            </div>
-            <template v-if="node.leaf">
-              <Hover
-                class="w-6 flex-shrink-0"
-                :icon="angleIcon(node)"
-                :fluid="false"
-                rounded="none"
-                @click="(e) => nodeToggle(node)"
-              />
-            </template>
-            <template v-else>
-              <div class="w-6 h-8 flex-shrink-0" />
-            </template>
-          </template>
-          <div
-            v-if="col.key === ColumnKeys.name"
-            class="flex items-center flex-shrink-0 min-w-0"
-            :style="{ width: props.columnWidths[col.key] + 'px' }"
-          >
             <div
-              :class="[
-                'w-full p-1 overflow-hidden flex gap-2 items-center',
-                props.indent ? 'pl-8' : '',
-              ]"
+              class="flex items-center flex-shrink-0 min-w-0 w-full p-1 overflow-hidden gap-2"
+              :style="{ width: props.columnWidths[col.key] + 'px' }"
             >
+              <!-- Checkbox (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
+              <div
+                class="size-8 flex items-center justify-center flex-shrink-0"
+              >
+                <ColoredCheckbox
+                  :model-value="isChecked(node)"
+                  :indeterminate="isIndeterminate(node)"
+                  :class="[
+                    'flex-shrink-0 transition-opacity',
+                    isMobile || props.showCheckbox
+                      ? 'opacity-100'
+                      : 'opacity-0 group-hover:opacity-100',
+                  ]"
+                  @update:model-value="handleToggleSelection(node)"
+                />
+              </div>
+
+              <!-- Indentation spacer -->
+              <div
+                v-if="props.depth > 0"
+                class="flex-shrink-0"
+                :style="{ width: `${props.depth * 32}px` }"
+              />
+
+              <!-- Angle button -->
+              <template v-if="node.leaf">
+                <div class="flex-shrink-0">
+                  <Hover
+                    class="w-6"
+                    :icon="angleIcon(node)"
+                    :fluid="false"
+                    rounded="none"
+                    @click="(e) => nodeToggle(node)"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <div class="w-6 h-8 flex-shrink-0" />
+              </template>
+
+              <!-- Prefix icon -->
               <PrimeIcon :fullname="mimeIcon(node)" />
+
+              <!-- Text -->
               <Hover
                 class="min-w-0"
                 :label="node.label"
@@ -180,7 +200,7 @@ function getCellValue(node: Entity, key: ColumnKeys) {
                 @click="(e) => emits('nodeClick', node)"
               />
             </div>
-          </div>
+          </template>
 
           <!-- Generic columns -->
           <div
@@ -198,6 +218,7 @@ function getCellValue(node: Entity, key: ColumnKeys) {
       <template v-if="node.leaf && isExpanded(node) && node.children">
         <ObjectTree
           :indent="true"
+          :depth="props.depth + 1"
           :tree="node.children"
           :limit="props.limit"
           :columns="props.columns"

@@ -3,7 +3,6 @@ import { Entity } from '@site/components/ObjectTree';
 import { EntityPath } from '@site/models';
 import { breakpointsTailwind } from '@vueuse/core';
 import { useSelectModeStore } from '@site/stores/select-mode';
-import ColoredCheckbox from '@site/components/ColoredCheckbox.vue';
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller('md');
@@ -83,7 +82,11 @@ function handleToggleSelection(item: Entity, event: Event) {
         v-if="item.leaf"
         name="angle-right"
         class="flex-shrink-0"
-        :class="item.key === selectedKey && active ? 'text-blue-200' : 'text-slate-400'"
+        :class="
+          item.key === selectedKey && active
+            ? 'text-blue-200'
+            : 'text-slate-400'
+        "
       />
     </div>
 

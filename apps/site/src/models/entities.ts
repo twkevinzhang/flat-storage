@@ -127,17 +127,18 @@ export class ObjectEntity implements FlatObject {
   // GCS File response doc: https://github.com/googleapis/nodejs-storage/blob/3dcda1b7153664197215c7316761e408ca870bc4/src/file.ts#L556
   static fromGCS(f: any, sessionId: string): ObjectEntity {
     const isFolder = f.metadata.name.endsWith('/');
+    const userPath = f.metadata.metadata?.userPath || f.metadata.name;
     return ObjectEntity.new({
       ...f,
       ...f.metadata,
-      name: getFilename(f.metadata.name),
+      name: getFilename(userPath),
       path: EntityPath.fromRoute({
         sessionId,
-        mount: removeLeadingSlash(removeTrailingSlash(f.metadata.name)),
+        mount: removeLeadingSlash(removeTrailingSlash(userPath)),
       }),
       pathOnDrive: f.metadata.name,
       mimeType: isFolder ? ObjectMimeType.folder : f.metadata.contentType,
-      sizeBytes: f.metadata.size,
+      sizeBytes: f.metadata.size ? Number(f.metadata.size) : undefined,
       uploadedAtISO: f.metadata.timeCreated,
       latestUpdatedAtISO: f.metadata.updated,
       md5Hash: f.metadata.md5Hash,
@@ -187,7 +188,7 @@ export class ObjectEntity implements FlatObject {
   get sizeFormatted(): string {
     if (!this.sizeBytes) return '';
     const units = ['B', 'KB', 'MB', 'GB'];
-    let size = this.sizeBytes;
+    let size = Number(this.sizeBytes);
     let i = 0;
     while (size >= 1024 && i < latestIndex(units)) {
       size /= 1024;

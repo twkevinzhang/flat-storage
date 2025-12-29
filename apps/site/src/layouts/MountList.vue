@@ -4,7 +4,6 @@ import { ColumnKeys } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
 import { useSelectModeStore } from '@site/stores/select-mode';
 import { breakpointsTailwind } from '@vueuse/core';
-import ColoredCheckbox from '@site/components/ColoredCheckbox.vue';
 
 const selectModeStore = useSelectModeStore();
 
@@ -78,39 +77,60 @@ function handleSelectAll() {
 }
 </script>
 <template>
-  <!-- Scrollable container for mobile -->
   <div v-bind="pt?.root" class="overflow-x-auto">
     <div class="min-w-max">
-      <!-- Column Headers -->
+      <!-- Headers -->
       <SplitterPx
         v-model:widths="columnWidths"
         class="group bg-gray-50 border-b border-gray-300 font-semibold text-sm text-gray-700"
       >
-        <div class="size-8 flex items-center justify-center">
-          <!-- 全選按鈕 (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
-          <ColoredCheckbox
-            :model-value="isAllSelected"
-            :indeterminate="isIndeterminate"
-            class="flex-shrink-0"
-            @update:model-value="handleSelectAll"
-          />
-        </div>
-        <div class="w-6 h-8 flex-shrink-0" />
-        <SplitterPxPanel
-          v-for="col in activeColumns"
-          :key="col.key"
-          :id="col.key"
-          :size="columnWidths[col.key]"
-          :min-size="col.key === ColumnKeys.name ? 200 : 60"
-          class="p-2"
-        >
-          <template #default>{{ col.label }}</template>
-          <template #handle>
-            <div
-              class="w-1 h-full opacity-0 hover:opacity-100 bg-blue-400"
-            ></div>
+        <template v-for="col in activeColumns">
+          <template v-if="col.key === ColumnKeys.name">
+            <SplitterPxPanel
+              :key="col.key"
+              :id="col.key"
+              :size="columnWidths[col.key]"
+              :min-size="200"
+              class="p-1"
+            >
+              <template #default>
+                <div class="flex gap-2 items-center">
+                  <div class="size-8 flex items-center justify-center">
+                    <ColoredCheckbox
+                      :model-value="isAllSelected"
+                      :indeterminate="isIndeterminate"
+                      class="flex-shrink-0"
+                      @update:model-value="handleSelectAll"
+                    />
+                  </div>
+                  <div class="w-6 h-8 flex-shrink-0" />
+                  <span>{{ col.label }}</span>
+                </div>
+              </template>
+              <template #handle>
+                <div
+                  class="w-1 h-full opacity-0 hover:opacity-100 bg-blue-400"
+                ></div>
+              </template>
+            </SplitterPxPanel>
           </template>
-        </SplitterPxPanel>
+          <template v-else>
+            <SplitterPxPanel
+              :key="col.key"
+              :id="col.key"
+              :size="columnWidths[col.key]"
+              :min-size="60"
+              class="p-2"
+            >
+              <template #default>{{ col.label }}</template>
+              <template #handle>
+                <div
+                  class="w-1 h-full opacity-0 hover:opacity-100 bg-blue-400"
+                ></div>
+              </template>
+            </SplitterPxPanel>
+          </template>
+        </template>
       </SplitterPx>
 
       <ul>
@@ -155,7 +175,7 @@ function handleSelectAll() {
           </div>
         </li>
 
-        <!-- Object tree with column widths -->
+        <!-- Children -->
         <ObjectTree
           :tree="tree"
           :limit="10"
