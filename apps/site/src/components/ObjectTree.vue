@@ -3,6 +3,7 @@ import { ColumnKeys } from '@site/models';
 import { Entity } from '@site/components/ObjectTree';
 import { breakpointsTailwind } from '@vueuse/core';
 import { useSelectModeStore } from '@site/stores/select-mode';
+import ColoredCheckbox from '@site/components/ColoredCheckbox.vue';
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller('md');
@@ -133,10 +134,9 @@ function getCellValue(node: Entity, key: ColumnKeys) {
           <!-- Checkbox (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
           <template v-if="col.key === ColumnKeys.name">
             <div class="size-8 flex items-center justify-center">
-              <Checkbox
+              <ColoredCheckbox
                 :model-value="isChecked(node)"
                 :indeterminate="isIndeterminate(node)"
-                binary
                 :class="[
                   'flex-shrink-0 transition-opacity',
                   isMobile || props.showCheckbox

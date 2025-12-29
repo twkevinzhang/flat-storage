@@ -4,6 +4,7 @@ import { ColumnKeys } from '@site/models';
 import { useListViewStore } from '@site/stores/list-view';
 import { useSelectModeStore } from '@site/stores/select-mode';
 import { breakpointsTailwind } from '@vueuse/core';
+import ColoredCheckbox from '@site/components/ColoredCheckbox.vue';
 
 const selectModeStore = useSelectModeStore();
 
@@ -87,10 +88,9 @@ function handleSelectAll() {
       >
         <div class="size-8 flex items-center justify-center">
           <!-- 全選按鈕 (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
-          <Checkbox
+          <ColoredCheckbox
             :model-value="isAllSelected"
             :indeterminate="isIndeterminate"
-            binary
             class="flex-shrink-0"
             @update:model-value="handleSelectAll"
           />

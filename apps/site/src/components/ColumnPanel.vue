@@ -3,6 +3,7 @@ import { Entity } from '@site/components/ObjectTree';
 import { EntityPath } from '@site/models';
 import { breakpointsTailwind } from '@vueuse/core';
 import { useSelectModeStore } from '@site/stores/select-mode';
+import ColoredCheckbox from '@site/components/ColoredCheckbox.vue';
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller('md');
@@ -56,10 +57,9 @@ function handleToggleSelection(item: Entity, event: Event) {
       @click="emits('itemClick', item)"
     >
       <!-- Checkbox (手機版始終顯示，桌面版 hover 或選擇模式下顯示) -->
-      <Checkbox
+      <ColoredCheckbox
         :model-value="isChecked(item)"
         :indeterminate="isIndeterminate(item)"
-        binary
         :class="[
           'flex-shrink-0 transition-opacity',
           isMobile || showCheckbox

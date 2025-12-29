@@ -27,12 +27,10 @@ function handleDownload() {
   // Get selected entities
   const selectedEntities = Array.from(selectModeStore.selectionKeys)
     .map((key) => selectModeStore.items.find((item) => item.key === key))
-    .filter(Boolean) as ObjectEntity[];
-
-  console.log('選擇的實體數量:', selectedEntities.length);
+    .filter(Boolean)
+    .filter((e) => e && !e.isFolder);
 
   if (isEmpty(selectedEntities)) {
-    console.log('沒有選擇任何實體，返回');
     return;
   }
 
@@ -40,12 +38,8 @@ function handleDownload() {
   const allEntities = metadataStore.allObjects;
   console.log('所有實體數量:', allEntities.length);
 
-  // Expand selections to include folder contents
-  const expandedFiles = expandSelections(selectedEntities, allEntities);
-  console.log('展開後的檔案數量:', expandedFiles.length);
-
   // Create download tasks
-  const tasks: DownloadTaskFile[] = expandedFiles.map(
+  const tasks: DownloadTaskFile[] = selectedEntities.map(
     ({ entity, relativePath }) => ({
       name: entity.path.name,
       path: entity.path.toSegmentsString(),
@@ -84,14 +78,14 @@ function handleCancel() {
 // 共用的操作按鈕定義
 const safeActionButtons = [
   {
-    icon: 'pi pi-folder-open',
-    label: '移動',
-    handler: handleMove,
-  },
-  {
     icon: 'pi pi-download',
     label: '下載',
     handler: handleDownload,
+  },
+  {
+    icon: 'pi pi-folder-open',
+    label: '移動',
+    handler: handleMove,
   },
   {
     icon: 'pi pi-star',
@@ -108,118 +102,35 @@ const safeActionButtons = [
 
 <template>
   <Teleport to="body">
-    <Transition name="slide-up">
+    <Transition
+      enter-active-class="transition-transform duration-300 ease-out"
+      leave-active-class="transition-transform duration-300 ease-in"
+      enter-from-class="translate-y-full"
+      leave-to-class="translate-y-full"
+    >
       <div
         v-if="selectModeStore.selectMode && selectModeStore.selectionsCount > 0"
-        class="fixed bottom-0 left-0 right-0 text-white z-50"
+        class="fixed bottom-0 left-0 right-0 text-white z-50 bg-sky-500"
         :class="isMobile ? 'py-3' : 'py-4'"
-        style="background-color: var(--p-primary-500)"
       >
         <div class="container mx-auto px-4">
-          <!-- 桌面版 -->
-          <div v-if="!isMobile" class="flex items-center justify-between">
-            <!-- 左側：已選數量 + 安全操作 -->
-            <div class="flex items-center gap-3">
-              <span class="font-semibold">
-                已選擇 {{ selectModeStore.selectionsCount }} 項
-              </span>
-              <div class="h-6 w-px bg-white/30"></div>
-              <Button
-                v-for="btn in safeActionButtons"
-                :key="btn.icon"
-                :icon="btn.icon"
-                :label="btn.label"
-                severity="secondary"
-                @click="btn.handler"
-              />
-            </div>
+          <DesktopSelectModeActionBar
+            v-if="!isMobile"
+            :selections-count="selectModeStore.selectionsCount"
+            :safe-action-buttons="safeActionButtons"
+            :on-delete="handleDelete"
+            :on-cancel="handleCancel"
+          />
 
-            <!-- 右側：危險操作 + 取消 -->
-            <div class="flex items-center gap-3">
-              <div class="h-6 w-px bg-white/30"></div>
-              <Button
-                icon="pi pi-trash"
-                label="刪除"
-                severity="danger"
-                class="text-red-300 hover:text-red-100"
-                @click="handleDelete"
-              />
-              <div class="h-6 w-px bg-white/30"></div>
-              <Button
-                icon="pi pi-times"
-                label="取消"
-                severity="secondary"
-                @click="handleCancel"
-              />
-            </div>
-          </div>
-
-          <!-- 手機版：水平滾動 -->
-          <div v-else class="flex items-center gap-2">
-            <!-- 已選數量（固定在左側） -->
-            <span class="font-semibold text-sm whitespace-nowrap">
-              {{ selectModeStore.selectionsCount }} 項
-            </span>
-
-            <!-- 可滾動按鈕區域 -->
-            <div
-              class="flex-1 overflow-x-auto flex items-center gap-2 scrollbar-hide"
-            >
-              <Button
-                v-for="btn in safeActionButtons"
-                :key="btn.icon"
-                :icon="btn.icon"
-                :aria-label="btn.label"
-                severity="secondary"
-                size="small"
-                class="text-white flex-shrink-0"
-                @click="btn.handler"
-              />
-              <div class="h-6 w-px bg-white/30 flex-shrink-0"></div>
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                size="small"
-                aria-label="刪除"
-                class="text-red-300 flex-shrink-0"
-                @click="handleDelete"
-              />
-            </div>
-
-            <!-- 取消按鈕（固定在右側） -->
-            <Button
-              icon="pi pi-times"
-              severity="secondary"
-              size="small"
-              aria-label="取消"
-              class="text-white flex-shrink-0"
-              @click="handleCancel"
-            />
-          </div>
+          <MobileSelectModeActionBar
+            v-else
+            :selections-count="selectModeStore.selectionsCount"
+            :safe-action-buttons="safeActionButtons"
+            :on-delete="handleDelete"
+            :on-cancel="handleCancel"
+          />
         </div>
       </div>
     </Transition>
   </Teleport>
 </template>
-
-<style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-up-enter-from,
-.slide-up-leave-to {
-  transform: translateY(100%);
-}
-
-/* 隱藏手機版滾動條 */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-</style>
